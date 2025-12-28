@@ -1,0 +1,366 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Prompt Architect - 提示词工程系统</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { background-color: #f8fafc; color: #334155; font-family: system-ui, -apple-system, sans-serif; }
+        .glass-panel { background: white; border: 1px solid #e2e8f0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05); border-radius: 0.75rem; }
+        .markdown-body { font-size: 0.95rem; line-height: 1.6; color: #334155; }
+        .markdown-body h1, .markdown-body h2, .markdown-body h3 { color: #0f172a; font-weight: 700; margin-top: 1.5em; margin-bottom: 0.5em; }
+        .markdown-body h2 { font-size: 1.25rem; border-bottom: 1px solid #e2e8f0; padding-bottom: 0.3em; }
+        .markdown-body h3 { font-size: 1.1rem; }
+        .markdown-body ul { list-style-type: disc; padding-left: 1.5em; margin-bottom: 1em; }
+        .markdown-body code { background-color: #f1f5f9; padding: 0.2em 0.4em; border-radius: 0.25rem; font-family: monospace; font-size: 0.9em; }
+        .markdown-body pre { background-color: #1e293b; color: #f8fafc; padding: 1em; border-radius: 0.5rem; overflow-x: auto; margin-bottom: 1em; }
+        .markdown-body pre code { background-color: transparent; color: inherit; padding: 0; }
+        .markdown-body blockquote { border-left: 4px solid #3b82f6; padding-left: 1em; color: #64748b; background: #eff6ff; padding: 0.5em 1em; border-radius: 0 0.5rem 0.5rem 0; margin-bottom: 1em; }
+        
+        /* Loading */
+        .typing-indicator span { animation: blink 1.4s infinite both; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+    </style>
+</head>
+<body class="h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-white border-b px-6 py-3 flex justify-between items-center z-10 shrink-0">
+        <div class="flex items-center gap-3">
+            <div class="text-2xl bg-indigo-100 text-indigo-700 p-2 rounded-lg">🧬</div>
+            <div>
+                <h1 class="text-xl font-bold tracking-tight text-gray-900">Prompt Architect</h1>
+                <p class="text-xs text-gray-500">认知协议设计与优化系统 v3.0</p>
+            </div>
+        </div>
+        <div class="flex items-center gap-4">
+            <button id="settingsBtn" class="text-sm text-gray-600 hover:text-indigo-600 flex items-center gap-1">
+                <span>⚙️ AI Setups</span>
+                <span id="keyIndicator" class="w-2 h-2 rounded-full bg-red-400"></span>
+            </button>
+        </div>
+    </header>
+
+    <div id="aiSettings" class="absolute top-16 right-6 w-96 glass-panel p-5 z-50 hidden shadow-xl">
+        <h3 class="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Universal AI Protocol</h3>
+        <div class="space-y-4 text-sm">
+            <div>
+                <label class="block text-gray-500 mb-1 text-xs">Provider</label>
+                <select id="providerSelect" class="w-full border rounded p-2 bg-gray-50 text-gray-800"></select>
+            </div>
+            <div>
+                <label class="block text-gray-500 mb-1 text-xs">Model</label>
+                <select id="modelSelect" class="w-full border rounded p-2 bg-gray-50 text-gray-800"></select>
+            </div>
+            <div id="customConfig" class="hidden space-y-2 border-t pt-2">
+                <input type="text" id="customBaseUrl" class="w-full border rounded p-2" placeholder="Base URL">
+                <input type="text" id="customModelId" class="w-full border rounded p-2" placeholder="Model ID">
+            </div>
+            <div class="flex justify-between items-center pt-2 border-t mt-2">
+                <span id="keyStatus" class="text-xs font-mono">Checking...</span>
+                <a href="key-manager.html" target="_blank" class="text-indigo-600 hover:underline text-xs">Open Key Manager</a>
+            </div>
+        </div>
+    </div>
+
+    <div class="flex-1 flex overflow-hidden">
+        
+        <div class="w-1/3 min-w-[350px] bg-white border-r flex flex-col p-6 overflow-y-auto">
+            <div class="mb-4">
+                <label class="block font-bold text-gray-800 text-lg mb-1">原始提示词 / 需求</label>
+                <p class="text-xs text-gray-500">粘贴您想优化的 Prompt，或简述您的任务目标。</p>
+            </div>
+            <textarea id="promptInput" class="flex-1 w-full border border-gray-200 rounded-xl p-4 focus:ring-2 focus:ring-indigo-500 focus:outline-none resize-none font-mono text-sm bg-gray-50 leading-relaxed" 
+            placeholder="例如：帮我写一个小红书文案，关于减肥的..."></textarea>
+            
+            <div class="mt-4 pt-4 border-t flex justify-between items-center">
+                <span class="text-xs text-gray-400 flex items-center gap-1">
+                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path></svg>
+                    支持拖拽文本文件
+                </span>
+                <button id="optimizeBtn" class="bg-indigo-600 text-white px-6 py-2.5 rounded-lg hover:bg-indigo-700 transition font-medium shadow-sm flex items-center gap-2">
+                    <span>🚀 开始架构</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="flex-1 bg-slate-50 flex flex-col overflow-hidden relative">
+            <div id="emptyState" class="absolute inset-0 flex flex-col items-center justify-center text-gray-400 pointer-events-none">
+                <div class="text-6xl mb-4 opacity-20">🧠</div>
+                <p>Ready to diagnose cognitive protocols</p>
+            </div>
+
+            <div id="outputContainer" class="flex-1 overflow-y-auto p-8 hidden">
+                <div class="max-w-4xl mx-auto">
+                    <div id="resultContent" class="markdown-body bg-white p-8 rounded-xl shadow-sm border border-gray-100"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ==========================================
+        // 1. UNIVERSAL AI PROTOCOL (v3.0)
+        // ==========================================
+        const AI_PROVIDERS = {
+            "siliconflow": {
+                name: "硅基流动 (SiliconFlow)",
+                keyName: "siliconflow_key",
+                baseUrl: "https://api.siliconflow.cn/v1",
+                models: [
+                    { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3 (Recommended)" },
+                    { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B (Fast)" }
+                ]
+            },
+            "openrouter": {
+                name: "OpenRouter",
+                keyName: "openrouter_key",
+                baseUrl: "https://openrouter.ai/api/v1",
+                models: [
+                    { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                    { id: "deepseek/deepseek-r1", name: "DeepSeek R1" }
+                ]
+            },
+            "deepseek": {
+                name: "DeepSeek Official",
+                keyName: "deepseek_key",
+                baseUrl: "https://api.deepseek.com",
+                models: [
+                    { id: "deepseek-chat", name: "DeepSeek V3" },
+                    { id: "deepseek-reasoner", name: "DeepSeek R1" }
+                ]
+            },
+            "custom": {
+                name: "Custom / Local",
+                keyName: "custom_key",
+                baseUrl: "http://localhost:11434/v1",
+                models: []
+            }
+        };
+
+        let currentProvider = 'siliconflow';
+        const els = {
+            provider: document.getElementById('providerSelect'),
+            model: document.getElementById('modelSelect'),
+            customConfig: document.getElementById('customConfig'),
+            keyStatus: document.getElementById('keyStatus'),
+            keyIndicator: document.getElementById('keyIndicator'),
+            settings: document.getElementById('aiSettings'),
+            settingsBtn: document.getElementById('settingsBtn'),
+            input: document.getElementById('promptInput'),
+            btn: document.getElementById('optimizeBtn'),
+            outputContainer: document.getElementById('outputContainer'),
+            resultContent: document.getElementById('resultContent'),
+            emptyState: document.getElementById('emptyState')
+        };
+
+        function initAI() {
+            for (const [key, val] of Object.entries(AI_PROVIDERS)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = val.name;
+                els.provider.appendChild(opt);
+            }
+            els.provider.addEventListener('change', (e) => {
+                currentProvider = e.target.value;
+                updateModelList();
+                checkKey();
+            });
+            els.settingsBtn.addEventListener('click', () => {
+                els.settings.classList.toggle('hidden');
+            });
+            updateModelList();
+            checkKey();
+        }
+
+        function updateModelList() {
+            els.model.innerHTML = '';
+            const p = AI_PROVIDERS[currentProvider];
+            if (currentProvider === 'custom') {
+                els.customConfig.classList.remove('hidden');
+                const opt = document.createElement('option');
+                opt.value = 'custom-model';
+                opt.textContent = 'Use Input Below';
+                els.model.appendChild(opt);
+            } else {
+                els.customConfig.classList.add('hidden');
+                p.models.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.name;
+                    els.model.appendChild(opt);
+                });
+            }
+        }
+
+        function checkKey() {
+            const p = AI_PROVIDERS[currentProvider];
+            const key = localStorage.getItem(p.keyName);
+            const hasKey = key || currentProvider === 'custom';
+            
+            els.keyStatus.textContent = hasKey ? "✅ Key Ready" : "❌ Key Missing";
+            els.keyStatus.className = hasKey ? "text-xs font-mono text-green-600" : "text-xs font-mono text-red-600";
+            els.keyIndicator.className = `w-2 h-2 rounded-full ${hasKey ? 'bg-green-500' : 'bg-red-500'}`;
+            
+            return hasKey;
+        }
+
+        function getAPIConfig() {
+            const p = AI_PROVIDERS[currentProvider];
+            const isCustom = currentProvider === 'custom';
+            return {
+                baseUrl: isCustom ? document.getElementById('customBaseUrl').value : p.baseUrl,
+                apiKey: isCustom ? 'sk-custom' : localStorage.getItem(p.keyName),
+                model: isCustom ? document.getElementById('customModelId').value : els.model.value
+            };
+        }
+
+        // ==========================================
+        // 2. THE PROMPT ARCHITECT LOGIC
+        // ==========================================
+        
+        // This is the "Soul" of the tool - The User's Methodology
+        const ARCHITECT_SYSTEM_PROMPT = `
+【角色定位】
+你是"Prompt架构师"，不仅要帮我优化提示词，更要建立我的"提示词工程"思维系统。
+
+【第一性原理】
+- 提示词不是"指令"，而是"认知协议"（人机之间的沟通接口）
+- 好提示词的核心 = 降低AI的理解成本 + 提高输出的可控性
+
+【思维框架：提示词三层模型】
+1. **第一层：目标诊断**
+   - 用户真正要解决的问题是什么？
+   - 这个任务是"一次性交付"还是"建立能力"？
+   - 期望的输出是"答案"还是"思维过程"？
+
+2. **第二层：结构设计 (5C原则)**
+   - Context（上下文）
+   - Constraint（约束条件）
+   - Criteria（评估标准）
+   - Chain（思维链）
+   - Check（反馈机制）
+
+3. **第三层：迭代优化**
+   - 识别"模糊指令"
+   - 设计"测试用例"
+   - 建立"版本管理"
+
+【执行任务】
+分析用户输入的提示词，并按以下Markdown格式输出：
+
+# 🩺 诊断分析
+* **真实目标**: [分析]
+* **认知漏洞**: [分析]
+* **缺失信息**: [分析]
+
+---
+
+# 🚀 优化输出 (三个版本)
+
+## 1. 初级版 (Quick Fix)
+> 适合快速使用，修复明显逻辑问题。
+\`\`\`text
+[Code Block Here]
+\`\`\`
+
+## 2. 中级版 (Structured)
+> 加入方法论与5C结构，适合重复性任务。
+\`\`\`text
+[Code Block Here]
+\`\`\`
+
+## 3. 高级版 (Framework)
+> 建立思维框架与CoT (Chain of Thought)，适合复杂能力培养。
+\`\`\`text
+[Code Block Here]
+\`\`\`
+
+---
+
+# 🧰 元认知工具包 (Self-Check)
+* **常见问题**: [列出1-2个]
+* **测试问题**: [列出2-3个]
+`;
+
+        async function optimizePrompt() {
+            const input = els.input.value.trim();
+            if (!input) return alert("请输入需要优化的提示词");
+            if (!checkKey()) return alert("请先配置 API Key");
+
+            const config = getAPIConfig();
+            
+            // UI Update
+            const originalBtnHtml = els.btn.innerHTML;
+            els.btn.innerHTML = `<div class="typing-indicator flex gap-1"><span>•</span><span>•</span><span>•</span></div> 架构中...`;
+            els.btn.disabled = true;
+            els.emptyState.classList.add('hidden');
+            els.outputContainer.classList.remove('hidden');
+            els.resultContent.innerHTML = '<p class="text-gray-400 animate-pulse">正在进行目标诊断与结构设计...</p>';
+
+            try {
+                const response = await fetch(`${config.baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: config.model,
+                        messages: [
+                            { role: "system", content: ARCHITECT_SYSTEM_PROMPT },
+                            { role: "user", content: `请优化以下提示词：\n\n${input}` }
+                        ],
+                        temperature: 0.7 // Slightly creative for analysis
+                    })
+                });
+
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                const data = await response.json();
+                
+                const content = data.choices[0].message.content;
+                
+                // Render Markdown
+                els.resultContent.innerHTML = marked.parse(content);
+
+            } catch (err) {
+                els.resultContent.innerHTML = `<div class="text-red-500 p-4 border border-red-200 rounded bg-red-50">Error: ${err.message}</div>`;
+            } finally {
+                els.btn.innerHTML = originalBtnHtml;
+                els.btn.disabled = false;
+            }
+        }
+
+        // ==========================================
+        // 3. UTILITIES
+        // ==========================================
+
+        // Drag & Drop
+        document.body.addEventListener('dragover', e => e.preventDefault());
+        document.body.addEventListener('drop', e => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file && file.type.startsWith('text')) {
+                const reader = new FileReader();
+                reader.onload = (e) => els.input.value = e.target.result;
+                reader.readAsText(file);
+            }
+        });
+
+        // Auto Focus
+        window.addEventListener('paste', (e) => {
+            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                els.input.focus();
+            }
+        });
+
+        // Init
+        els.btn.addEventListener('click', optimizePrompt);
+        initAI();
+
+    </script>
+</body>
+</html>
