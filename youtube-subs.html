@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>YouTube 字幕提取工具</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --primary: #4f46e5; /* 靛蓝 */
+            --primary-hover: #4338ca;
+            --bg: #f3f4f6;
+            --card-bg: #ffffff;
+            --text-main: #111827;
+            --text-sub: #6b7280;
+            --border: #e5e7eb;
+            --success: #10b981;
+            --error: #ef4444;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            padding: 2rem;
+            display: flex;
+            justify-content: center;
+        }
+        .container {
+            width: 100%;
+            max-width: 900px;
+            background: var(--card-bg);
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            padding: 2.5rem;
+            border: 1px solid var(--border);
+        }
+        
+        /* 头部 */
+        header { margin-bottom: 2rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+        h1 { margin: 0; font-size: 1.5rem; display: flex; align-items: center; gap: 10px; color: var(--text-main); }
+        .icon { font-size: 1.8rem; }
+        .subtitle { margin-top: 0.5rem; color: var(--text-sub); font-size: 0.95rem; }
+
+        /* 输入区 */
+        .input-group { margin-bottom: 1.5rem; position: relative; }
+        .input-wrapper { display: flex; gap: 10px; }
+        input[type="url"] {
+            flex: 1;
+            padding: 12px 16px;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: all 0.2s;
+            outline: none;
+        }
+        input[type="url"]:focus { border-color: var(--primary); box-shadow: 0 0 0 3px rgba(79, 70, 229, 0.1); }
+        
+        button {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+        .btn-primary { background: var(--primary); color: white; }
+        .btn-primary:hover { background: var(--primary-hover); }
+        .btn-primary:disabled { opacity: 0.7; cursor: wait; }
+        
+        .btn-ai { background: var(--success); color: white; width: 100%; margin-top: 10px; }
+        .btn-ai:hover { opacity: 0.9; }
+
+        /* 线路选择微调 */
+        .settings { display: flex; align-items: center; gap: 10px; margin-bottom: 10px; font-size: 0.9rem; color: var(--text-sub); }
+        select { padding: 6px 10px; border-radius: 6px; border: 1px solid var(--border); color: var(--text-main); cursor: pointer; }
+
+        /* 内容区 */
+        .grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem; display: none; }
+        .col { display: flex; flex-direction: column; }
+        .col-label { font-weight: 600; margin-bottom: 0.8rem; display: flex; justify-content: space-between; align-items: center; }
+        
+        textarea {
+            width: 100%;
+            height: 500px;
+            padding: 1rem;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            resize: vertical;
+            font-family: monospace;
+            line-height: 1.6;
+            background: #fafafa;
+            box-sizing: border-box;
+        }
+        .markdown-body {
+            height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 1.5rem;
+            background: white;
+            line-height: 1.7;
+        }
+
+        /* 状态提示 */
+        #status { margin-top: 1rem; text-align: center; font-weight: 500; min-height: 24px; }
+        .text-error { color: var(--error); }
+        .text-success { color: var(--success); }
+
+        @media (max-width: 768px) { .grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1><span class="icon">📝</span> YouTube 字幕提取工具</h1>
+        <div class="subtitle">一键提取视频字幕，并使用 DeepSeek AI 进行智能整理。</div>
+    </header>
+
+    <div class="settings">
+        <span>📡 提取线路:</span>
+        <select id="provider">
+            <option value="plural">线路 1 (YouTube Transcripts - 高额度)</option>
+            <option value="transcriptor">线路 2 (备用 - 稳定但额度少)</option>
+        </select>
+    </div>
+
+    <div class="input-group">
+        <div class="input-wrapper">
+            <input type="url" id="videoUrl" placeholder="请粘贴 YouTube 视频链接..." onkeydown="if(event.key==='Enter') extract()">
+            <button class="btn-primary" id="btnExt" onclick="extract()">🚀 提取字幕</button>
+        </div>
+        <div id="status"></div>
+    </div>
+
+    <div class="grid" id="resultArea">
+        <div class="col">
+            <div class="col-label">
+                <span>📄 英文原文</span>
+                <span style="font-size:0.8rem; font-weight:normal; color:var(--text-sub)" id="wordCount"></span>
+            </div>
+            <textarea id="englishOutput" readonly placeholder="提取结果将显示在这里..."></textarea>
+        </div>
+
+        <div class="col">
+            <div class="col-label">
+                <span>🧠 中文笔记</span>
+            </div>
+            <div id="chineseOutput" class="markdown-body">
+                <div style="color:#9ca3af; text-align:center; margin-top:200px;">等待原文提取...</div>
+            </div>
+            <button class="btn-primary btn-ai" id="btnTrans" onclick="translateText()">✨ DeepSeek 翻译 & 整理</button>
+        </div>
+    </div>
+</div>
+
+<script>
+    // --- 配置中心 ---
+    const CONFIG = {
+        // Line 1: 对应您截图第一行 (复数s)
+        plural: { host: "youtube-transcripts.p.rapidapi.com", endpoint: "/youtube/transcript", method: "GET" },
+        // Line 2: 对应您截图第二行 (单数)
+        transcriptor: { host: "youtube-transcriptor.p.rapidapi.com", endpoint: "/transcript", method: "GET" }
+    };
+
+    const els = {
+        url: document.getElementById('videoUrl'),
+        provider: document.getElementById('provider'),
+        status: document.getElementById('status'),
+        grid: document.getElementById('resultArea'),
+        enOut: document.getElementById('englishOutput'),
+        cnOut: document.getElementById('chineseOutput'),
+        btnExt: document.getElementById('btnExt'),
+        btnTrans: document.getElementById('btnTrans'),
+        count: document.getElementById('wordCount')
+    };
+
+    function extractVideoID(url) {
+        const match = url.match(/^.*((youtu.be\/)|(v\/)|(\/u\/\w\/)|(embed\/)|(watch\?))\??v?=?([^#&?]*).*/);
+        return (match && match[7].length == 11) ? match[7] : false;
+    }
+
+    async function extract() {
+        const url = els.url.value.trim();
+        const videoId = extractVideoID(url);
+        const apiKey = localStorage.getItem('rapidapi_key');
+        const pKey = els.provider.value;
+        const conf = CONFIG[pKey];
+
+        if (!url) return showStatus("❌ 请输入视频链接", "error");
+        if (!videoId) return showStatus("❌ 无效的 YouTube 链接", "error");
+        if (!apiKey) return showStatus("❌ 未检测到 Key，请先配置 Key 管理器", "error");
+
+        setLoading(true, "extract");
+        showStatus(`正在通过 [线路${pKey==='plural'?'1':'2'}] 连接...`, "normal");
+        
+        try {
+            // 构造请求
+            let targetUrl = `https://${conf.host}${conf.endpoint}`;
+            if (pKey === 'plural') targetUrl += `?url=${encodeURIComponent(url)}`;
+            else targetUrl += `?video_id=${videoId}&lang=en`;
+
+            const res = await fetch(targetUrl, {
+                method: conf.method,
+                headers: { "X-RapidAPI-Key": apiKey, "X-RapidAPI-Host": conf.host }
+            });
+
+            if (!res.ok) throw new Error(`HTTP ${res.status} - 接口请求失败`);
+
+            const data = await res.json();
+            let text = "";
+
+            // 智能解析逻辑
+            if (data.content && Array.isArray(data.content)) text = data.content.map(x => x.text).join(' ');
+            else if (data.transcripts && Array.isArray(data.transcripts)) text = data.transcripts.map(x => x.text).join(' '); // 线路1常见格式
+            else if (data.transcriptionAsText) text = data.transcriptionAsText; // 线路2常见格式
+            else if (Array.isArray(data)) text = data.map(x => x.text || x.subtitle).join(' ');
+            else text = JSON.stringify(data); // 兜底
+
+            if (text.length < 50 && text.startsWith('{')) throw new Error("提取内容为空或格式无法识别");
+
+            // 成功展示
+            els.grid.style.display = 'grid';
+            els.enOut.value = text;
+            els.count.textContent = `共 ${text.length} 字符`;
+            showStatus("✅ 字幕提取成功！", "success");
+            els.cnOut.innerHTML = "<div style='color:#6b7280; text-align:center; margin-top:200px;'>请点击下方按钮开始翻译</div>";
+
+        } catch (e) {
+            showStatus(`❌ 失败: ${e.message} (请尝试切换线路)`, "error");
+        } finally {
+            setLoading(false, "extract");
+        }
+    }
+
+    async function translateText() {
+        const text = els.enOut.value;
+        const key = localStorage.getItem('siliconflow_key');
+        if (!key) return alert("请在 Key 管理器中配置 siliconflow_key");
+        if (!text) return alert("没有可翻译的内容");
+
+        setLoading(true, "translate");
+        els.cnOut.innerHTML = "<div style='padding:20px;'>⏳ DeepSeek 正在思考与整理...</div>";
+
+        try {
+            const res = await fetch("https://api.siliconflow.cn/v1/chat/completions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    model: "deepseek-ai/DeepSeek-V3",
+                    messages: [
+                        { role: "system", content: "你是一个专业的科技内容整理专家。请将以下英文视频字幕翻译并整理为中文笔记。要求：\n1. 使用 Markdown 格式。\n2. 逻辑清晰，使用一级、二级标题和列表。\n3. 去除口语冗余，提炼核心干货。" },
+                        { role: "user", content: text }
+                    ]
+                })
+            });
+            const data = await res.json();
+            if(data.error) throw new Error(data.error.message);
+            els.cnOut.innerHTML = marked.parse(data.choices[0].message.content);
+        } catch (e) {
+            els.cnOut.innerHTML = `<div style='color:red; padding:20px;'>翻译出错: ${e.message}</div>`;
+        } finally {
+            setLoading(false, "translate");
+        }
+    }
+
+    function showStatus(msg, type) {
+        els.status.textContent = msg;
+        els.status.className = type === 'error' ? 'text-error' : 'text-success';
+    }
+
+    function setLoading(isLoading, type) {
+        const btn = type === 'extract' ? els.btnExt : els.btnTrans;
+        const originalText = type === 'extract' ? "🚀 提取字幕" : "✨ DeepSeek 翻译 & 整理";
+        btn.disabled = isLoading;
+        btn.textContent = isLoading ? "处理中..." : originalText;
+    }
+</script>
+</body>
+</html>
