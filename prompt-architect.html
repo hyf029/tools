@@ -43,22 +43,32 @@
             </button>
         </div>
     </header>
-
+    
     <div id="aiSettings" class="absolute top-16 right-6 w-96 glass-panel p-5 z-50 hidden shadow-xl">
         <h3 class="font-bold text-gray-800 mb-3 text-sm uppercase tracking-wide">Universal AI Protocol</h3>
         <div class="space-y-4 text-sm">
             <div>
-                <label class="block text-gray-500 mb-1 text-xs">Provider</label>
-                <select id="providerSelect" class="w-full border rounded p-2 bg-gray-50 text-gray-800"></select>
+                <label class="block text-gray-500 mb-1 text-xs">Provider (厂商)</label>
+                <select id="providerSelect" class="w-full border rounded p-2 bg-gray-50 text-gray-800 font-medium"></select>
             </div>
+            
             <div>
-                <label class="block text-gray-500 mb-1 text-xs">Model</label>
-                <select id="modelSelect" class="w-full border rounded p-2 bg-gray-50 text-gray-800"></select>
+                <label class="block text-gray-500 mb-1 text-xs">Base URL</label>
+                <input type="text" id="customBaseUrl" class="w-full border rounded p-2 bg-white text-gray-600 font-mono text-xs">
             </div>
-            <div id="customConfig" class="hidden space-y-2 border-t pt-2">
-                <input type="text" id="customBaseUrl" class="w-full border rounded p-2" placeholder="Base URL">
-                <input type="text" id="customModelId" class="w-full border rounded p-2" placeholder="Model ID">
+
+            <div class="p-3 bg-gray-50 rounded border border-gray-200">
+                <label class="block text-gray-500 mb-1 text-xs">Model Selection</label>
+                
+                <select id="modelSelect" class="w-full border rounded p-2 mb-2 text-gray-800 text-xs"></select>
+                
+                <div class="relative">
+                    <input type="text" id="customModelId" class="w-full border rounded p-2 pl-8 font-mono text-xs text-indigo-700 bg-white" placeholder="Model ID used for API">
+                    <span class="absolute left-2 top-2 text-gray-400 text-xs">ID</span>
+                </div>
+                <p class="text-[10px] text-gray-400 mt-1">👆 Select a preset above OR type a custom model ID here.</p>
             </div>
+
             <div class="flex justify-between items-center pt-2 border-t mt-2">
                 <span id="keyStatus" class="text-xs font-mono">Checking...</span>
                 <a href="key-manager.html" target="_blank" class="text-indigo-600 hover:underline text-xs">Open Key Manager</a>
@@ -101,9 +111,9 @@
         </div>
     </div>
 
-    <script>
+    <script>        
         // ==========================================
-        // 1. UNIVERSAL AI PROTOCOL (v3.0)
+        // 1. UNIVERSAL AI PROTOCOL (v3.1 Hybrid)
         // ==========================================
         const AI_PROVIDERS = {
             "siliconflow": {
@@ -111,8 +121,10 @@
                 keyName: "siliconflow_key",
                 baseUrl: "https://api.siliconflow.cn/v1",
                 models: [
-                    { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3 (Recommended)" },
-                    { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B (Fast)" }
+                    { id: "Qwen/Qwen3-VL-235B-A22B-Thinking", name: "Qwen 3 VL (Thinking) 🔥" },
+                    { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2 (Thinking) 🔥" },
+                    { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B (Fast)" },
+                    { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" }
                 ]
             },
             "openrouter": {
@@ -120,8 +132,11 @@
                 keyName: "openrouter_key",
                 baseUrl: "https://openrouter.ai/api/v1",
                 models: [
-                    { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
-                    { id: "deepseek/deepseek-r1", name: "DeepSeek R1" }
+                    { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview 🔥" },
+                    { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
+                    { id: "openai/gpt-5.2-chat", name: "GPT-5.2 Chat" },
+                    { id: "nano banana pro", name: "Nano Banana Pro" },
+                    { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" }
                 ]
             },
             "deepseek": {
@@ -137,7 +152,7 @@
                 name: "Custom / Local",
                 keyName: "custom_key",
                 baseUrl: "http://localhost:11434/v1",
-                models: []
+                models: [] // Custom 模式下没有预设，全靠手输
             }
         };
 
@@ -145,7 +160,10 @@
         const els = {
             provider: document.getElementById('providerSelect'),
             model: document.getElementById('modelSelect'),
-            customConfig: document.getElementById('customConfig'),
+            // 注意：这里一定要对应 HTML 新加的 ID
+            customBaseUrl: document.getElementById('customBaseUrl'),
+            customModelId: document.getElementById('customModelId'),
+            
             keyStatus: document.getElementById('keyStatus'),
             keyIndicator: document.getElementById('keyIndicator'),
             settings: document.getElementById('aiSettings'),
@@ -158,48 +176,73 @@
         };
 
         function initAI() {
+            // 填充厂商列表
             for (const [key, val] of Object.entries(AI_PROVIDERS)) {
                 const opt = document.createElement('option');
                 opt.value = key;
                 opt.textContent = val.name;
                 els.provider.appendChild(opt);
             }
+
+            // 监听厂商切换
             els.provider.addEventListener('change', (e) => {
                 currentProvider = e.target.value;
-                updateModelList();
+                updateProviderSettings();
                 checkKey();
             });
+
+            // 监听模型预设切换 -> 自动填入文本框
+            els.model.addEventListener('change', (e) => {
+                if(e.target.value) {
+                    els.customModelId.value = e.target.value;
+                }
+            });
+
             els.settingsBtn.addEventListener('click', () => {
                 els.settings.classList.toggle('hidden');
             });
-            updateModelList();
+
+            // 初始化
+            updateProviderSettings();
             checkKey();
         }
 
-        function updateModelList() {
-            els.model.innerHTML = '';
+        function updateProviderSettings() {
             const p = AI_PROVIDERS[currentProvider];
-            if (currentProvider === 'custom') {
-                els.customConfig.classList.remove('hidden');
+            
+            // 1. 自动填入 Base URL
+            els.customBaseUrl.value = p.baseUrl;
+
+            // 2. 更新模型预设下拉菜单
+            els.model.innerHTML = '';
+            
+            // 添加一个默认提示选项
+            const defaultOpt = document.createElement('option');
+            defaultOpt.textContent = "-- Select a Preset (Optional) --";
+            defaultOpt.value = "";
+            els.model.appendChild(defaultOpt);
+
+            p.models.forEach(m => {
                 const opt = document.createElement('option');
-                opt.value = 'custom-model';
-                opt.textContent = 'Use Input Below';
+                opt.value = m.id;
+                opt.textContent = m.name;
                 els.model.appendChild(opt);
+            });
+
+            // 3. 如果有预设模型，默认选中第一个并填入输入框
+            if (p.models.length > 0) {
+                els.model.value = p.models[0].id;
+                els.customModelId.value = p.models[0].id;
             } else {
-                els.customConfig.classList.add('hidden');
-                p.models.forEach(m => {
-                    const opt = document.createElement('option');
-                    opt.value = m.id;
-                    opt.textContent = m.name;
-                    els.model.appendChild(opt);
-                });
+                els.customModelId.value = ""; // Custom 模式清空
             }
         }
 
         function checkKey() {
             const p = AI_PROVIDERS[currentProvider];
             const key = localStorage.getItem(p.keyName);
-            const hasKey = key || currentProvider === 'custom';
+            // 如果是 Custom 模式，默认允许通过（假设是本地无鉴权）或者检查 key 是否存在
+            const hasKey = key || currentProvider === 'custom'; 
             
             els.keyStatus.textContent = hasKey ? "✅ Key Ready" : "❌ Key Missing";
             els.keyStatus.className = hasKey ? "text-xs font-mono text-green-600" : "text-xs font-mono text-red-600";
@@ -210,11 +253,11 @@
 
         function getAPIConfig() {
             const p = AI_PROVIDERS[currentProvider];
-            const isCustom = currentProvider === 'custom';
             return {
-                baseUrl: isCustom ? document.getElementById('customBaseUrl').value : p.baseUrl,
-                apiKey: isCustom ? 'sk-custom' : localStorage.getItem(p.keyName),
-                model: isCustom ? document.getElementById('customModelId').value : els.model.value
+                // 核心修改：永远从输入框读取 Base URL 和 Model ID
+                baseUrl: els.customBaseUrl.value.trim(), 
+                apiKey: currentProvider === 'custom' ? 'sk-custom' : localStorage.getItem(p.keyName),
+                model: els.customModelId.value.trim() 
             };
         }
 
