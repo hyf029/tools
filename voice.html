@@ -1,0 +1,373 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI 语音助手 (v3.2 Stable)</title>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --recording: #ef4444;
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --text: #1e293b;
+            --border: #e2e8f0;
+        }
+        body {
+            font-family: -apple-system, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            margin: 0;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 600px;
+            margin: 0 auto;
+            box-sizing: border-box;
+        }
+
+        /* 设置面板 */
+        .settings-panel {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            margin-bottom: 1rem;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.05);
+        }
+        details { padding: 0.5rem 1rem; }
+        summary {
+            cursor: pointer; font-weight: 600; color: #64748b;
+            display: flex; justify-content: space-between; align-items: center;
+            outline: none;
+        }
+        .config-grid { display: grid; gap: 0.8rem; margin-top: 1rem; }
+        .form-group label { display: block; font-size: 0.8rem; font-weight: 600; margin-bottom: 0.3rem; }
+        select, input { width: 100%; padding: 8px; border: 1px solid var(--border); border-radius: 6px; box-sizing: border-box; }
+        
+        .key-status { font-size: 0.8rem; margin-top: 4px; padding-top: 4px; border-top: 1px dashed #e2e8f0; }
+        .status-ok { color: #10b981; }
+        .status-err { color: #ef4444; }
+
+        /* 聊天区 */
+        .chat-container {
+            flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem; padding: 1rem 0;
+        }
+        .message { max-width: 85%; padding: 10px 14px; border-radius: 12px; font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; }
+        .user-msg { align-self: flex-end; background: #eff6ff; color: #1e40af; }
+        .ai-msg { align-self: flex-start; background: white; border: 1px solid var(--border); }
+        .ai-msg p { margin: 0.5em 0; }
+        .ai-msg pre { background: #1e293b; color: #e2e8f0; padding: 0.8rem; border-radius: 6px; overflow-x: auto; }
+
+        /* 底部控制 */
+        .controls {
+            flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 1rem; padding-top: 1rem; border-top: 1px solid var(--border);
+        }
+        .status-text { font-size: 0.85rem; color: #64748b; height: 1.2em; }
+        .record-btn {
+            width: 72px; height: 72px; border-radius: 50%;
+            background: var(--primary); color: white; border: none; font-size: 1.8rem;
+            cursor: pointer; box-shadow: 0 4px 12px rgba(37, 99, 235, 0.4);
+            transition: all 0.2s; display: flex; align-items: center; justify-content: center;
+        }
+        .record-btn.recording { background: var(--recording); animation: pulse 1.5s infinite; }
+        .record-btn.processing { background: #94a3b8; animation: spin 1s linear infinite; }
+        
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); } 70% { box-shadow: 0 0 0 20px rgba(239, 68, 68, 0); } 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0); } }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+    </style>
+</head>
+<body>
+
+    <div class="settings-panel">
+        <details>
+            <summary>
+                <span>⚙️ 模型设置 (Settings)</span>
+                <span id="badge" style="font-size:0.75rem; background:#f1f5f9; padding:2px 6px; border-radius:4px;">Auto</span>
+            </summary>
+            <div class="config-grid">
+                <div class="form-group">
+                    <label>供应商 (Brain Provider)</label>
+                    <select id="provider-select" onchange="updateSettings()"></select>
+                </div>
+                <div class="form-group">
+                    <label>模型 (Model)</label>
+                    <select id="model-select"></select>
+                </div>
+                <div id="custom-fields" style="display:none; gap:0.5rem;">
+                    <input type="text" id="custom-base" value="http://localhost:11434/v1" placeholder="Base URL">
+                    <input type="text" id="custom-model" placeholder="Model ID">
+                </div>
+                <div id="key-status" class="key-status">检测中...</div>
+            </div>
+        </details>
+    </div>
+
+    <div class="chat-container" id="chat-box">
+        <div class="message ai-msg">
+            👋 <b>AI 语音助手 (已修复)</b><br>
+            👂 <b>听觉：</b> 自动切换 (OpenAI / SiliconFlow)<br>
+            🧠 <b>大脑：</b> 深度思考 (DeepSeek/Claude/Local)<br>
+            请按下方按钮开始录音。
+        </div>
+    </div>
+
+    <div class="controls">
+        <div id="status-text" class="status-text">准备就绪</div>
+        <button id="record-btn" class="record-btn">🎙️</button>
+    </div>
+
+<script>
+    // --- 1. 配置中心 ---
+    const AI_PROVIDERS = {
+        "siliconflow": {
+            name: "硅基流动 (SiliconFlow)",
+            keyName: "siliconflow_key",
+            baseUrl: "https://api.siliconflow.cn/v1",
+            models: [
+                { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+                { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B" },
+                { id: "Pro/Qwen/Qwen2-VL-7B-Instruct", name: "Qwen2 VL (Vision)" }
+            ]
+        },
+        "openrouter": {
+            name: "OpenRouter",
+            keyName: "openrouter_key",
+            baseUrl: "https://openrouter.ai/api/v1",
+            models: [
+                { id: "google/gemini-2.0-flash-exp", name: "Gemini 2.0 Flash (Free)" },
+                { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                { id: "deepseek/deepseek-r1", name: "DeepSeek R1" }
+            ]
+        },
+        "deepseek": {
+            name: "DeepSeek 官方",
+            keyName: "deepseek_key",
+            baseUrl: "https://api.deepseek.com",
+            models: [ { id: "deepseek-chat", name: "DeepSeek V3" } ]
+        },
+        "custom": {
+            name: "Custom / Local",
+            keyName: "custom_key",
+            baseUrl: "http://localhost:11434/v1",
+            models: []
+        }
+    };
+
+    // UI Elements
+    const els = {
+        provider: document.getElementById('provider-select'),
+        model: document.getElementById('model-select'),
+        customFields: document.getElementById('custom-fields'),
+        customBase: document.getElementById('custom-base'),
+        customModel: document.getElementById('custom-model'),
+        keyStatus: document.getElementById('key-status'),
+        chat: document.getElementById('chat-box'),
+        status: document.getElementById('status-text'),
+        btn: document.getElementById('record-btn'),
+        badge: document.getElementById('badge')
+    };
+
+    let mediaRecorder;
+    let audioChunks = [];
+    let isRecording = false;
+    let sttProvider = 'none'; 
+
+    // --- 2. 初始化 ---
+    window.onload = () => {
+        els.provider.innerHTML = Object.keys(AI_PROVIDERS).map(k => 
+            `<option value="${k}">${AI_PROVIDERS[k].name}</option>`
+        ).join('');
+        
+        const lastP = localStorage.getItem('voice_last_provider') || 'siliconflow';
+        if(AI_PROVIDERS[lastP]) els.provider.value = lastP;
+        
+        updateSettings();
+    };
+
+    window.updateSettings = function() {
+        const pKey = els.provider.value;
+        localStorage.setItem('voice_last_provider', pKey);
+        const config = AI_PROVIDERS[pKey];
+
+        if (pKey === 'custom') {
+            els.model.innerHTML = '<option value="custom">Custom Input</option>';
+            els.customFields.style.display = 'flex';
+        } else {
+            els.model.innerHTML = config.models.map(m => `<option value="${m.id}">${m.name}</option>`).join('');
+            els.customFields.style.display = 'none';
+        }
+        els.badge.textContent = config.name.split(' ')[0];
+        checkKeys(config.keyName);
+    };
+
+    function checkKeys(llmKeyName) {
+        const hasOpenAI = !!localStorage.getItem('openai_key');
+        const hasSilicon = !!localStorage.getItem('siliconflow_key');
+        const hasLLM = !!localStorage.getItem(llmKeyName);
+
+        // 决策：谁来听？
+        if (hasOpenAI) sttProvider = 'openai';
+        else if (hasSilicon) sttProvider = 'siliconflow';
+        else sttProvider = 'none';
+
+        let html = "";
+        // 听觉状态
+        if (sttProvider === 'openai') html += `<span class="status-ok">👂 听觉: OpenAI Whisper Ready</span><br>`;
+        else if (sttProvider === 'siliconflow') html += `<span class="status-ok">👂 听觉: SiliconFlow SenseVoice Ready</span><br>`;
+        else html += `<span class="status-err">👂 听觉: 缺少 Key (需 OpenAI 或 SiliconFlow)</span><br>`;
+
+        // 思考状态
+        if (hasLLM) html += `<span class="status-ok">🧠 思考: ${llmKeyName} Ready</span>`;
+        else html += `<span class="status-err">🧠 思考: 缺少 ${llmKeyName}</span>`;
+
+        els.keyStatus.innerHTML = html;
+    }
+
+    // --- 3. 录音逻辑 ---
+    els.btn.addEventListener('click', () => {
+        if (isRecording) stopRecording();
+        else startRecording();
+    });
+
+    async function startRecording() {
+        if (sttProvider === 'none') {
+            alert("❌ 无法录音：没有找到 OpenAI 或 硅基流动 Key。");
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            mediaRecorder = new MediaRecorder(stream);
+            audioChunks = [];
+            mediaRecorder.ondataavailable = e => audioChunks.push(e.data);
+            mediaRecorder.onstop = processAudio;
+            mediaRecorder.start();
+            isRecording = true;
+            updateUI('recording');
+        } catch (err) { alert("麦克风访问失败"); }
+    }
+
+    function stopRecording() {
+        if (mediaRecorder) mediaRecorder.stop();
+        isRecording = false;
+    }
+
+    async function processAudio() {
+        updateUI('processing');
+        const audioBlob = new Blob(audioChunks, { type: 'audio/webm' });
+
+        let text = null;
+        if (sttProvider === 'openai') text = await sttOpenAI(audioBlob);
+        else if (sttProvider === 'siliconflow') text = await sttSiliconFlow(audioBlob);
+
+        if (text) {
+            addMessage(text, 'user-msg');
+            await generateResponse(text);
+        }
+        updateUI('idle');
+    }
+
+    // --- 4. API: 听觉 ---
+    
+    async function sttOpenAI(blob) {
+        els.status.textContent = "👂 正在听 (Whisper)...";
+        const formData = new FormData();
+        formData.append("file", blob, "audio.webm");
+        formData.append("model", "whisper-1");
+        
+        try {
+            const res = await fetch("https://api.openai.com/v1/audio/transcriptions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${localStorage.getItem('openai_key')}` },
+                body: formData
+            });
+            const data = await res.json();
+            return data.text || throwError(data);
+        } catch (e) { addMessage("Whisper Error: " + e.message, 'ai-msg'); return null; }
+    }
+
+    async function sttSiliconFlow(blob) {
+        els.status.textContent = "👂 正在听 (SenseVoice)...";
+        const formData = new FormData();
+        formData.append("file", blob, "audio.webm");
+        // [修复点] 去掉了 -v1 后缀，使用标准模型名
+        formData.append("model", "FunAudioLLM/SenseVoiceSmall"); 
+
+        try {
+            const res = await fetch("https://api.siliconflow.cn/v1/audio/transcriptions", {
+                method: "POST",
+                headers: { "Authorization": `Bearer ${localStorage.getItem('siliconflow_key')}` },
+                body: formData
+            });
+            const data = await res.json();
+            return data.text || throwError(data);
+        } catch (e) { addMessage("SenseVoice Error: " + e.message, 'ai-msg'); return null; }
+    }
+
+    // --- 5. API: 思考 ---
+    
+    async function generateResponse(prompt) {
+        const pKey = els.provider.value;
+        const config = AI_PROVIDERS[pKey];
+        const apiKey = localStorage.getItem(config.keyName);
+
+        if (!apiKey) { addMessage(`缺少 ${config.keyName}`, 'ai-msg'); return; }
+
+        let baseUrl = config.baseUrl;
+        let modelId = els.model.value;
+        if (pKey === 'custom') {
+            baseUrl = els.customBase.value.replace(/\/$/, "");
+            modelId = els.customModel.value;
+        }
+
+        els.status.textContent = `🧠 正在思考 (${config.name})...`;
+
+        try {
+            const res = await fetch(`${baseUrl}/chat/completions`, {
+                method: "POST",
+                headers: {
+                    "Authorization": `Bearer ${apiKey}`,
+                    "Content-Type": "application/json",
+                    "HTTP-Referer": window.location.href,
+                    "X-Title": "Voice-Tool"
+                },
+                body: JSON.stringify({
+                    model: modelId,
+                    messages: [{ role: "user", content: prompt }],
+                    stream: false
+                })
+            });
+            const data = await res.json();
+            const reply = data.choices?.[0]?.message?.content || "无回复";
+            addMessage(reply, 'ai-msg', true);
+        } catch (e) { addMessage("思考失败: " + e.message, 'ai-msg'); }
+    }
+
+    // --- Helpers ---
+    function updateUI(state) {
+        els.btn.className = 'record-btn';
+        if (state === 'recording') {
+            els.btn.classList.add('recording');
+            els.status.textContent = "点击停止";
+        } else if (state === 'processing') {
+            els.btn.classList.add('processing');
+            els.btn.textContent = "⏳";
+        } else {
+            els.btn.textContent = "🎙️";
+            els.status.textContent = "准备就绪";
+        }
+    }
+
+    function addMessage(text, cls, isMd = false) {
+        const div = document.createElement('div');
+        div.className = `message ${cls}`;
+        div.innerHTML = isMd ? marked.parse(text) : text;
+        els.chat.appendChild(div);
+        els.chat.scrollTop = els.chat.scrollHeight;
+    }
+    
+    function throwError(data) { throw new Error(data.error?.message || JSON.stringify(data)); }
+</script>
+</body>
+</html>
