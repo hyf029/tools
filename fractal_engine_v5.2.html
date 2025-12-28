@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>分形认知引擎 v5.2 | 中文增强版</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.2/marked.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@300;400;500;700&family=JetBrains+Mono:wght@400&display=swap');
+        body { font-family: 'Noto Sans SC', sans-serif; background-color: #f8fafc; }
+        .mono { font-family: 'JetBrains Mono', monospace; }
+        
+        /* 卡片动效 */
+        .fractal-card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); }
+        .fractal-card:hover { transform: translateY(-2px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1); }
+        
+        /* 加载光效 */
+        .shimmer { background: linear-gradient(90deg, #f1f5f9 25%, #e2e8f0 50%, #f1f5f9 75%); background-size: 200% 100%; animation: shimmer 1.5s infinite; }
+        @keyframes shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        
+        /* Markdown 样式微调 */
+        .markdown-body p { margin-bottom: 0.5em; line-height: 1.7; color: #334155; }
+        .markdown-body strong { color: #0f172a; font-weight: 700; background: rgba(226, 232, 240, 0.3); padding: 0 2px; }
+        
+        /* 滚动条 */
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+    </style>
+</head>
+<body class="text-slate-800 h-screen flex flex-col overflow-hidden">
+
+    <header class="bg-white border-b border-slate-200 px-6 py-3 flex justify-between items-center flex-none z-20 shadow-sm">
+        <div class="flex items-center gap-3">
+            <div class="bg-indigo-600 text-white w-8 h-8 flex items-center justify-center rounded-lg shadow-indigo-200 shadow-lg">
+                <i class="fa-solid fa-brain"></i>
+            </div>
+            <div>
+                <h1 class="text-lg font-bold tracking-tight text-slate-900 leading-tight">分形认知引擎 <span class="text-[10px] bg-indigo-50 text-indigo-700 px-2 py-0.5 rounded-full border border-indigo-100 align-middle ml-1">v5.2 CN</span></h1>
+            </div>
+        </div>
+        <button onclick="toggleSettings()" class="group flex items-center gap-2 text-sm font-medium text-slate-500 hover:text-indigo-600 transition-colors bg-slate-50 hover:bg-indigo-50 px-3 py-1.5 rounded-md border border-slate-200 hover:border-indigo-200">
+            <i class="fa-solid fa-sliders group-hover:rotate-180 transition-transform duration-500"></i> 配置模型
+        </button>
+    </header>
+
+    <details id="settingsPanel" class="bg-white border-b border-slate-200 flex-none relative z-10 shadow-sm" open>
+        <summary class="list-none cursor-pointer"></summary>
+        <div class="px-6 py-5 max-w-5xl mx-auto grid grid-cols-1 md:grid-cols-12 gap-4 items-end">
+            
+            <div class="md:col-span-3">
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1.5">API 服务商</label>
+                <select id="providerSelect" onchange="updateUI()" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-shadow">
+                    </select>
+            </div>
+
+            <div class="md:col-span-4">
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1.5">选择模型</label>
+                <div class="relative">
+                    <select id="modelSelect" onchange="handleModelChange()" class="w-full bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 appearance-none">
+                        </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-2 pointer-events-none text-slate-500"><i class="fa-solid fa-chevron-down text-xs"></i></div>
+                </div>
+                <input type="text" id="manualModelInput" placeholder="输入模型 ID (如 Qwen/Qwen2.5-Coder-32B...)" class="mt-2 w-full hidden bg-white border border-indigo-300 rounded-lg py-2 px-3 text-sm text-indigo-700 placeholder-indigo-300 focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono animate-fade-in-down">
+            </div>
+
+            <div class="md:col-span-5">
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1.5 flex justify-between">
+                    <span>API Key</span>
+                    <span id="keyStatus" class="font-normal normal-case text-[10px]"></span>
+                </label>
+                <div class="relative">
+                    <span class="absolute inset-y-0 left-0 flex items-center pl-3 text-slate-400"><i class="fa-solid fa-key text-xs"></i></span>
+                    <input type="password" id="directApiKey" placeholder="sk-..." 
+                        class="w-full pl-9 bg-slate-50 border border-slate-300 rounded-lg py-2 px-3 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono transition-shadow"
+                        onchange="saveKeyManual()">
+                </div>
+            </div>
+
+            <div id="customConfig" class="md:col-span-12 hidden mt-2">
+                <label class="block text-xs font-bold text-slate-400 uppercase mb-1.5">Custom Base URL</label>
+                <input type="text" id="customBaseUrl" placeholder="http://localhost:11434/v1" class="w-full border border-slate-300 p-2 rounded text-sm font-mono">
+            </div>
+        </div>
+    </details>
+
+    <main class="flex-1 flex overflow-hidden">
+        
+        <div class="w-1/3 border-r border-slate-200 flex flex-col bg-white relative group z-0">
+            <div class="flex-1 relative">
+                <textarea id="rawInput" class="w-full h-full p-6 resize-none focus:outline-none text-slate-700 leading-relaxed font-light placeholder:text-slate-300 text-base" 
+                    placeholder="在此粘贴长文本... (Ctrl+V)&#10;&#10;引擎将自动执行：&#10;1. 每日反直觉挖掘&#10;2. 每周结构差异分析&#10;3. 年度人性周期建模"></textarea>
+                <div id="dropOverlay" class="absolute inset-0 bg-indigo-50/90 flex flex-col items-center justify-center text-indigo-600 opacity-0 pointer-events-none transition-opacity duration-200 backdrop-blur-sm">
+                    <i class="fa-solid fa-file-import text-4xl mb-4"></i>
+                    <span class="font-bold">释放文件以导入</span>
+                </div>
+            </div>
+
+            <div class="p-4 border-t border-slate-100 bg-slate-50/50 flex justify-between items-center backdrop-blur-sm">
+                <span id="charCount" class="text-xs text-slate-400 font-mono bg-white px-2 py-1 rounded border border-slate-200">0 字</span>
+                <button onclick="runAnalysis()" id="analyzeBtn" class="bg-slate-900 hover:bg-indigo-600 text-white px-6 py-2.5 rounded-lg font-semibold text-sm shadow-lg shadow-slate-200 hover:shadow-indigo-200 transition-all flex items-center gap-2 transform active:scale-95">
+                    <i class="fa-solid fa-bolt"></i> <span>开始分形 (Fractalize)</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="w-2/3 bg-slate-50/50 p-6 overflow-y-auto relative">
+            <div class="max-w-4xl mx-auto grid grid-cols-1 gap-5 pb-20">
+                
+                <div class="fractal-card bg-white rounded-xl border border-slate-200/60 p-5 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-emerald-400"></div>
+                    <div class="flex items-center gap-2.5 mb-3 border-b border-slate-50 pb-2">
+                        <span class="bg-emerald-50 text-emerald-600 w-6 h-6 flex items-center justify-center rounded-md text-xs"><i class="fa-solid fa-magnifying-glass"></i></span>
+                        <h3 class="font-bold text-slate-800 text-sm">日线信号 (Daily Signal)</h3>
+                        <span class="text-[10px] text-slate-400 ml-auto font-mono">反直觉 / 细节</span>
+                    </div>
+                    <div id="dailyOutput" class="markdown-body text-sm"><p class="italic text-slate-300">等待输入...</p></div>
+                </div>
+
+                <div class="fractal-card bg-white rounded-xl border border-slate-200/60 p-5 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-blue-500"></div>
+                    <div class="flex items-center gap-2.5 mb-3 border-b border-slate-50 pb-2">
+                        <span class="bg-blue-50 text-blue-600 w-6 h-6 flex items-center justify-center rounded-md text-xs"><i class="fa-solid fa-arrow-trend-up"></i></span>
+                        <h3 class="font-bold text-slate-800 text-sm">周线模式 (Weekly Pattern)</h3>
+                        <span class="text-[10px] text-slate-400 ml-auto font-mono">趋势 / 结构</span>
+                    </div>
+                    <div id="weeklyOutput" class="markdown-body text-sm"><p class="italic text-slate-300">等待输入...</p></div>
+                </div>
+
+                <div class="fractal-card bg-white rounded-xl border border-slate-200/60 p-5 relative overflow-hidden">
+                    <div class="absolute top-0 left-0 w-1.5 h-full bg-purple-500"></div>
+                    <div class="flex items-center gap-2.5 mb-3 border-b border-slate-50 pb-2">
+                        <span class="bg-purple-50 text-purple-600 w-6 h-6 flex items-center justify-center rounded-md text-xs"><i class="fa-solid fa-cube"></i></span>
+                        <h3 class="font-bold text-slate-800 text-sm">年线模型 (Yearly Model)</h3>
+                        <span class="text-[10px] text-slate-400 ml-auto font-mono">周期 / 人性</span>
+                    </div>
+                    <div id="yearlyOutput" class="markdown-body text-sm"><p class="italic text-slate-300">等待输入...</p></div>
+                </div>
+
+            </div>
+
+            <div id="actionBar" class="absolute bottom-6 left-1/2 transform -translate-x-1/2 flex gap-3 opacity-50 pointer-events-none transition-opacity duration-300">
+                <button onclick="copyToClipboard('md')" class="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-4 py-2 rounded-full shadow-lg text-xs font-bold flex items-center gap-2 transition-all hover:-translate-y-1">
+                    <i class="fa-brands fa-markdown"></i> 复制 Markdown
+                </button>
+                <button onclick="copyToClipboard('json')" class="bg-white border border-slate-200 hover:border-indigo-300 text-slate-600 hover:text-indigo-600 px-4 py-2 rounded-full shadow-lg text-xs font-bold flex items-center gap-2 transition-all hover:-translate-y-1">
+                    <i class="fa-solid fa-code"></i> 复制 JSON
+                </button>
+            </div>
+
+        </div>
+    </main>
+
+    <div id="toast" class="fixed bottom-10 right-10 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl text-xs font-bold opacity-0 transition-opacity pointer-events-none z-50"></div>
+
+    <script>
+        // --- 1. 配置数据 (更新：支持 manual 选项) ---
+        const AI_PROVIDERS = {
+            "siliconflow": {
+                name: "硅基流动 (SiliconFlow)",
+                keyName: "siliconflow_key",
+                baseUrl: "https://api.siliconflow.cn/v1",
+                models: [
+                    { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3 (推荐)" },
+                    { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B (均衡)" },
+                    { id: "Qwen/Qwen2.5-Coder-32B-Instruct", name: "Qwen 2.5 Coder 32B (代码强)" },
+                    { id: "deepseek-ai/DeepSeek-R1-Distill-Llama-70B", name: "DeepSeek R1 (推理)" }
+                ]
+            },
+            "openrouter": {
+                name: "OpenRouter",
+                keyName: "openrouter_key",
+                baseUrl: "https://openrouter.ai/api/v1",
+                models: [
+                    { id: "google/gemini-2.0-flash-exp:free", name: "Gemini 2.0 Flash (免费)" },
+                    { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" }
+                ]
+            },
+            "deepseek": {
+                name: "DeepSeek Official",
+                keyName: "deepseek_key",
+                baseUrl: "https://api.deepseek.com",
+                models: [
+                    { id: "deepseek-chat", name: "DeepSeek V3" },
+                    { id: "deepseek-reasoner", name: "DeepSeek R1" }
+                ]
+            },
+            "custom": {
+                name: "Custom / Local",
+                keyName: "custom_key",
+                baseUrl: "http://localhost:11434/v1",
+                models: [] 
+            }
+        };
+
+        const STATE = { provider: 'siliconflow', lastResult: null };
+        
+        // --- 2. 核心：中文 System Prompt ---
+        const SYSTEM_PROMPT = `你是一位基于“Indigo Talk”方法论的“分形认知架构师”。
+你的任务不是做摘要，而是对输入内容进行“分形压缩”。
+请通过以下三个时间尺度透镜进行深度分析。
+
+1. **日线信号 (Daily Signal)**: 
+   - 寻找“反直觉数据”或具体的“Shadow AI”行为（如员工自费买工具）。
+   - 关注“单次录制 (One-take)”式的具体执行细节，忽略公关套话。
+   - 字数限制：50字以内。
+
+2. **周线模式 (Weekly Pattern)**:
+   - 识别“地缘分流”（美国模型基建 vs 中国应用落地）。
+   - 识别组织异化（Context定义者 vs 结果验收者）。
+   - 字数限制：100字以内。
+
+3. **年线模型 (Yearly Model)**:
+   - 提取“人性重构”（AI 提供的重新养育/情绪价值）。
+   - 提取分形规律（Scaling Laws 在微观宏观的同构）。
+   - 字数限制：50字以内。
+
+**重要约束**：
+1. **必须使用中文回复**。
+2. 输出格式必须为纯净的 JSON 对象：{ "daily": "...", "weekly": "...", "yearly": "..." }。
+3. 不要包含 Markdown 代码块标记。`;
+
+        // --- 3. 初始化逻辑 ---
+        document.addEventListener('DOMContentLoaded', () => {
+            initUI();
+            
+            // 粘贴监听
+            window.addEventListener('paste', (e) => {
+                if (e.target.tagName === 'INPUT') return;
+                const text = (e.clipboardData || window.clipboardData).getData('text');
+                if (text) {
+                    const el = document.getElementById('rawInput');
+                    el.value = text;
+                    updateCharCount();
+                    el.parentElement.classList.add('ring-2', 'ring-indigo-100');
+                    setTimeout(() => el.parentElement.classList.remove('ring-2', 'ring-indigo-100'), 300);
+                }
+            });
+
+            // 拖拽监听
+            const dropOverlay = document.getElementById('dropOverlay');
+            ['dragenter', 'dragover'].forEach(evt => {
+                document.body.addEventListener(evt, (e) => {
+                    e.preventDefault(); dropOverlay.style.opacity = '1';
+                });
+            });
+            ['dragleave', 'drop'].forEach(evt => {
+                document.body.addEventListener(evt, (e) => {
+                    e.preventDefault(); dropOverlay.style.opacity = '0';
+                    if (evt === 'drop' && e.dataTransfer.files.length > 0) {
+                        const reader = new FileReader();
+                        reader.onload = (ev) => {
+                            document.getElementById('rawInput').value = ev.target.result;
+                            updateCharCount();
+                        };
+                        reader.readAsText(e.dataTransfer.files[0]);
+                    }
+                });
+            });
+
+            document.getElementById('rawInput').addEventListener('input', updateCharCount);
+        });
+
+        // --- 4. UI 逻辑 ---
+        function initUI() {
+            const pSelect = document.getElementById('providerSelect');
+            Object.keys(AI_PROVIDERS).forEach(k => {
+                const opt = document.createElement('option');
+                opt.value = k; opt.textContent = AI_PROVIDERS[k].name;
+                pSelect.appendChild(opt);
+            });
+            
+            // 恢复上次选择
+            const saved = localStorage.getItem('fractal_last_provider');
+            if (saved && AI_PROVIDERS[saved]) pSelect.value = saved;
+            
+            updateUI();
+        }
+
+        function updateUI() {
+            const pKey = document.getElementById('providerSelect').value;
+            STATE.provider = pKey;
+            localStorage.setItem('fractal_last_provider', pKey);
+            
+            const config = AI_PROVIDERS[pKey];
+            const mSelect = document.getElementById('modelSelect');
+            mSelect.innerHTML = '';
+            
+            // 填充模型列表
+            config.models.forEach(m => {
+                const opt = document.createElement('option');
+                opt.value = m.id; opt.textContent = m.name;
+                mSelect.appendChild(opt);
+            });
+
+            // 添加“手动输入”选项 (核心修复点)
+            if (pKey !== 'custom') {
+                const manualOpt = document.createElement('option');
+                manualOpt.value = 'manual_entry';
+                manualOpt.textContent = '📝 手动输入模型 ID...';
+                mSelect.appendChild(manualOpt);
+            }
+
+            // API Key 状态检查
+            const savedKey = localStorage.getItem(config.keyName) || '';
+            document.getElementById('directApiKey').value = savedKey;
+            document.getElementById('keyStatus').innerHTML = savedKey 
+                ? '<span class="text-emerald-600 font-bold"><i class="fa-solid fa-check"></i> 已就绪</span>' 
+                : '<span class="text-amber-500">需输入</span>';
+
+            // 自定义 URL 显示逻辑
+            document.getElementById('customConfig').style.display = (pKey === 'custom') ? 'block' : 'none';
+            
+            handleModelChange(); // 触发手动输入框的显示逻辑检查
+        }
+
+        function handleModelChange() {
+            const select = document.getElementById('modelSelect');
+            const manualInput = document.getElementById('manualModelInput');
+            
+            if (select.value === 'manual_entry' || STATE.provider === 'custom') {
+                manualInput.classList.remove('hidden');
+                if (select.value === 'manual_entry') manualInput.focus();
+            } else {
+                manualInput.classList.add('hidden');
+            }
+        }
+
+        function saveKeyManual() {
+            const pKey = STATE.provider;
+            const val = document.getElementById('directApiKey').value.trim();
+            if (val) {
+                localStorage.setItem(AI_PROVIDERS[pKey].keyName, val);
+                updateUI();
+            }
+        }
+
+        function updateCharCount() {
+            document.getElementById('charCount').innerText = document.getElementById('rawInput').value.length + " 字";
+        }
+
+        function toggleSettings() {
+            const p = document.getElementById('settingsPanel');
+            p.open = !p.open;
+        }
+
+        // --- 5. 执行分析 ---
+        async function runAnalysis() {
+            const input = document.getElementById('rawInput').value;
+            if (!input) return showToast("请先输入内容", "error");
+            
+            const btn = document.getElementById('analyzeBtn');
+            const originalHtml = btn.innerHTML;
+            btn.innerHTML = '<i class="fa-solid fa-circle-notch fa-spin"></i> 深度思考中...';
+            btn.disabled = true;
+
+            // 隐藏 Action Bar
+            document.getElementById('actionBar').style.opacity = '0';
+            document.getElementById('actionBar').style.pointerEvents = 'none';
+
+            try {
+                const pKey = STATE.provider;
+                const config = AI_PROVIDERS[pKey];
+                const apiKey = document.getElementById('directApiKey').value || localStorage.getItem(config.keyName);
+                
+                if (!apiKey && pKey !== 'custom') throw new Error("请先输入 API Key");
+
+                let url = config.baseUrl + "/chat/completions";
+                if (pKey === 'custom') url = document.getElementById('customBaseUrl').value + "/chat/completions";
+
+                // 确定最终模型 ID
+                let modelId = document.getElementById('modelSelect').value;
+                if (modelId === 'manual_entry' || pKey === 'custom') {
+                    modelId = document.getElementById('manualModelInput').value;
+                    if (!modelId) throw new Error("请输入自定义模型 ID");
+                }
+
+                const res = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${apiKey}`,
+                        'HTTP-Referer': window.location.href,
+                        'X-Title': 'Fractal Engine CN'
+                    },
+                    body: JSON.stringify({
+                        model: modelId,
+                        messages: [
+                            { role: "system", content: SYSTEM_PROMPT },
+                            { role: "user", content: input }
+                        ],
+                        temperature: 0.7,
+                        max_tokens: 2000,
+                        response_format: { type: "json_object" }
+                    })
+                });
+
+                if (!res.ok) throw new Error((await res.json()).error?.message || res.statusText);
+                
+                const data = await res.json();
+                let content = data.choices[0].message.content;
+                // 清洗可能存在的 Markdown 标记
+                content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                const json = JSON.parse(content);
+                STATE.lastResult = json;
+
+                // 渲染结果
+                document.getElementById('dailyOutput').innerHTML = marked.parse(json.daily || "无信号");
+                document.getElementById('weeklyOutput').innerHTML = marked.parse(json.weekly || "无模式");
+                document.getElementById('yearlyOutput').innerHTML = marked.parse(json.yearly || "无模型");
+
+                // 成功后自动折叠设置面板，展示 Action Bar
+                document.getElementById('settingsPanel').open = false;
+                document.getElementById('actionBar').style.opacity = '1';
+                document.getElementById('actionBar').style.pointerEvents = 'auto';
+
+            } catch (e) {
+                alert("错误: " + e.message);
+            } finally {
+                btn.innerHTML = originalHtml;
+                btn.disabled = false;
+            }
+        }
+
+        // --- 6. 复制功能 (修复点) ---
+        function copyToClipboard(type) {
+            if (!STATE.lastResult) return;
+            let text = "";
+            
+            if (type === 'json') {
+                text = JSON.stringify(STATE.lastResult, null, 2);
+            } else {
+                const date = new Date().toLocaleDateString();
+                text = `# 分形认知报告 [${date}]\n\n## 日线信号\n${STATE.lastResult.daily}\n\n## 周线模式\n${STATE.lastResult.weekly}\n\n## 年线模型\n${STATE.lastResult.yearly}\n`;
+            }
+            
+            navigator.clipboard.writeText(text).then(() => {
+                showToast(type === 'json' ? "JSON 已复制" : "Markdown 已复制");
+            });
+        }
+
+        function showToast(msg) {
+            const t = document.getElementById('toast');
+            t.innerText = msg;
+            t.style.opacity = '1';
+            setTimeout(() => t.style.opacity = '0', 2000);
+        }
+    </script>
+</body>
+</html>

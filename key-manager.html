@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🔐 全局 API Key 管理器 v3.0</title>
+    <style>
+        :root {
+            --primary: #2563eb;
+            --danger: #ef4444;
+            --bg: #f8fafc;
+            --text: #1e293b;
+            --border: #cbd5e1;
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            max-width: 600px;
+            margin: 2rem auto;
+            padding: 1rem;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+        }
+        .card {
+            background: white;
+            padding: 2rem;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+            border: 1px solid #e2e8f0;
+        }
+        header {
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 1rem;
+        }
+        h2 { margin: 0; font-size: 1.5rem; color: var(--text); }
+        .subtitle { font-size: 0.9rem; color: #64748b; margin-top: 0.5rem; }
+
+        /* 动态生成的表单项 */
+        .provider-group { margin-bottom: 1.5rem; }
+        .label-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.5rem; }
+        label { font-weight: 600; font-size: 0.95rem; }
+        .badge {
+            background: #f1f5f9;
+            color: #64748b;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            font-family: monospace;
+            border: 1px solid #e2e8f0;
+        }
+        
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        input {
+            width: 100%;
+            padding: 12px;
+            padding-right: 40px; /* space for eye icon */
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            font-family: monospace;
+            font-size: 1rem;
+            transition: all 0.2s;
+        }
+        input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.1); }
+        
+        /* [Source: 128] Interaction patterns */
+        .toggle-vis {
+            position: absolute;
+            right: 10px;
+            cursor: pointer;
+            background: none;
+            border: none;
+            font-size: 1.2rem;
+            opacity: 0.5;
+            padding: 0;
+        }
+        .toggle-vis:hover { opacity: 1; }
+
+        /* 按钮组 */
+        .actions { margin-top: 2rem; display: flex; gap: 1rem; flex-direction: column; }
+        button {
+            padding: 12px;
+            border: none;
+            border-radius: 6px;
+            font-weight: 600;
+            cursor: pointer;
+            font-size: 1rem;
+            transition: opacity 0.2s;
+        }
+        .btn-save { background: var(--primary); color: white; }
+        .btn-clear { background: #fee2e2; color: var(--danger); font-size: 0.9rem; margin-top: 1rem;}
+        button:hover { opacity: 0.9; }
+
+        /* 反馈提示 */
+        .toast {
+            position: fixed; top: 20px; right: 20px;
+            background: #10b981; color: white;
+            padding: 12px 24px; border-radius: 8px;
+            display: none;
+            box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1);
+            animation: slideIn 0.3s ease-out;
+            z-index: 100;
+        }
+        @keyframes slideIn { from { transform: translateX(100%); } to { transform: translateX(0); } }
+    </style>
+</head>
+<body>
+
+<div class="card">
+    <header>
+        <h2>🔐 全局模型密钥配置</h2>
+        <div class="subtitle">
+            <span style="display:inline-block; margin-right:5px;">📂</span> 
+            数据仅存储于本地浏览器 (LocalStorage)，绝不上传服务器。
+        </div>
+    </header>
+
+    <div id="form-container"></div>
+
+    <div class="actions">
+        <button class="btn-save" onclick="saveAll()">💾 保存所有配置 (Save All)</button>
+        <button class="btn-clear" onclick="clearAll()">🗑️ 清空所有密钥 (Reset)</button>
+    </div>
+</div>
+
+<div id="toast" class="toast">✅ 配置已成功更新！</div>
+
+<script>
+    // [Source: 221] The Configuration Schema - Aligned with Prompt v3.0
+    // 这与生成的工具中的 AI_PROVIDERS 逻辑完全对应
+    const PROVIDER_CONFIG = [
+        {
+            id: "openrouter",
+            label: "OpenRouter (聚合)",
+            keyName: "openrouter_key",
+            placeholder: "sk-or-v1-..."
+        },
+        {
+            id: "siliconflow",
+            label: "硅基流动 (SiliconFlow)",
+            keyName: "siliconflow_key",
+            placeholder: "sk-..."
+        },
+        {
+            id: "deepseek",
+            label: "DeepSeek 官方",
+            keyName: "deepseek_key",
+            placeholder: "sk-..."
+        },
+        {
+            id: "openai",
+            label: "OpenAI 官方",
+            keyName: "openai_key",
+            placeholder: "sk-..."
+        },
+        {
+            id: "custom",
+            label: "自定义 / Local (Custom)",
+            keyName: "custom_key", // [Critical Update] Added for v3.0 custom logic
+            placeholder: "Bearer token / key..."
+        }
+    ];
+
+    const container = document.getElementById('form-container');
+
+    // 1. 动态生成表单 (Render Loop)
+    function renderForm() {
+        container.innerHTML = PROVIDER_CONFIG.map(p => `
+            <div class="provider-group">
+                <div class="label-row">
+                    <label for="${p.keyName}">${p.label}</label>
+                    <span class="badge">${p.keyName}</span>
+                </div>
+                <div class="input-wrapper">
+                    <input type="password" id="${p.keyName}" placeholder="${p.placeholder}">
+                    <button class="toggle-vis" onclick="toggleVisibility('${p.keyName}')" title="显示/隐藏">👁️</button>
+                </div>
+            </div>
+        `).join('');
+        
+        // Load data immediately after render
+        loadData();
+    }
+
+    // 2. 加载数据 (Load from LocalStorage)
+    function loadData() {
+        PROVIDER_CONFIG.forEach(p => {
+            const savedVal = localStorage.getItem(p.keyName);
+            if (savedVal) {
+                document.getElementById(p.keyName).value = savedVal;
+            }
+        });
+    }
+
+    // 3. 交互逻辑 (Actions)
+    function toggleVisibility(id) {
+        const input = document.getElementById(id);
+        input.type = input.type === 'password' ? 'text' : 'password';
+    }
+
+    function saveAll() {
+        let count = 0;
+        PROVIDER_CONFIG.forEach(p => {
+            const el = document.getElementById(p.keyName);
+            const val = el.value.trim();
+            if (val) {
+                localStorage.setItem(p.keyName, val); // [Source: 222] Persist secrets
+                count++;
+            } else {
+                // 如果用户清空了输入框，我们也要同步清除 storage，防止脏数据
+                const existing = localStorage.getItem(p.keyName);
+                if (existing) localStorage.removeItem(p.keyName);
+            }
+        });
+
+        showToast(`✅ 已更新 ${count} 个密钥配置！`);
+    }
+
+    function clearAll() {
+        if (confirm('⚠️ 确定要清空所有密钥吗？\n这就意味着你的所有工具将无法连接 AI 模型，直到你重新输入。')) {
+            PROVIDER_CONFIG.forEach(p => {
+                localStorage.removeItem(p.keyName);
+                document.getElementById(p.keyName).value = '';
+            });
+            showToast('🗑️ 所有密钥已安全擦除。');
+        }
+    }
+
+    function showToast(msg) {
+        const t = document.getElementById('toast');
+        t.textContent = msg;
+        t.style.display = 'block';
+        setTimeout(() => t.style.display = 'none', 3000);
+    }
+
+    // Init
+    renderForm();
+
+</script>
+</body>
+</html>
