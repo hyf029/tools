@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVG 修复、预览与打包工具 (v3.2)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+
+    <style>
+        body.dragging { border: 4px dashed #3b82f6; background-color: #eff6ff; }
+        .svg-preview-container svg {
+            width: 100%; height: 100%; object-fit: contain;
+            transition: all 0.2s;
+        }
+        .checkered-bg {
+            background-image: linear-gradient(45deg, #e5e7eb 25%, transparent 25%), 
+                              linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), 
+                              linear-gradient(45deg, transparent 75%, #e5e7eb 75%), 
+                              linear-gradient(-45deg, transparent 75%, #e5e7eb 75%);
+            background-size: 20px 20px;
+            background-position: 0 0, 0 10px, 10px -10px, -10px 0px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen p-6 transition-colors duration-200 font-sans">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="mb-6 flex flex-col md:flex-row justify-between items-start md:items-center border-b pb-4 border-gray-200">
+            <div>
+                <h1 class="text-2xl font-bold text-gray-800 flex items-center gap-2">
+                    <svg class="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.384-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z"></path></svg>
+                    SVG 强力修复与打包 <span class="text-xs bg-indigo-100 text-indigo-800 px-2 py-0.5 rounded-full ml-2">v3.2 Auto-Fix</span>
+                </h1>
+                <p class="text-sm text-gray-500 mt-1">自动修复 XML 语法错误，杜绝 "xmlParseEntityRef" 报错</p>
+            </div>
+            
+            <div class="mt-4 md:mt-0 bg-blue-50 p-3 rounded-lg border border-blue-100 flex items-center gap-3">
+                <div class="text-xs font-bold text-blue-800 uppercase tracking-wide">下载尺寸重置</div>
+                <div class="flex items-center gap-2">
+                    <input type="number" id="globalWidth" placeholder="默认" class="w-16 p-1 text-sm border rounded text-center focus:ring-2 focus:ring-blue-500" title="留空则保持原样">
+                    <span class="text-gray-400">×</span>
+                    <input type="number" id="globalHeight" placeholder="默认" class="w-16 p-1 text-sm border rounded text-center focus:ring-2 focus:ring-blue-500" title="留空则保持原样">
+                    <span class="text-xs text-gray-500">px</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-4 gap-6">
+            
+            <div class="lg:col-span-1 space-y-4">
+                 <div class="bg-white p-4 rounded-lg shadow-sm border border-gray-200">
+                    <label class="block text-xs font-bold text-gray-500 uppercase mb-2">手动输入 (支持脏代码)</label>
+                    <textarea id="manualInput" rows="8" class="w-full p-2 border border-gray-300 rounded text-xs font-mono focus:ring-2 focus:ring-blue-500 focus:border-transparent" placeholder="在此处粘贴 SVG 代码..."></textarea>
+                </div>
+
+                <div class="bg-white p-4 rounded-lg shadow-lg border-t-4 border-blue-500 sticky top-4">
+                    <div class="flex justify-between items-baseline mb-4">
+                        <span class="text-gray-600 font-medium">已处理</span>
+                        <span id="countLabel" class="text-3xl font-bold text-blue-600">0</span>
+                    </div>
+                    <button id="downloadBtn" disabled class="w-full bg-gray-800 hover:bg-black text-white font-bold py-3 px-4 rounded shadow transition-all disabled:opacity-30 disabled:cursor-not-allowed flex justify-center items-center gap-2">
+                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                        下载修复后的 ZIP
+                    </button>
+                    <p class="text-xs text-gray-400 mt-2 text-center">所有图标已自动转为标准 XML</p>
+                    <button onclick="clearAll()" class="w-full mt-2 text-red-500 text-xs hover:underline">清空所有</button>
+                </div>
+            </div>
+
+            <div class="lg:col-span-3">
+                <div id="previewGrid" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+                    <div id="emptyState" class="col-span-full py-20 flex flex-col items-center justify-center border-2 border-dashed border-gray-300 rounded-lg text-gray-400 bg-gray-50">
+                        <svg class="w-12 h-12 mb-2 opacity-50" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 20l4-16m4 4l4 4-4 4M6 16l-4-4 4-4"></path></svg>
+                        <p>粘贴代码 / 拖拽文件 (自动修复语法错误)</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let svgItems = [];
+        let svgCounter = 1;
+
+        const previewGrid = document.getElementById('previewGrid');
+        const emptyState = document.getElementById('emptyState');
+        const countLabel = document.getElementById('countLabel');
+        const downloadBtn = document.getElementById('downloadBtn');
+        const manualInput = document.getElementById('manualInput');
+        const globalWidthInput = document.getElementById('globalWidth');
+        const globalHeightInput = document.getElementById('globalHeight');
+
+        /**
+         * 核心修复函数：将任何脏 SVG 转换为标准 XML
+         * 使用 DOMParser (HTML mode) 解析，再用 XMLSerializer 序列化
+         */
+        function sanitizeSVG(rawContent) {
+            try {
+                // 1. 利用浏览器的 HTML 解析器（宽容模式）“吃掉”脏代码
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(rawContent, 'text/html');
+                
+                // 2. 提取 svg 元素
+                const svgEl = doc.querySelector('svg');
+                if (!svgEl) return null;
+
+                // 3. 强制添加 XML 命名空间（如果丢失的话，会导致 XML 解析失败）
+                if (!svgEl.getAttribute('xmlns')) {
+                    svgEl.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+                }
+
+                // 4. 使用 XML 序列化器输出严格标准的 XML 字符串
+                // 这一步会自动把 & 变成 &amp;，把不规范的属性引号修好
+                const serializer = new XMLSerializer();
+                return serializer.serializeToString(svgEl);
+            } catch (e) {
+                console.error("修复 SVG 失败", e);
+                return rawContent; // 实在修不好就返回原样
+            }
+        }
+
+        function processTextContent(text) {
+            // 匹配 SVG 块
+            const svgMatches = text.match(/<svg[\s\S]*?<\/svg>/gi);
+            if (svgMatches && svgMatches.length > 0) {
+                svgMatches.forEach(svgContent => addNewSvgItem(svgContent));
+                renderPreviews();
+            }
+        }
+
+        function processFiles(files) {
+            Array.from(files).forEach(file => {
+                // 允许 SVG 或 文本文件（因为有些 svg 代码保存在 txt 里）
+                if (file.type.includes('svg') || file.type.includes('text') || file.name.endsWith('.svg')) {
+                    const reader = new FileReader();
+                    reader.onload = (e) => {
+                        const content = e.target.result;
+                        if(content.includes('<svg')) {
+                            processTextContent(content);
+                        }
+                    };
+                    reader.readAsText(file);
+                }
+            });
+        }
+
+        function addNewSvgItem(rawContent) {
+            // [关键步骤] 在添加前先进行清洗修复
+            const cleanContent = sanitizeSVG(rawContent);
+            if (!cleanContent) return; // 无法识别为 SVG 则跳过
+
+            // 查重
+            const isDuplicate = svgItems.some(item => item.content === cleanContent);
+            if (isDuplicate) return;
+
+            svgItems.push({
+                id: Date.now() + Math.random(),
+                content: cleanContent, // 存储的是修复后的代码
+                filename: `icon-${svgCounter++}`
+            });
+            updateUIState();
+        }
+
+        function clearAll() {
+            svgItems = [];
+            svgCounter = 1;
+            renderPreviews();
+            updateUIState();
+            manualInput.value = '';
+        }
+
+        function updateUIState() {
+            countLabel.textContent = svgItems.length;
+            downloadBtn.disabled = svgItems.length === 0;
+            if (svgItems.length > 0 && emptyState) emptyState.remove();
+        }
+
+        function renderPreviews() {
+            previewGrid.innerHTML = '';
+            svgItems.forEach((item, index) => {
+                const card = document.createElement('div');
+                card.className = 'bg-white p-2 rounded border border-gray-200 hover:shadow-md transition-shadow relative group';
+                
+                const svgContainer = document.createElement('div');
+                svgContainer.className = 'checkered-bg w-full h-32 flex items-center justify-center rounded overflow-hidden mb-2 p-4';
+                // 此时 item.content 已经是安全的 XML，可以放心放入
+                svgContainer.innerHTML = item.content;
+
+                const nameInput = document.createElement('input');
+                nameInput.type = 'text';
+                nameInput.value = item.filename;
+                nameInput.className = 'w-full text-xs text-center border-b border-gray-200 focus:border-blue-500 outline-none py-1 bg-transparent';
+                nameInput.onchange = (e) => svgItems[index].filename = e.target.value;
+
+                const deleteBtn = document.createElement('button');
+                deleteBtn.innerHTML = '×';
+                deleteBtn.className = 'absolute -top-2 -right-2 bg-red-500 text-white rounded-full w-6 h-6 flex items-center justify-center shadow-sm opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer';
+                deleteBtn.onclick = () => {
+                    svgItems.splice(index, 1);
+                    renderPreviews();
+                    updateUIState();
+                    if(svgItems.length === 0) previewGrid.appendChild(emptyState);
+                };
+
+                card.appendChild(svgContainer);
+                card.appendChild(nameInput);
+                card.appendChild(deleteBtn);
+                previewGrid.appendChild(card);
+            });
+            if (svgItems.length === 0) previewGrid.appendChild(emptyState);
+        }
+
+        // --- Event Listeners ---
+        window.addEventListener('paste', (e) => {
+            const targetTag = e.target.tagName.toLowerCase();
+            if (targetTag !== 'input' && targetTag !== 'textarea') e.preventDefault();
+            const text = (e.clipboardData || window.clipboardData).getData('text');
+            if (text) processTextContent(text);
+        });
+
+        ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+            document.body.addEventListener(eventName, (e) => { e.preventDefault(); e.stopPropagation(); }, false);
+        });
+        document.body.addEventListener('dragenter', () => document.body.classList.add('dragging'));
+        document.body.addEventListener('dragleave', (e) => {
+             if (e.relatedTarget === null || e.type === 'drop') document.body.classList.remove('dragging');
+        });
+        document.body.addEventListener('drop', (e) => {
+            document.body.classList.remove('dragging');
+            processFiles(e.dataTransfer.files);
+        });
+        
+        manualInput.addEventListener('input', (e) => {
+            if (e.target.value.includes('</svg>')) {
+                // manualInput 不自动清空，方便用户修改
+            }
+        });
+
+        // --- Download Logic ---
+        downloadBtn.addEventListener('click', () => {
+            if (svgItems.length === 0) return;
+            downloadBtn.innerText = '打包处理中...';
+            
+            const targetW = globalWidthInput.value.trim();
+            const targetH = globalHeightInput.value.trim();
+
+            const zip = new JSZip();
+            const parser = new DOMParser();
+            const serializer = new XMLSerializer();
+
+            svgItems.forEach(item => {
+                let content = item.content;
+
+                // 再次应用尺寸修改 (Safe modification)
+                if (targetW || targetH) {
+                    try {
+                        const doc = parser.parseFromString(content, "image/svg+xml");
+                        const svgEl = doc.documentElement;
+                        // 因为 content 已经被 sanitizeSVG 修复过，这里 parse 应该非常安全
+                        
+                        if (targetW) svgEl.setAttribute('width', targetW);
+                        if (targetH) svgEl.setAttribute('height', targetH);
+                        
+                        if (!svgEl.hasAttribute('viewBox')) {
+                            const currW = parseFloat(svgEl.getAttribute('width')) || 100;
+                            const currH = parseFloat(svgEl.getAttribute('height')) || 100;
+                            svgEl.setAttribute('viewBox', `0 0 ${currW} ${currH}`);
+                        }
+                        content = serializer.serializeToString(doc);
+                    } catch (err) {
+                        console.error("Resize Warning", err);
+                    }
+                }
+
+                let fname = item.filename;
+                if (!fname.toLowerCase().endsWith('.svg')) fname += '.svg';
+                
+                let safeName = fname;
+                let c = 1;
+                while(zip.file(safeName)) {
+                    safeName = fname.replace('.svg', `_${c}.svg`);
+                    c++;
+                }
+                zip.file(safeName, content);
+            });
+
+            zip.generateAsync({type:"blob"}).then(function(content) {
+                saveAs(content, `svg-fixed-pack-${new Date().toISOString().slice(0,10)}.zip`);
+                downloadBtn.innerHTML = '<svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg> 下载修复后的 ZIP';
+                downloadBtn.disabled = false;
+            });
+        });
+    </script>
+</body>
+</html>
