@@ -2969,36 +2969,25 @@ ${paths.includes('D') || paths.includes('E') ? `
                 }
 
                 try {
-                    const recommendPrompt = `基于以下素材解构报告，推荐 3-5 个可行的开发方向。
+                    const recommendPrompt = `基于以下素材解构报告，推荐 3 个可行的开发方向。
 
-## 解构报告
-${STATE.decodeReport.slice(0, 10000)}
+## 解构报告摘要
+${STATE.decodeReport.slice(0, 6000)}
 
 ## 用户选择的路径
 ${hasToolPath ? '- 工具开发（路径 B）' : ''}
 ${hasProductPath ? '- 产品设计（路径 C）' : ''}
 
 ## 任务
-请为每个推荐方向提供：
-1. 名称（简洁有力，不超过 10 个字）
-2. 类型（tool 或 product）
-3. 一句话描述（不超过 30 个字）
-4. 核心功能（3-5 个要点，每个不超过 15 个字）
-5. 推荐技术栈
+推荐 3 个可行的开发方向。每个方向包含：
+- name: 名称（不超过8个字）
+- type: "tool" 或 "product"
+- description: 一句话描述（不超过25个字）
+- features: 核心功能数组（3个要点）
+- techStack: 推荐技术栈
 
-## 输出格式
-请严格按照以下 JSON 格式输出（不要包含任何其他文字）：
-\`\`\`json
-[
-  {
-    "name": "工具名称",
-    "type": "tool",
-    "description": "一句话描述",
-    "features": ["功能1", "功能2", "功能3"],
-    "techStack": "推荐技术栈"
-  }
-]
-\`\`\``;
+直接输出 JSON 数组，不要任何其他文字：
+[{"name":"示例","type":"tool","description":"描述","features":["功能1","功能2","功能3"],"techStack":"Python"}]`;
 
                     let fullResponse = '';
                     await aiModule.call_ai({
@@ -3008,12 +2997,59 @@ ${hasProductPath ? '- 产品设计（路径 C）' : ''}
                         }
                     });
 
-                    // 解析 JSON
-                    const jsonMatch = fullResponse.match(/```json\n?([\s\S]*?)\n?```/) ||
-                        fullResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
+                    console.log('AI 推荐原始响应:', fullResponse);
 
+                    // 多策略解析 JSON
+                    let recommendations = null;
+
+                    // 策略1: 匹配 ```json ... ```
+                    let jsonMatch = fullResponse.match(/```json\s*([\s\S]*?)\s*```/);
                     if (jsonMatch) {
-                        const recommendations = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+                        try {
+                            recommendations = JSON.parse(jsonMatch[1].trim());
+                        } catch (e) {
+                            console.log('策略1解析失败:', e);
+                        }
+                    }
+
+                    // 策略2: 匹配 ``` ... ```
+                    if (!recommendations) {
+                        jsonMatch = fullResponse.match(/```\s*([\s\S]*?)\s*```/);
+                        if (jsonMatch) {
+                            try {
+                                recommendations = JSON.parse(jsonMatch[1].trim());
+                            } catch (e) {
+                                console.log('策略2解析失败:', e);
+                            }
+                        }
+                    }
+
+                    // 策略3: 直接匹配 JSON 数组
+                    if (!recommendations) {
+                        jsonMatch = fullResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
+                        if (jsonMatch) {
+                            try {
+                                recommendations = JSON.parse(jsonMatch[0]);
+                            } catch (e) {
+                                console.log('策略3解析失败:', e);
+                            }
+                        }
+                    }
+
+                    // 策略4: 清理后再解析
+                    if (!recommendations) {
+                        const cleaned = fullResponse
+                            .replace(/```json/g, '')
+                            .replace(/```/g, '')
+                            .trim();
+                        try {
+                            recommendations = JSON.parse(cleaned);
+                        } catch (e) {
+                            console.log('策略4解析失败:', e);
+                        }
+                    }
+
+                    if (recommendations && Array.isArray(recommendations) && recommendations.length > 0) {
                         renderRecommendationCards(recommendations);
                     } else {
                         throw new Error('无法解析 AI 推荐结果');
@@ -3084,11 +3120,42 @@ ${hasProductPath ? '- 产品设计（路径 C）' : ''}
                     const funcInput = $('toolFunctionInput');
                     if (nameInput) nameInput.value = rec.name;
                     if (funcInput) funcInput.value = rec.features.join('\n');
+
+                    // 更新当前工具显示
+                    const display = $('currentToolDisplay');
+                    if (display) {
+                        display.innerHTML = `
+                            <strong style="font-size: 15px;">${rec.name}</strong>
+                            <div style="margin-top: 6px; font-size: 12px; opacity: 0.7;">${rec.description}</div>
+                            <div style="margin-top: 6px; font-size: 12px;">
+                                ${rec.features.map(f => `<span style="display: inline-block; background: var(--bg); padding: 2px 8px; border-radius: 4px; margin: 2px 4px 2px 0;">• ${f}</span>`).join('')}
+                            </div>
+                        `;
+                    }
+                    // 隐藏自定义区
+                    const customSection = $('customToolSection');
+                    if (customSection) customSection.style.display = 'none';
+
                 } else if (rec.type === 'product') {
                     const nameInput = $('productNameInput');
                     const funcInput = $('productFunctionInput');
                     if (nameInput) nameInput.value = rec.name;
                     if (funcInput) funcInput.value = rec.features.join('\n');
+
+                    // 更新当前产品显示
+                    const display = $('currentProductDisplay');
+                    if (display) {
+                        display.innerHTML = `
+                            <strong style="font-size: 15px;">${rec.name}</strong>
+                            <div style="margin-top: 6px; font-size: 12px; opacity: 0.7;">${rec.description}</div>
+                            <div style="margin-top: 6px; font-size: 12px;">
+                                ${rec.features.map(f => `<span style="display: inline-block; background: var(--bg); padding: 2px 8px; border-radius: 4px; margin: 2px 4px 2px 0;">• ${f}</span>`).join('')}
+                            </div>
+                        `;
+                    }
+                    // 隐藏自定义区
+                    const customSection = $('customProductSection');
+                    if (customSection) customSection.style.display = 'none';
                 }
             }
 
@@ -3169,14 +3236,30 @@ ${hasProductPath ? '- 产品设计（路径 C）' : ''}
                         <span class="pill accent">B</span> 工具开发约束
                     </div>
                     
-                    <div class="field" style="margin-bottom: 12px;">
-                        <label>工具名称 *</label>
-                        <input type="text" id="toolNameInput" placeholder="给你的工具起一个名字，如：文章润色助手" style="width: 100%;" />
+                    <!-- 工具名称和功能：显示当前选择或自定义 -->
+                    <div class="field" style="margin-bottom: 12px; padding: 12px; background: rgba(99, 102, 241, 0.05); border-radius: 8px; border: 1px dashed var(--border);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <label style="margin: 0;">📌 当前工具设定</label>
+                            <button type="button" class="btn secondary" style="padding: 4px 10px; font-size: 12px;" onclick="document.getElementById('customToolSection').style.display = document.getElementById('customToolSection').style.display === 'none' ? 'block' : 'none';">
+                                ✏️ 自定义
+                            </button>
+                        </div>
+                        <div id="currentToolDisplay" style="font-size: 13px; opacity: 0.8;">
+                            <em>请先在上方「AI 推荐」中选择一个方向，或点击「自定义」手动输入</em>
+                        </div>
                     </div>
 
-                    <div class="field" style="margin-bottom: 12px;">
-                        <label>核心功能描述 *</label>
-                        <textarea id="toolFunctionInput" placeholder="描述这个工具的核心功能，例如：&#10;- 自动分析文章结构&#10;- 识别并优化冗余表述&#10;- 生成多版本改写建议" style="min-height: 80px;"></textarea>
+                    <!-- 自定义输入区（默认隐藏） -->
+                    <div id="customToolSection" style="display: none; margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+                        <div style="font-size: 13px; opacity: 0.7; margin-bottom: 10px;">💡 如果 AI 推荐不满意，可在此自定义：</div>
+                        <div class="field" style="margin-bottom: 12px;">
+                            <label>工具名称</label>
+                            <input type="text" id="toolNameInput" placeholder="给你的工具起一个名字，如：文章润色助手" style="width: 100%;" />
+                        </div>
+                        <div class="field">
+                            <label>核心功能描述</label>
+                            <textarea id="toolFunctionInput" placeholder="描述这个工具的核心功能，例如：&#10;- 自动分析文章结构&#10;- 识别并优化冗余表述&#10;- 生成多版本改写建议" style="min-height: 80px;"></textarea>
+                        </div>
                     </div>
 
                     <div class="field" style="margin-bottom: 12px;">
@@ -3241,14 +3324,30 @@ ${hasProductPath ? '- 产品设计（路径 C）' : ''}
                         <span class="pill accent">C</span> 产品设计约束
                     </div>
                     
-                    <div class="field" style="margin-bottom: 12px;">
-                        <label>产品名称 *</label>
-                        <input type="text" id="productNameInput" placeholder="给你的产品起一个名字，如：AI写作助手" style="width: 100%;" />
+                    <!-- 产品名称和功能：显示当前选择或自定义 -->
+                    <div class="field" style="margin-bottom: 12px; padding: 12px; background: rgba(34, 197, 94, 0.05); border-radius: 8px; border: 1px dashed var(--border);">
+                        <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px;">
+                            <label style="margin: 0;">📌 当前产品设定</label>
+                            <button type="button" class="btn secondary" style="padding: 4px 10px; font-size: 12px;" onclick="document.getElementById('customProductSection').style.display = document.getElementById('customProductSection').style.display === 'none' ? 'block' : 'none';">
+                                ✏️ 自定义
+                            </button>
+                        </div>
+                        <div id="currentProductDisplay" style="font-size: 13px; opacity: 0.8;">
+                            <em>请先在上方「AI 推荐」中选择一个方向，或点击「自定义」手动输入</em>
+                        </div>
                     </div>
 
-                    <div class="field" style="margin-bottom: 12px;">
-                        <label>核心功能需求 *</label>
-                        <textarea id="productFunctionInput" placeholder="描述产品需要实现的核心功能，例如：&#10;1. 用户上传文档后自动分析&#10;2. 生成优化建议并一键改写&#10;3. 支持多风格切换" style="min-height: 80px;"></textarea>
+                    <!-- 自定义输入区（默认隐藏） -->
+                    <div id="customProductSection" style="display: none; margin-bottom: 12px; padding: 12px; border: 1px solid var(--border); border-radius: 8px;">
+                        <div style="font-size: 13px; opacity: 0.7; margin-bottom: 10px;">💡 如果 AI 推荐不满意，可在此自定义：</div>
+                        <div class="field" style="margin-bottom: 12px;">
+                            <label>产品名称</label>
+                            <input type="text" id="productNameInput" placeholder="给你的产品起一个名字，如：AI写作助手" style="width: 100%;" />
+                        </div>
+                        <div class="field">
+                            <label>核心功能需求</label>
+                            <textarea id="productFunctionInput" placeholder="描述产品需要实现的核心功能，例如：&#10;1. 用户上传文档后自动分析&#10;2. 生成优化建议并一键改写&#10;3. 支持多风格切换" style="min-height: 80px;"></textarea>
+                        </div>
                     </div>
 
                     <div class="field" style="margin-bottom: 12px;">
