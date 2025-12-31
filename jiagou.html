@@ -3003,25 +3003,42 @@ ${paths.includes('D') || paths.includes('E') ? `
                 let aiRawResponse = '';  // 提到外层以便在 catch 中访问
 
                 try {
-                    const recommendPrompt = `基于以下素材解构报告，推荐 3 个可行的开发方向。
+                    // 根据选择的路径确定推荐数量
+                    const toolCount = hasToolPath ? 3 : 0;
+                    const productCount = hasProductPath ? 3 : 0;
+                    const totalCount = toolCount + productCount;
 
-## 解构报告摘要
-${STATE.decodeReport.slice(0, 6000)}
+                    const recommendPrompt = `你是一名「深度解码器」，正在为用户推荐可行的开发方向。
 
-## 用户选择的路径
-${hasToolPath ? '- 工具开发（路径 B）' : ''}
-${hasProductPath ? '- 产品设计（路径 C）' : ''}
+## 素材解构报告（核心内容）
+${STATE.decodeReport.slice(0, 8000)}
 
-## 任务
-推荐 3 个可行的开发方向。每个方向包含：
-- name: 名称（不超过8个字）
-- type: "tool" 或 "product"
-- description: 一句话描述（不超过25个字）
-- features: 核心功能数组（3个要点）
-- techStack: 推荐技术栈
+## 用户选择的转译路径
+${hasToolPath ? '✅ 工具开发（路径 B）：用户希望将素材中的方法论转化为可执行的工具/脚本' : ''}
+${hasProductPath ? '✅ 产品设计（路径 C）：用户希望将素材中的方法论转化为产品/应用' : ''}
 
-直接输出 JSON 数组，不要任何其他文字：
-[{"name":"示例","type":"tool","description":"描述","features":["功能1","功能2","功能3"],"techStack":"Python"}]`;
+## 任务说明
+基于上述解构报告的核心逻辑和方法论，为用户推荐**具体可行的开发方向**。
+
+### 推荐要求
+${hasToolPath ? `- **工具方向**：推荐 2-3 个可以开发的工具，每个工具应该能够将素材中的某个核心方法论自动化或工具化` : ''}
+${hasProductPath ? `- **产品方向**：推荐 2-3 个可以设计的产品，每个产品应该能够解决素材中提到的某个核心问题` : ''}
+- 如果素材内容特别丰富，可以推荐更多选项（最多各 5 个）
+- 每个推荐必须与素材内容直接相关，不要泛泛而谈
+
+### 输出格式
+直接输出 JSON 数组，每个对象包含：
+- name: 工具/产品名称（简洁有力，不超过10个字）
+- type: "tool"（工具）或 "product"（产品）
+- description: 一句话描述核心价值（不超过30个字）
+- features: 核心功能数组（3-5个具体功能点）
+- techStack: 推荐的技术栈
+- targetUser: 目标用户群体
+
+示例格式：
+[{"name":"方法论提取器","type":"tool","description":"自动从文章中提取核心思维模型","features":["识别文章结构","提取核心观点","生成思维导图","输出标准格式"],"techStack":"Python + NLP","targetUser":"内容创作者"}]
+
+请直接输出 JSON 数组：`;
 
                     let fullResponse = '';
                     const result = await aiModule.call_ai({
@@ -3157,8 +3174,9 @@ ${hasProductPath ? '- 产品设计（路径 C）' : ''}
                         <div style="font-size: 12px; opacity: 0.6;">
                             ${rec.features.map(f => `• ${f}`).join('<br>')}
                         </div>
-                        <div style="font-size: 11px; margin-top: 8px; opacity: 0.5;">
-                            技术栈: ${rec.techStack}
+                        <div style="font-size: 11px; margin-top: 8px; opacity: 0.5; display: flex; gap: 12px; flex-wrap: wrap;">
+                            <span>🔧 ${rec.techStack || '待定'}</span>
+                            ${rec.targetUser ? `<span>👤 ${rec.targetUser}</span>` : ''}
                         </div>
                     </div>
                     `;
