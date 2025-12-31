@@ -3061,53 +3061,163 @@ ${hasProductPath ? `- **产品方向**：推荐 2-3 个可以设计的产品，�
 
                     console.log('AI 推荐原始响应:', fullResponse);
 
-                    // 多策略解析 JSON
+                    // ========== JSON 修复工具函数 ==========
+
+                    // 修复常见的 JSON 语法错误
+                    function repairJSON(str) {
+                        return str
+                            // 修复缺少冒号: "key" "value" → "key": "value"
+                            .replace(/"(\w+)"\s+"([^"]*)/g, '"$1": "$2')
+                            // 修复缺少逗号: "value"\s+"nextKey" → "value", "nextKey"
+                            .replace(/"\s*\n\s*"/g, '",\n"')
+                            .replace(/"\s{2,}"/g, '", "')
+                            // 修复数组结尾缺少逗号后直接跟引号: ]\s+" → ], "
+                            .replace(/\]\s+"/g, '], "')
+                            // 修复对象属性值后缺少逗号: "value"    "key" → "value", "key"
+                            .replace(/("(?:[^"\\]|\\.)*")\s{2,}(")/g, '$1, $2')
+                            // 修复数组结尾后缺少逗号: ]\s{2,}" → ], "
+                            .replace(/\]\s{2,}"/g, '], "');
+                    }
+
+                    // 检测截断并尝试补全
+                    function completeJSON(str) {
+                        const trimmed = str.trim();
+                        // 如果已经是完整的 JSON 数组，直接返回
+                        if (trimmed.endsWith(']')) {
+                            return trimmed;
+                        }
+
+                        // 尝试找到最后一个完整的对象
+                        let braceCount = 0;
+                        let lastCompleteObjEnd = -1;
+                        let inString = false;
+                        let escape = false;
+
+                        for (let i = 0; i < trimmed.length; i++) {
+                            const char = trimmed[i];
+
+                            if (escape) {
+                                escape = false;
+                                continue;
+                            }
+
+                            if (char === '\\') {
+                                escape = true;
+                                continue;
+                            }
+
+                            if (char === '"') {
+                                inString = !inString;
+                                continue;
+                            }
+
+                            if (inString) continue;
+
+                            if (char === '{') {
+                                braceCount++;
+                            } else if (char === '}') {
+                                braceCount--;
+                                if (braceCount === 0) {
+                                    lastCompleteObjEnd = i;
+                                }
+                            }
+                        }
+
+                        // 如果找到了完整的对象，补全数组
+                        if (lastCompleteObjEnd > 0) {
+                            console.log('检测到 JSON 截断，尝试补全...');
+                            return trimmed.slice(0, lastCompleteObjEnd + 1) + ']';
+                        }
+
+                        return trimmed;
+                    }
+
+                    // 尝试解析 JSON，失败时返回 null
+                    function tryParse(str, strategyName) {
+                        try {
+                            const result = JSON.parse(str);
+                            console.log(`${strategyName} 解析成功`);
+                            return result;
+                        } catch (e) {
+                            console.log(`${strategyName} 解析失败:`, e.message);
+                            return null;
+                        }
+                    }
+
+                    // ========== 多策略解析 JSON ==========
                     let recommendations = null;
 
-                    // 策略1: 匹配 ```json ... ```
-                    let jsonMatch = fullResponse.match(/```json\s*([\s\S]*?)\s*```/);
-                    if (jsonMatch) {
-                        try {
-                            recommendations = JSON.parse(jsonMatch[1].trim());
-                        } catch (e) {
-                            console.log('策略1解析失败:', e);
-                        }
+                    // 提取 JSON 内容（去除 markdown 代码块）
+                    let jsonContent = fullResponse;
+                    const codeBlockMatch = fullResponse.match(/```(?:json)?\s*([\s\S]*?)\s*```/);
+                    if (codeBlockMatch) {
+                        jsonContent = codeBlockMatch[1];
                     }
 
-                    // 策略2: 匹配 ``` ... ```
+                    // 尝试直接匹配 JSON 数组
+                    const arrayMatch = jsonContent.match(/\[\s*\{[\s\S]*/);
+                    if (arrayMatch) {
+                        jsonContent = arrayMatch[0];
+                    }
+
+                    // 策略1: 直接解析原始内容
+                    recommendations = tryParse(jsonContent.trim(), '策略1-直接解析');
+
+                    // 策略2: 修复 JSON 语法后解析
                     if (!recommendations) {
-                        jsonMatch = fullResponse.match(/```\s*([\s\S]*?)\s*```/);
-                        if (jsonMatch) {
-                            try {
-                                recommendations = JSON.parse(jsonMatch[1].trim());
-                            } catch (e) {
-                                console.log('策略2解析失败:', e);
+                        const repaired = repairJSON(jsonContent);
+                        recommendations = tryParse(repaired.trim(), '策略2-语法修复');
+                    }
+
+                    // 策略3: 补全截断的 JSON 后解析
+                    if (!recommendations) {
+                        const completed = completeJSON(jsonContent);
+                        recommendations = tryParse(completed, '策略3-截断补全');
+                    }
+
+                    // 策略4: 修复 + 补全
+                    if (!recommendations) {
+                        const repairedAndCompleted = completeJSON(repairJSON(jsonContent));
+                        recommendations = tryParse(repairedAndCompleted, '策略4-修复+补全');
+                    }
+
+                    // 策略5: 提取单个对象逐个解析
+                    if (!recommendations) {
+                        console.log('策略5-逐个对象解析...');
+                        const objRegex = /\{\s*"name"\s*:\s*"[^"]+"/g;
+                        const objMatches = jsonContent.match(objRegex);
+                        if (objMatches && objMatches.length > 0) {
+                            recommendations = [];
+                            // 尝试提取每个对象
+                            let remaining = jsonContent;
+                            for (let i = 0; i < objMatches.length && i < 10; i++) {
+                                const startIdx = remaining.indexOf(objMatches[i]);
+                                if (startIdx >= 0) {
+                                    // 找到对应的结束 }
+                                    let depth = 0;
+                                    let endIdx = startIdx;
+                                    for (let j = startIdx; j < remaining.length; j++) {
+                                        if (remaining[j] === '{') depth++;
+                                        else if (remaining[j] === '}') {
+                                            depth--;
+                                            if (depth === 0) {
+                                                endIdx = j;
+                                                break;
+                                            }
+                                        }
+                                    }
+                                    const objStr = remaining.slice(startIdx, endIdx + 1);
+                                    const repaired = repairJSON(objStr);
+                                    const obj = tryParse(repaired, `策略5-对象${i + 1}`);
+                                    if (obj && obj.name) {
+                                        recommendations.push(obj);
+                                    }
+                                    remaining = remaining.slice(endIdx + 1);
+                                }
                             }
-                        }
-                    }
-
-                    // 策略3: 直接匹配 JSON 数组
-                    if (!recommendations) {
-                        jsonMatch = fullResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
-                        if (jsonMatch) {
-                            try {
-                                recommendations = JSON.parse(jsonMatch[0]);
-                            } catch (e) {
-                                console.log('策略3解析失败:', e);
+                            if (recommendations.length === 0) {
+                                recommendations = null;
                             }
-                        }
-                    }
-
-                    // 策略4: 清理后再解析
-                    if (!recommendations) {
-                        const cleaned = fullResponse
-                            .replace(/```json/g, '')
-                            .replace(/```/g, '')
-                            .trim();
-                        try {
-                            recommendations = JSON.parse(cleaned);
-                        } catch (e) {
-                            console.log('策略4解析失败:', e);
                         }
                     }
 
