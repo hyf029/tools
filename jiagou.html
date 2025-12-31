@@ -1112,6 +1112,24 @@
                         根据您选择的路径，请填写以下约束条件。这将帮助 AI 生成更精准的交付物。
                     </div>
 
+                    <!-- AI 推荐开发方向 -->
+                    <div id="aiRecommendationsSection" style="margin-bottom: 20px;">
+                        <div class="constraint-section">
+                            <div class="constraint-title">
+                                <span class="pill accent">💡</span> AI 推荐开发方向
+                                <small style="opacity: 0.6; font-weight: normal;">— 基于解构报告自动生成</small>
+                            </div>
+                            <div id="aiRecommendationsContainer">
+                                <div class="loading-spinner"></div> AI 正在分析可行的开发方向...
+                            </div>
+                            <div id="aiRecommendationsGrid" style="display: none; gap: 12px; margin-top: 12px;"></div>
+                            <div style="margin-top: 12px; padding-top: 12px; border-top: 1px dashed var(--border);">
+                                <small style="opacity: 0.7;">💬 以上是 AI
+                                    根据素材推荐的开发方向，点击卡片可自动填充名称和功能。您也可以忽略推荐，直接在下方自定义填写。</small>
+                            </div>
+                        </div>
+                    </div>
+
                     <div id="constraintsForm"></div>
 
                     <div class="row" style="margin-top: 14px; justify-content: flex-end;">
@@ -2291,25 +2309,93 @@ ${paths.includes('B') || paths.includes('E') ? `
 
 # 路径 B 交付物：工具开发
 
-## 核心逻辑伪代码
+## 1. 工具概述
+
+### 工具名称
+[根据用户设定或 AI 推荐的工具名称]
+
+### 一句话定位
+[这个工具解决什么问题，给谁用]
+
+### 核心价值
+- [价值点 1]
+- [价值点 2]
+- [价值点 3]
+
+## 2. 核心逻辑伪代码
 
 \`\`\`pseudo
-[完整的逻辑伪代码]
+[完整的逻辑伪代码，包含主流程和异常处理]
 \`\`\`
 
-## 技术实现方案
+## 3. 技术实现方案
 
-[技术架构说明]
+### 架构设计
+[技术架构说明，包含输入-处理-输出流程]
 
-## 核心代码框架
+### 技术选型依据
+| 组件 | 选择 | 理由 |
+|------|------|------|
+| 语言/框架 | [选择] | [理由] |
+| 数据存储 | [选择] | [理由] |
+| AI 模型 | [选择] | [理由] |
+
+## 4. 核心代码框架
 
 \`\`\`javascript
-[核心代码框架/示例]
+[核心代码框架/示例，包含关键函数和注释]
 \`\`\`
 
-## 使用说明
+## 5. 使用说明 (Quick Start)
 
-[如何使用这个工具]
+### 快速开始
+1. [第一步：准备工作]
+2. [第二步：配置/安装]
+3. [第三步：运行/调用]
+4. [第四步：获取结果]
+
+### 输入输出规范
+- **输入格式**：[描述输入的格式、类型、示例]
+- **输出格式**：[描述输出的格式、类型、示例]
+
+### 常见问题
+| 问题 | 解决方案 |
+|------|----------|
+| [问题1] | [解决方案] |
+| [问题2] | [解决方案] |
+
+## 6. 优化方向 (Next Steps)
+
+| 优化点 | 难度 | 预期收益 | 实现建议 |
+|--------|------|----------|----------|
+| [优化1] | 🟢 简单 | [收益描述] | [如何实现] |
+| [优化2] | 🟡 中等 | [收益描述] | [如何实现] |
+| [优化3] | 🔴 困难 | [收益描述] | [如何实现] |
+
+## 7. 方法论导出
+
+以下是本工具的核心方法论，可直接复制到其他 AI 平台（如 ChatGPT、Claude、Kimi）使用：
+
+### System Prompt（可直接使用）
+\`\`\`
+[独立的、可直接复制使用的 System Prompt，包含完整的角色设定、处理逻辑和输出格式要求]
+\`\`\`
+
+### 核心思维链 (Chain of Thought)
+\`\`\`
+[工具背后的推理步骤，帮助用户理解工具的思考方式]
+\`\`\`
+
+## 8. 自定义指引
+
+如果你想根据自己的需求修改本工具：
+
+| 自定义需求 | 修改位置 | 修改方法 |
+|------------|----------|----------|
+| 调整输出格式 | [位置] | [方法] |
+| 添加新功能 | [位置] | [方法] |
+| 修改处理逻辑 | [位置] | [方法] |
+| 适配其他场景 | [位置] | [方法] |
 ` : ''}
 
 ${paths.includes('C') ? `
@@ -2317,29 +2403,107 @@ ${paths.includes('C') ? `
 
 # 路径 C 交付物：产品设计
 
-## 产品 PRD
+## 1. 产品概述
 
-### 产品概述
-[产品定位和核心价值]
+### 产品名称
+[根据用户设定或 AI 推荐的产品名称]
+
+### 一句话定位
+[产品定位和核心价值主张]
 
 ### 目标用户
-[用户画像]
+| 用户类型 | 特征描述 | 核心痛点 | 使用场景 |
+|----------|----------|----------|----------|
+| 主要用户 | [特征] | [痛点] | [场景] |
+| 次要用户 | [特征] | [痛点] | [场景] |
 
-### 核心功能
-| 功能 | 描述 | 优先级 |
-|------|------|--------|
-| ... | ... | P0/P1/P2 |
+## 2. 核心功能
 
-### 用户旅程
-[用户使用流程]
+| 功能模块 | 功能描述 | 用户价值 | 优先级 |
+|----------|----------|----------|--------|
+| [功能1] | [描述] | [价值] | P0 |
+| [功能2] | [描述] | [价值] | P0 |
+| [功能3] | [描述] | [价值] | P1 |
+| [功能4] | [描述] | [价值] | P2 |
 
-## 功能架构图
+## 3. 用户旅程
 
-[文字描述的功能架构]
+### 核心流程
+\`\`\`
+[用户] → [触发点] → [首次使用] → [核心体验] → [留存/分享]
+\`\`\`
 
-## MVP 建议
+### 关键节点设计
+| 节点 | 用户行为 | 产品响应 | 成功指标 |
+|------|----------|----------|----------|
+| [节点1] | [行为] | [响应] | [指标] |
+| [节点2] | [行为] | [响应] | [指标] |
 
-[最小可行产品范围建议]
+## 4. 功能架构
+
+### 前端架构
+[页面/组件结构说明]
+
+### 后端架构
+[服务/接口结构说明]
+
+### 数据架构
+[数据模型/存储方案说明]
+
+## 5. MVP 建议
+
+### 核心范围
+- ✅ 必须包含：[功能列表]
+- ⏳ 可延后：[功能列表]
+- ❌ MVP 不做：[功能列表]
+
+### 实现周期估算
+| 阶段 | 内容 | 预估工时 |
+|------|------|----------|
+| 阶段1 | [内容] | [工时] |
+| 阶段2 | [内容] | [工时] |
+
+## 6. 商业模式
+
+### 盈利模式
+| 模式 | 描述 | 预期收入 |
+|------|------|----------|
+| [模式1] | [描述] | [预期] |
+| [模式2] | [描述] | [预期] |
+
+### 竞品分析
+| 竞品 | 优势 | 劣势 | 我们的差异化 |
+|------|------|------|--------------|
+| [竞品1] | [优势] | [劣势] | [差异化] |
+
+## 7. 优化方向 (Next Steps)
+
+| 优化点 | 阶段 | 预期收益 | 实现建议 |
+|--------|------|----------|----------|
+| [优化1] | MVP后 | [收益描述] | [如何实现] |
+| [优化2] | V2.0 | [收益描述] | [如何实现] |
+| [优化3] | 长期 | [收益描述] | [如何实现] |
+
+## 8. 方法论导出
+
+### 产品需求文档模板（可复用）
+\`\`\`markdown
+[独立的、可复制到其他项目使用的 PRD 模板框架]
+\`\`\`
+
+### AI 产品设计 Prompt（可直接使用）
+\`\`\`
+[用于其他 AI 平台生成类似产品设计的 System Prompt]
+\`\`\`
+
+## 9. 自定义指引
+
+| 自定义需求 | 修改建议 |
+|------------|----------|
+| 调整目标用户 | [建议] |
+| 修改功能优先级 | [建议] |
+| 适配其他平台 | [建议] |
+| 调整商业模式 | [建议] |
 ` : ''}
 
 ${paths.includes('D') || paths.includes('E') ? `
@@ -2494,6 +2658,12 @@ ${paths.includes('D') || paths.includes('E') ? `
                 STATE.currentStage = stage;
                 updateStageNav();
                 saveState();
+
+                // 阶段3特殊处理：渲染约束表单并生成 AI 推荐
+                if (stage === 3) {
+                    renderConstraintsForm();
+                    generateAIRecommendations();
+                }
             }
 
             // ==================== File Upload ====================
@@ -2776,6 +2946,152 @@ ${paths.includes('D') || paths.includes('E') ? `
                 });
             }
 
+            // AI 推荐开发方向
+            async function generateAIRecommendations() {
+                const paths = STATE.selectedPaths.includes('E') ? ['A', 'B', 'D'] : STATE.selectedPaths;
+                const hasToolPath = paths.includes('B');
+                const hasProductPath = paths.includes('C');
+
+                // 如果没有选择工具或产品路径，隐藏推荐区域
+                if (!hasToolPath && !hasProductPath) {
+                    $('aiRecommendationsSection').style.display = 'none';
+                    return;
+                }
+
+                $('aiRecommendationsSection').style.display = 'block';
+                $('aiRecommendationsContainer').innerHTML = '<div class="loading-spinner"></div> AI 正在分析可行的开发方向...';
+                $('aiRecommendationsGrid').style.display = 'none';
+
+                const state = aiModule.get_state();
+                if (!state.networking_enabled) {
+                    $('aiRecommendationsContainer').innerHTML = '<div class="pill bad">请先允许联网以获取 AI 推荐</div>';
+                    return;
+                }
+
+                try {
+                    const recommendPrompt = `基于以下素材解构报告，推荐 3-5 个可行的开发方向。
+
+## 解构报告
+${STATE.decodeReport.slice(0, 10000)}
+
+## 用户选择的路径
+${hasToolPath ? '- 工具开发（路径 B）' : ''}
+${hasProductPath ? '- 产品设计（路径 C）' : ''}
+
+## 任务
+请为每个推荐方向提供：
+1. 名称（简洁有力，不超过 10 个字）
+2. 类型（tool 或 product）
+3. 一句话描述（不超过 30 个字）
+4. 核心功能（3-5 个要点，每个不超过 15 个字）
+5. 推荐技术栈
+
+## 输出格式
+请严格按照以下 JSON 格式输出（不要包含任何其他文字）：
+\`\`\`json
+[
+  {
+    "name": "工具名称",
+    "type": "tool",
+    "description": "一句话描述",
+    "features": ["功能1", "功能2", "功能3"],
+    "techStack": "推荐技术栈"
+  }
+]
+\`\`\``;
+
+                    let fullResponse = '';
+                    await aiModule.call_ai({
+                        messages: [{ role: 'user', content: recommendPrompt }],
+                        onChunk: (chunk, full) => {
+                            fullResponse = full;
+                        }
+                    });
+
+                    // 解析 JSON
+                    const jsonMatch = fullResponse.match(/```json\n?([\s\S]*?)\n?```/) ||
+                        fullResponse.match(/\[\s*\{[\s\S]*\}\s*\]/);
+
+                    if (jsonMatch) {
+                        const recommendations = JSON.parse(jsonMatch[1] || jsonMatch[0]);
+                        renderRecommendationCards(recommendations);
+                    } else {
+                        throw new Error('无法解析 AI 推荐结果');
+                    }
+                } catch (e) {
+                    console.error('AI 推荐生成失败:', e);
+                    $('aiRecommendationsContainer').innerHTML = `<div class="pill bad">推荐生成失败，请直接在下方自定义填写</div>`;
+                }
+            }
+
+            function renderRecommendationCards(recommendations) {
+                $('aiRecommendationsContainer').innerHTML = '';
+                const grid = $('aiRecommendationsGrid');
+                grid.style.display = 'grid';
+                grid.style.gridTemplateColumns = 'repeat(auto-fill, minmax(280px, 1fr))';
+
+                let html = '';
+                recommendations.forEach((rec, index) => {
+                    const typeLabel = rec.type === 'tool' ? '🛠️ 工具' : '📦 产品';
+                    const typeClass = rec.type === 'tool' ? 'accent' : 'good';
+                    html += `
+                    <div class="recommendation-card" data-index="${index}" style="
+                        border: 1px solid var(--border);
+                        border-radius: 8px;
+                        padding: 14px;
+                        cursor: pointer;
+                        transition: all 0.2s;
+                        background: var(--card-bg);
+                    " onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-2px)';" 
+                       onmouseout="this.style.borderColor='var(--border)';this.style.transform='translateY(0)';">
+                        <div style="display: flex; align-items: center; gap: 8px; margin-bottom: 8px;">
+                            <span class="pill ${typeClass}">${typeLabel}</span>
+                            <strong>${rec.name}</strong>
+                        </div>
+                        <div style="opacity: 0.8; font-size: 13px; margin-bottom: 8px;">${rec.description}</div>
+                        <div style="font-size: 12px; opacity: 0.6;">
+                            ${rec.features.map(f => `• ${f}`).join('<br>')}
+                        </div>
+                        <div style="font-size: 11px; margin-top: 8px; opacity: 0.5;">
+                            技术栈: ${rec.techStack}
+                        </div>
+                    </div>
+                    `;
+                });
+                grid.innerHTML = html;
+
+                // 绑定点击事件
+                grid.querySelectorAll('.recommendation-card').forEach(card => {
+                    card.addEventListener('click', () => {
+                        const index = parseInt(card.dataset.index);
+                        const rec = recommendations[index];
+                        applyRecommendation(rec);
+                        // 高亮选中的卡片
+                        grid.querySelectorAll('.recommendation-card').forEach(c => {
+                            c.style.borderColor = 'var(--border)';
+                            c.style.background = 'var(--card-bg)';
+                        });
+                        card.style.borderColor = 'var(--accent)';
+                        card.style.background = 'rgba(99, 102, 241, 0.1)';
+                    });
+                });
+            }
+
+            function applyRecommendation(rec) {
+                // 根据类型填充对应的输入框
+                if (rec.type === 'tool') {
+                    const nameInput = $('toolNameInput');
+                    const funcInput = $('toolFunctionInput');
+                    if (nameInput) nameInput.value = rec.name;
+                    if (funcInput) funcInput.value = rec.features.join('\n');
+                } else if (rec.type === 'product') {
+                    const nameInput = $('productNameInput');
+                    const funcInput = $('productFunctionInput');
+                    if (nameInput) nameInput.value = rec.name;
+                    if (funcInput) funcInput.value = rec.features.join('\n');
+                }
+            }
+
             function renderConstraintsForm() {
                 const container = $('constraintsForm');
                 const paths = STATE.selectedPaths.includes('E') ? ['A', 'B', 'D'] : STATE.selectedPaths;
@@ -2864,37 +3180,53 @@ ${paths.includes('D') || paths.includes('E') ? `
                     </div>
 
                     <div class="field" style="margin-bottom: 12px;">
-                        <label>技术栈</label>
-                        <div class="radio-group" data-field="B.techStack">
-                            <label class="radio-item" data-value="python">
-                                <input type="radio" name="B_techStack" value="python">
-                                Python
+                        <label>技术栈（可多选）</label>
+                        <div class="checkbox-group" data-field="B.techStack" data-type="multi">
+                            <label class="checkbox-item" title="适合数据处理、后端服务、自动化脚本、AI/ML 应用">
+                                <input type="checkbox" name="B_techStack" value="python">
+                                🐍 Python <small style="opacity:0.6">— 数据/AI/自动化</small>
                             </label>
-                            <label class="radio-item" data-value="javascript">
-                                <input type="radio" name="B_techStack" value="javascript">
-                                JavaScript
+                            <label class="checkbox-item" title="适合 Web 应用、浏览器插件、全栈开发、实时交互">
+                                <input type="checkbox" name="B_techStack" value="javascript">
+                                ⚡ JavaScript/Node.js <small style="opacity:0.6">— Web/全栈</small>
                             </label>
-                            <label class="radio-item" data-value="prompt-only">
-                                <input type="radio" name="B_techStack" value="prompt-only">
-                                纯 Prompt
+                            <label class="checkbox-item" title="零依赖本地工具，单 HTML 文件即可运行，适合快速原型和个人工具">
+                                <input type="checkbox" name="B_techStack" value="html-single">
+                                📄 HTML 单文件 <small style="opacity:0.6">— 零依赖/快速原型</small>
+                            </label>
+                            <label class="checkbox-item" title="无需编程，直接用于 ChatGPT/Claude/Kimi 等 AI 对话平台">
+                                <input type="checkbox" name="B_techStack" value="prompt-only">
+                                💬 纯 Prompt <small style="opacity:0.6">— 零代码/AI 平台</small>
+                            </label>
+                            <label class="checkbox-item" title="适合 Coze/Dify/FastGPT 等无代码 AI Agent 平台">
+                                <input type="checkbox" name="B_techStack" value="ai-workflow">
+                                🔗 AI 工作流 <small style="opacity:0.6">— Coze/Dify</small>
                             </label>
                         </div>
                     </div>
 
                     <div class="field">
-                        <label>运行环境</label>
-                        <div class="radio-group" data-field="B.environment">
-                            <label class="radio-item" data-value="cli">
-                                <input type="radio" name="B_environment" value="cli">
-                                命令行脚本
+                        <label>运行环境（可多选）</label>
+                        <div class="checkbox-group" data-field="B.environment" data-type="multi">
+                            <label class="checkbox-item" title="开发者本地使用，适合批量处理、自动化任务">
+                                <input type="checkbox" name="B_environment" value="cli">
+                                🖥️ 命令行脚本 <small style="opacity:0.6">— 批量/自动化</small>
                             </label>
-                            <label class="radio-item" data-value="web">
-                                <input type="radio" name="B_environment" value="web">
-                                Web 应用
+                            <label class="checkbox-item" title="可部署到服务器，适合前端用户、多人使用">
+                                <input type="checkbox" name="B_environment" value="web">
+                                🌐 Web 应用 <small style="opacity:0.6">— 可部署/多用户</small>
                             </label>
-                            <label class="radio-item" data-value="api">
-                                <input type="radio" name="B_environment" value="api">
-                                API 服务
+                            <label class="checkbox-item" title="提供给其他系统调用，适合后端集成、微服务">
+                                <input type="checkbox" name="B_environment" value="api">
+                                🔌 API 服务 <small style="opacity:0.6">— 系统集成</small>
+                            </label>
+                            <label class="checkbox-item" title="Chrome/Edge 浏览器扩展，适合增强网页功能">
+                                <input type="checkbox" name="B_environment" value="browser-extension">
+                                🧩 浏览器插件 <small style="opacity:0.6">— Chrome/Edge</small>
+                            </label>
+                            <label class="checkbox-item" title="Electron 等跨平台方案，适合需要系统级权限的应用">
+                                <input type="checkbox" name="B_environment" value="desktop">
+                                💻 桌面应用 <small style="opacity:0.6">— 跨平台</small>
                             </label>
                         </div>
                     </div>
@@ -3155,10 +3487,21 @@ ${JSON.stringify(STATE.constraints, null, 2)}
 ## 用户修改意见
 ${revisionText}
 
-## 任务
-请根据用户的修改意见，重新输出完整的架构设计方案。保持原有格式，只修改用户指出的问题。
+## ⚠️ 关键要求
+你**必须严格按照**用户的修改意见进行调整，不得忽略任何一条！
 
-请输出完整修改后的架构方案：`;
+1. **名称修改**：如果用户要求修改工具/产品名称，你必须在整个方案中使用用户指定的新名称，完全替换原名称
+2. **功能修改**：如果用户要求调整功能描述，必须完全按照用户的表述修改
+3. **结构修改**：如果用户要求调整架构结构，必须按要求重新组织
+4. **其他修改**：任何用户提到的修改点都必须被执行
+
+## 输出格式
+首先，用 ✅ 逐条列出你已采纳的修改（必须涵盖用户提到的每一点）：
+> ✅ 已将工具名称从 "[原名称]" 修改为 "[新名称]"
+> ✅ 已调整 [具体内容]
+> ...
+
+然后，输出完整的修改后的架构方案（保持原有格式）：`;
 
                     let fullResponse = '';
                     await aiModule.call_ai({
