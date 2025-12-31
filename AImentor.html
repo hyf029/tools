@@ -1,6 +1,6 @@
-
 <!DOCTYPE html>
 <html lang="zh-CN">
+
 <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -10,11 +10,11 @@
         :root {
             --bg: #f8fafc;
             --bg2: #ffffff;
-            --panel: rgba(255,255,255,0.92);
-            --panel2: rgba(255,255,255,0.78);
+            --panel: rgba(255, 255, 255, 0.92);
+            --panel2: rgba(255, 255, 255, 0.78);
             --text: #0f172a;
             --muted: #64748b;
-            --border: rgba(15,23,42,0.12);
+            --border: rgba(15, 23, 42, 0.12);
             --accent: #6366f1;
             --accent2: #8b5cf6;
             --good: #10b981;
@@ -24,53 +24,57 @@
             --user-bg: #e0e7ff;
             --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-            --shadow: 0 4px 24px rgba(0,0,0,0.08);
-            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
         }
 
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #0f172a;
                 --bg2: #1e293b;
-                --panel: rgba(30,41,59,0.92);
-                --panel2: rgba(30,41,59,0.78);
+                --panel: rgba(30, 41, 59, 0.92);
+                --panel2: rgba(30, 41, 59, 0.78);
                 --text: #f1f5f9;
                 --muted: #94a3b8;
-                --border: rgba(255,255,255,0.12);
+                --border: rgba(255, 255, 255, 0.12);
                 --user-bg: #312e81;
-                --shadow: 0 4px 24px rgba(0,0,0,0.3);
-                --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
+                --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+                --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
             }
         }
 
         html[data-theme="light"] {
             --bg: #f8fafc;
             --bg2: #ffffff;
-            --panel: rgba(255,255,255,0.92);
-            --panel2: rgba(255,255,255,0.78);
+            --panel: rgba(255, 255, 255, 0.92);
+            --panel2: rgba(255, 255, 255, 0.78);
             --text: #0f172a;
             --muted: #64748b;
-            --border: rgba(15,23,42,0.12);
+            --border: rgba(15, 23, 42, 0.12);
             --user-bg: #e0e7ff;
-            --shadow: 0 4px 24px rgba(0,0,0,0.08);
-            --shadow-lg: 0 8px 40px rgba(0,0,0,0.12);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.08);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.12);
         }
 
         html[data-theme="dark"] {
             --bg: #0f172a;
             --bg2: #1e293b;
-            --panel: rgba(30,41,59,0.92);
-            --panel2: rgba(30,41,59,0.78);
+            --panel: rgba(30, 41, 59, 0.92);
+            --panel2: rgba(30, 41, 59, 0.78);
             --text: #f1f5f9;
             --muted: #94a3b8;
-            --border: rgba(255,255,255,0.12);
+            --border: rgba(255, 255, 255, 0.12);
             --user-bg: #312e81;
-            --shadow: 0 4px 24px rgba(0,0,0,0.3);
-            --shadow-lg: 0 8px 40px rgba(0,0,0,0.4);
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+            --shadow-lg: 0 8px 40px rgba(0, 0, 0, 0.4);
         }
 
         /* ========== Base Styles ========== */
-        * { box-sizing: border-box; margin: 0; padding: 0; }
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
 
         body {
             font-family: var(--sans);
@@ -205,8 +209,15 @@
         }
 
         @keyframes fadeIn {
-            from { opacity: 0; transform: translateY(8px); }
-            to { opacity: 1; transform: translateY(0); }
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
         }
 
         .message.coach {
@@ -256,10 +267,23 @@
             border-bottom-right-radius: 4px;
         }
 
-        .message-content p { margin-bottom: 10px; }
-        .message-content p:last-child { margin-bottom: 0; }
-        .message-content strong { font-weight: 700; }
-        .message-content em { font-style: italic; color: var(--muted); }
+        .message-content p {
+            margin-bottom: 10px;
+        }
+
+        .message-content p:last-child {
+            margin-bottom: 0;
+        }
+
+        .message-content strong {
+            font-weight: 700;
+        }
+
+        .message-content em {
+            font-style: italic;
+            color: var(--muted);
+        }
+
         .message-content code {
             font-family: var(--mono);
             font-size: 12px;
@@ -341,8 +365,14 @@
             transition: transform 0.2s, opacity 0.2s;
         }
 
-        .send-btn:hover { transform: scale(1.05); }
-        .send-btn:disabled { opacity: 0.5; cursor: not-allowed; }
+        .send-btn:hover {
+            transform: scale(1.05);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
 
         /* ========== Command Hints ========== */
         .command-hints {
@@ -411,7 +441,9 @@
             border-bottom: 1px dashed var(--border);
         }
 
-        .first-win-steps li:last-child { border-bottom: none; }
+        .first-win-steps li:last-child {
+            border-bottom: none;
+        }
 
         .step-checkbox {
             width: 18px;
@@ -456,9 +488,13 @@
             border-bottom: 1px dashed var(--border);
         }
 
-        .trap-item:last-child { border-bottom: none; }
+        .trap-item:last-child {
+            border-bottom: none;
+        }
 
-        .trap-icon { font-size: 20px; }
+        .trap-icon {
+            font-size: 20px;
+        }
 
         .trap-info h5 {
             font-size: 13px;
@@ -484,7 +520,9 @@
             transition: all 0.2s;
         }
 
-        .btn:hover { background: var(--panel2); }
+        .btn:hover {
+            background: var(--panel2);
+        }
 
         .btn.primary {
             background: var(--coach-bg);
@@ -492,7 +530,9 @@
             border: none;
         }
 
-        .btn.primary:hover { opacity: 0.9; }
+        .btn.primary:hover {
+            opacity: 0.9;
+        }
 
         .btn.secondary {
             background: transparent;
@@ -510,10 +550,25 @@
             font-weight: 600;
         }
 
-        .pill.good { background: rgba(16, 185, 129, 0.15); color: var(--good); }
-        .pill.bad { background: rgba(239, 68, 68, 0.15); color: var(--bad); }
-        .pill.warn { background: rgba(245, 158, 11, 0.15); color: var(--warn); }
-        .pill.info { background: rgba(99, 102, 241, 0.15); color: var(--accent); }
+        .pill.good {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--good);
+        }
+
+        .pill.bad {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--bad);
+        }
+
+        .pill.warn {
+            background: rgba(245, 158, 11, 0.15);
+            color: var(--warn);
+        }
+
+        .pill.info {
+            background: rgba(99, 102, 241, 0.15);
+            color: var(--accent);
+        }
 
         /* ========== Loading ========== */
         .typing-indicator {
@@ -530,13 +585,31 @@
             animation: typing 1.4s infinite ease-in-out;
         }
 
-        .typing-dot:nth-child(1) { animation-delay: 0s; }
-        .typing-dot:nth-child(2) { animation-delay: 0.2s; }
-        .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+        .typing-dot:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .typing-dot:nth-child(2) {
+            animation-delay: 0.2s;
+        }
+
+        .typing-dot:nth-child(3) {
+            animation-delay: 0.4s;
+        }
 
         @keyframes typing {
-            0%, 60%, 100% { transform: translateY(0); opacity: 0.4; }
-            30% { transform: translateY(-8px); opacity: 1; }
+
+            0%,
+            60%,
+            100% {
+                transform: translateY(0);
+                opacity: 0.4;
+            }
+
+            30% {
+                transform: translateY(-8px);
+                opacity: 1;
+            }
         }
 
         /* ========== Settings Panel ========== */
@@ -556,7 +629,9 @@
             backdrop-filter: blur(12px);
         }
 
-        .settings-panel.open { right: 0; }
+        .settings-panel.open {
+            right: 0;
+        }
 
         .settings-header {
             padding: 16px;
@@ -585,7 +660,9 @@
             font-size: 18px;
         }
 
-        .settings-body { padding: 16px; }
+        .settings-body {
+            padding: 16px;
+        }
 
         .settings-section {
             margin-bottom: 20px;
@@ -686,11 +763,11 @@
             transition: 0.3s;
         }
 
-        .toggle-switch input:checked + .toggle-slider {
+        .toggle-switch input:checked+.toggle-slider {
             background: var(--accent);
         }
 
-        .toggle-switch input:checked + .toggle-slider:before {
+        .toggle-switch input:checked+.toggle-slider:before {
             transform: translateX(20px);
         }
 
@@ -780,25 +857,53 @@
             font-size: 13px;
         }
 
-        .welcome-feature .icon { font-size: 18px; }
+        .welcome-feature .icon {
+            font-size: 18px;
+        }
 
         /* ========== Responsive ========== */
         @media (max-width: 600px) {
-            .header { padding: 10px 12px; }
-            .title-group h1 { font-size: 14px; }
-            .progress-bar { padding: 6px 12px; }
-            .progress-step { padding: 4px 8px; font-size: 10px; }
-            .chat-area { padding: 12px; }
-            .message { max-width: 92%; }
-            .input-area { padding: 10px 12px; }
-            .settings-panel { width: 100%; right: -100%; }
+            .header {
+                padding: 10px 12px;
+            }
+
+            .title-group h1 {
+                font-size: 14px;
+            }
+
+            .progress-bar {
+                padding: 6px 12px;
+            }
+
+            .progress-step {
+                padding: 4px 8px;
+                font-size: 10px;
+            }
+
+            .chat-area {
+                padding: 12px;
+            }
+
+            .message {
+                max-width: 92%;
+            }
+
+            .input-area {
+                padding: 10px 12px;
+            }
+
+            .settings-panel {
+                width: 100%;
+                right: -100%;
+            }
         }
     </style>
 </head>
+
 <body>
 
-<!-- Tool Meta -->
-<script type="application/json" id="tool_meta">
+    <!-- Tool Meta -->
+    <script type="application/json" id="tool_meta">
 {
     "tool_id": "ai-learning-coach",
     "tool_name": "AI 学习教练",
@@ -830,448 +935,449 @@
 }
 </script>
 
-<!-- App Container -->
-<div class="app-container">
-    <!-- Header -->
-    <header class="header">
-        <div class="header-left">
-            <div class="logo">🧭</div>
-            <div class="title-group">
-                <h1>AI 学习教练</h1>
-                <div class="subtitle">逆向学习引导系统 · Do first, learn later</div>
-            </div>
-        </div>
-        <div class="header-right">
-            <span class="pill info" id="statusPill">离线模式</span>
-            <button class="btn" id="settingsBtn">⚙️ 设置</button>
-        </div>
-    </header>
-
-    <!-- Progress Bar -->
-    <div class="progress-bar" id="progressBar">
-        <div class="progress-step active" data-step="0">
-            <span class="step-icon">👋</span>
-            <span>破冰</span>
-        </div>
-        <div class="progress-connector"></div>
-        <div class="progress-step" data-step="1">
-            <span class="step-icon">🎯</span>
-            <span>定锚</span>
-        </div>
-        <div class="progress-connector"></div>
-        <div class="progress-step" data-step="2">
-            <span class="step-icon">🔍</span>
-            <span>诊断</span>
-        </div>
-        <div class="progress-connector"></div>
-        <div class="progress-step" data-step="3">
-            <span class="step-icon">🗺️</span>
-            <span>缺口</span>
-        </div>
-        <div class="progress-connector"></div>
-        <div class="progress-step" data-step="4">
-            <span class="step-icon">🏆</span>
-            <span>首胜</span>
-        </div>
-        <div class="progress-connector"></div>
-        <div class="progress-step" data-step="5">
-            <span class="step-icon">🛡️</span>
-            <span>托底</span>
-        </div>
-    </div>
-
-    <!-- Chat Area / Welcome Screen -->
-    <div class="chat-area" id="chatArea">
-        <div class="welcome-screen" id="welcomeScreen">
-            <div class="welcome-icon">🧭</div>
-            <h2>准备好重新学习「学习」了吗？</h2>
-            <p>
-                学校教你的学习方法，恰恰是成人学习的最大阻碍。<br>
-                我会用一种完全不同的方式，帮你设计一个 <strong>3-7 天就能完成的小项目</strong>，让你边做边学。
-            </p>
-            <div class="welcome-features">
-                <div class="welcome-feature">
-                    <span class="icon">🎯</span>
-                    <span>从真实问题出发</span>
-                </div>
-                <div class="welcome-feature">
-                    <span class="icon">🔄</span>
-                    <span>倒推所需知识</span>
-                </div>
-                <div class="welcome-feature">
-                    <span class="icon">🏆</span>
-                    <span>设计首胜项目</span>
+    <!-- App Container -->
+    <div class="app-container">
+        <!-- Header -->
+        <header class="header">
+            <div class="header-left">
+                <div class="logo">🧭</div>
+                <div class="title-group">
+                    <h1>AI 学习教练</h1>
+                    <div class="subtitle">逆向学习引导系统 · Do first, learn later</div>
                 </div>
             </div>
-            <button class="btn primary" id="startBtn">开始引导 →</button>
-            <p style="font-size: 11px; margin-top: 16px; color: var(--muted);">
-                提示：使用前请先在「设置」中配置 AI 服务，或前往 <a href="key-manager.html" target="_blank">Key Manager</a> 管理密钥
-            </p>
-        </div>
-    </div>
+            <div class="header-right">
+                <span class="pill info" id="statusPill">离线模式</span>
+                <button class="btn" id="settingsBtn">⚙️ 设置</button>
+            </div>
+        </header>
 
-    <!-- Input Area -->
-    <div class="input-area" id="inputArea" style="display: none;">
-        <div class="input-wrapper">
-            </textarea>
-            <button class="send-btn" id="sendBtn">➤</button>
-        </div>
-        <div class="command-hints">
-            <span class="command-hint" data-cmd="/restart">🔄 重新开始</span>
-            <span class="command-hint" data-cmd="/diagnose">🔍 诊断模式</span>
-            <span class="command-hint" data-cmd="/sos">🆘 我想放弃</span>
-            <span class="command-hint" data-cmd="/plan">📋 查看任务</span>
-            <span class="command-hint" data-cmd="/done">✅ 任务完成</span>
-        </div>
-    </div>
-</div>
-
-<!-- Settings Panel -->
-<div class="overlay" id="overlay"></div>
-<div class="settings-panel" id="settingsPanel">
-    <div class="settings-header">
-        <h2>⚙️ 设置</h2>
-        <button class="close-settings" id="closeSettings">×</button>
-    </div>
-    <div class="settings-body">
-        <!-- AI Settings Mount Point -->
-        <div id="aiSettingsMount"></div>
-
-        <!-- Coach Style Settings -->
-        <div class="settings-section" style="margin-top: 20px;">
-            <h3>教练风格</h3>
-            <div class="setting-row">
-                <label>沟通风格</label>
-                <select id="coachStyleSelect">
-                    <option value="warm">温暖鼓励型（默认）</option>
-                    <option value="rational">理性分析型</option>
-                    <option value="challenge">轻度挑战型</option>
-                </select>
+        <!-- Progress Bar -->
+        <div class="progress-bar" id="progressBar">
+            <div class="progress-step active" data-step="0">
+                <span class="step-icon">👋</span>
+                <span>破冰</span>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="1">
+                <span class="step-icon">🎯</span>
+                <span>定锚</span>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="2">
+                <span class="step-icon">🔍</span>
+                <span>诊断</span>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="3">
+                <span class="step-icon">🗺️</span>
+                <span>缺口</span>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="4">
+                <span class="step-icon">🏆</span>
+                <span>首胜</span>
+            </div>
+            <div class="progress-connector"></div>
+            <div class="progress-step" data-step="5">
+                <span class="step-icon">🛡️</span>
+                <span>托底</span>
             </div>
         </div>
 
-        <!-- Data Management -->
-        <div class="settings-section">
-            <h3>数据管理</h3>
-            <div class="setting-row">
-                <button class="btn secondary" id="exportDataBtn" style="width: 100%;">
-                    📥 导出对话记录
-                </button>
-            </div>
-            <div class="setting-row">
-                <button class="btn" id="clearDataBtn" style="width: 100%; background: rgba(239,68,68,0.1); border-color: var(--bad); color: var(--bad);">
-                    🗑️ 清除所有数据
-                </button>
+        <!-- Chat Area / Welcome Screen -->
+        <div class="chat-area" id="chatArea">
+            <div class="welcome-screen" id="welcomeScreen">
+                <div class="welcome-icon">🧭</div>
+                <h2>准备好重新学习「学习」了吗？</h2>
+                <p>
+                    学校教你的学习方法，恰恰是成人学习的最大阻碍。<br>
+                    我会用一种完全不同的方式，帮你设计一个 <strong>3-7 天就能完成的小项目</strong>，让你边做边学。
+                </p>
+                <div class="welcome-features">
+                    <div class="welcome-feature">
+                        <span class="icon">🎯</span>
+                        <span>从真实问题出发</span>
+                    </div>
+                    <div class="welcome-feature">
+                        <span class="icon">🔄</span>
+                        <span>倒推所需知识</span>
+                    </div>
+                    <div class="welcome-feature">
+                        <span class="icon">🏆</span>
+                        <span>设计首胜项目</span>
+                    </div>
+                </div>
+                <button class="btn primary" id="startBtn">开始引导 →</button>
+                <p style="font-size: 11px; margin-top: 16px; color: var(--muted);">
+                    提示：使用前请先在「设置」中配置 AI 服务，或前往 <a href="key-manager.html" target="_blank">Key Manager</a> 管理密钥
+                </p>
             </div>
         </div>
 
-        <!-- About -->
-        <div class="settings-section">
-            <h3>关于</h3>
-            <div class="setting-hint">
-                <strong>AI 学习教练 v1.0.0</strong><br>
-                基于 Zara Zhang「逆向学习法」构建<br>
-                核心理念：Do first, learn later<br><br>
-                <a href="key-manager.html" target="_blank">打开 Key Manager →</a>
+        <!-- Input Area -->
+        <div class="input-area" id="inputArea" style="display: none;">
+            <div class="input-wrapper">
+                <textarea class="input-field" id="inputField" placeholder="输入你的想法..." rows="1"></textarea>
+                <button class="send-btn" id="sendBtn">➤</button>
+            </div>
+            <div class="command-hints">
+                <span class="command-hint" data-cmd="/restart">🔄 重新开始</span>
+                <span class="command-hint" data-cmd="/diagnose">🔍 诊断模式</span>
+                <span class="command-hint" data-cmd="/sos">🆘 我想放弃</span>
+                <span class="command-hint" data-cmd="/plan">📋 查看任务</span>
+                <span class="command-hint" data-cmd="/done">✅ 任务完成</span>
             </div>
         </div>
     </div>
-</div>
 
-<script>
-/******************************
- * AI Module v2 (Chinese UI)
- * - 完整复制您提供的 AI_MODULE
- * - 已添加域名安全补丁
- ******************************/
-const AI_MODULE = (() => {
-    const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
+    <!-- Settings Panel -->
+    <div class="overlay" id="overlay"></div>
+    <div class="settings-panel" id="settingsPanel">
+        <div class="settings-header">
+            <h2>⚙️ 设置</h2>
+            <button class="close-settings" id="closeSettings">×</button>
+        </div>
+        <div class="settings-body">
+            <!-- AI Settings Mount Point -->
+            <div id="aiSettingsMount"></div>
 
-    const AI_PROVIDERS = {
-        "siliconflow": {
-            name: "硅基流动 (SiliconFlow)",
-            keyName: "siliconflow_key",
-            baseUrl: "https://api.siliconflow.cn/v1",
-            models: [
-                { id: "Qwen/Qwen3-235B-A22B", name: "Qwen 3 235B" },
-                { id: "Pro/deepseek/deepseek-ai/DeepSeek-V3", name: "DeepSeek V3 (Pro)" },
-                { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
-                { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" }
-            ]
-        },
-        "openrouter": {
-            name: "OpenRouter",
-            keyName: "openrouter_key",
-            baseUrl: "https://openrouter.ai/api/v1",
-            models: [
-                { id: "anthropic/claude-sonnet-4", name: "Claude Sonnet 4" },
-                { id: "openai/gpt-4o", name: "GPT-4o" },
-                { id: "google/gemini-2.0-flash-001", name: "Gemini 2.0 Flash" }
-            ]
-        },
-        "deepseek": {
-            name: "DeepSeek Official",
-            keyName: "deepseek_key",
-            baseUrl: "https://api.deepseek.com",
-            models: [
-                { id: "deepseek-chat", name: "DeepSeek V3" },
-                { id: "deepseek-reasoner", name: "DeepSeek R1" }
-            ]
-        },
-        "custom": {
-            name: "自定义 / 本地（Ollama）",
-            keyName: "custom_key",
-            baseUrl: "http://localhost:11434/v1",
-            models: []
-        }
-    };
+            <!-- Coach Style Settings -->
+            <div class="settings-section" style="margin-top: 20px;">
+                <h3>教练风格</h3>
+                <div class="setting-row">
+                    <label>沟通风格</label>
+                    <select id="coachStyleSelect">
+                        <option value="warm">温暖鼓励型（默认）</option>
+                        <option value="rational">理性分析型</option>
+                        <option value="challenge">轻度挑战型</option>
+                    </select>
+                </div>
+            </div>
 
-    const providerAdapters = {};
+            <!-- Data Management -->
+            <div class="settings-section">
+                <h3>数据管理</h3>
+                <div class="setting-row">
+                    <button class="btn secondary" id="exportDataBtn" style="width: 100%;">
+                        📥 导出对话记录
+                    </button>
+                </div>
+                <div class="setting-row">
+                    <button class="btn" id="clearDataBtn"
+                        style="width: 100%; background: rgba(239,68,68,0.1); border-color: var(--bad); color: var(--bad);">
+                        🗑️ 清除所有数据
+                    </button>
+                </div>
+            </div>
 
-    function safeJsonParse(str) {
-        try { return { ok: true, value: JSON.parse(str) }; }
-        catch (e) { return { ok: false, error: String(e) }; }
-    }
+            <!-- About -->
+            <div class="settings-section">
+                <h3>关于</h3>
+                <div class="setting-hint">
+                    <strong>AI 学习教练 v1.0.0</strong><br>
+                    基于 Zara Zhang「逆向学习法」构建<br>
+                    核心理念：Do first, learn later<br><br>
+                    <a href="key-manager.html" target="_blank">打开 Key Manager →</a>
+                </div>
+            </div>
+        </div>
+    </div>
 
-    function getOverrides() {
-        const raw = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
-        if (!raw) return {};
-        const parsed = safeJsonParse(raw);
-        if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") return {};
-        return parsed.value;
-    }
+    <script>
+        /******************************
+         * AI Module v2 (Chinese UI)
+         * - 完整复制您提供的 AI_MODULE
+         * - 已添加域名安全补丁
+         ******************************/
+        const AI_MODULE = (() => {
+            const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
 
-    function normalizeBaseUrl(baseUrl) {
-        const s = String(baseUrl || "").trim();
-        return s.replace(/\/+$/, "");
-    }
-
-    function joinUrl(baseUrl, path) {
-        const b = normalizeBaseUrl(baseUrl);
-        const p = String(path || "").trim().replace(/^\/+/, "");
-        return `${b}/${p}`;
-    }
-
-    function getProvider(providerId) {
-        return AI_PROVIDERS[providerId];
-    }
-
-    function getMergedProviderConfig(providerId) {
-        const p = getProvider(providerId);
-        if (!p) throw new Error(`未知 provider_id: ${providerId}`);
-
-        const overrides = getOverrides();
-        const o = overrides[providerId] || {};
-
-        const customModels = Array.isArray(o.custom_models) ? o.custom_models : [];
-        const mergedModels = [
-            ...(Array.isArray(p.models) ? p.models : []),
-            ...customModels
-                .filter(m => m && typeof m === "object" && m.id)
-                .map(m => ({ id: String(m.id), name: m.name ? String(m.name) : String(m.id), _custom: true }))
-        ];
-
-        const baseUrl = o.base_url_override ? String(o.base_url_override) : p.baseUrl;
-        const modelId = o.model_id_override ? String(o.model_id_override) : (mergedModels[0]?.id || "");
-
-        return {
-            provider_id: providerId,
-            name: p.name,
-            key_name: p.keyName,
-            base_url_default: p.baseUrl,
-            base_url: baseUrl,
-            models: mergedModels,
-            model_id_default: mergedModels[0]?.id || "",
-            model_id: modelId
-        };
-    }
-
-    function getKeyStatus(providerId) {
-        const p = getProvider(providerId);
-        if (!p) return { ok: false, has_key: false, key_name: "" };
-        const keyName = p.keyName;
-        const key = localStorage.getItem(keyName);
-        return { ok: true, has_key: Boolean(key), key_name: keyName };
-    }
-
-    function classifyFetchError(err) {
-        const msg = String(err?.message || err || "");
-        const lower = msg.toLowerCase();
-        if (lower.includes("abort")) return { kind: "环境错误", msg: "请求超时/被取消（Abort）" };
-        if (lower.includes("failed to fetch") || lower.includes("network") || lower.includes("cors")) {
-            return { kind: "环境错误", msg: msg };
-        }
-        return { kind: "内部错误", msg: msg };
-    }
-
-    function actionableErrorMessage(kind, msg) {
-        if (kind === "用户输入错误") {
-            return `用户输入错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 Base URL / Model ID / 输入内容是否为空。`;
-        }
-        if (kind === "环境错误") {
-            return `环境错误：\n- 发生了什么：${msg}\n- 怎么修复：检查网络/CORS/是否 https 页面访问 http。`;
-        }
-        if (kind === "平台错误") {
-            return `平台错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 key 是否有效、是否限流、模型 ID 是否存在。`;
-        }
-        return `内部错误：\n- 发生了什么：${msg}`;
-    }
-
-    // 域名安全补丁
-    function getHostname(url) {
-        try { return new URL(String(url || "").trim()).hostname; }
-        catch { return ""; }
-    }
-
-    function isDomainAllowed(hostname, allowlist) {
-        if (!hostname) return false;
-        return (allowlist || []).includes(hostname);
-    }
-
-    function ensureDomainConsentOrThrow(hostname, consentKey = "ai_domain_consent_v1") {
-        const raw = localStorage.getItem(consentKey) || "{}";
-        let obj = {};
-        try { obj = JSON.parse(raw); } catch { obj = {}; }
-
-        if (obj[hostname] === true) return true;
-
-        const ok = confirm(
-            `你即将把请求（包含密钥）发送到域名：${hostname}\n\n` +
-            `确认要允许吗？\n` +
-            `如果这个域名不是你信任的平台，请点取消。`
-        );
-        if (!ok) throw new Error("环境错误: 用户取消了域名授权");
-
-        obj[hostname] = true;
-        localStorage.setItem(consentKey, JSON.stringify(obj));
-        return true;
-    }
-
-    async function corsProbe(baseUrl, timeoutMs = 8000) {
-        const now = new Date().toISOString();
-        const url = String(baseUrl || "").trim();
-        if (!url) return { ok: false, kind: "用户输入错误", result: "空 URL", details: { now, url } };
-
-        let u;
-        try { u = new URL(url); }
-        catch (e) {
-            return { ok: false, kind: "用户输入错误", result: "URL 无效", details: { now, url, error: String(e) } };
-        }
-
-        if (location.protocol === "https:" && u.protocol === "http:") {
-            return { ok: false, kind: "环境错误", result: "混合内容（https 页面不能访问 http）", details: { now, url } };
-        }
-        if (navigator.onLine === false) {
-            return { ok: false, kind: "环境错误", result: "离线", details: { now, url } };
-        }
-
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeoutMs);
-        try {
-            const resp = await fetch(url, { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
-            return { ok: true, kind: "OK", result: "能拿到响应（CORS 可能可用）", details: { now, url, status: resp.status, statusText: resp.statusText } };
-        } catch (e) {
-            const info = classifyFetchError(e);
-            return { ok: false, kind: info.kind, result: "可能被 CORS/网络拦截", details: { now, url, error: info.msg } };
-        } finally {
-            clearTimeout(timer);
-        }
-    }
-
-    async function call_llm_unified({
-        provider_id,
-        base_url,
-        api_key,
-        model_id,
-        messages,
-        temperature = 0.7,
-        max_tokens = 2000,
-        timeout_ms = 60000,
-        extra_headers = {},
-        extra_body = {}
-    }) {
-        if (!provider_id) throw new Error("用户输入错误: provider_id 为空");
-        if (!base_url) throw new Error("用户输入错误: base_url 为空");
-        if (!model_id) throw new Error("用户输入错误: model_id 为空");
-        if (!Array.isArray(messages) || messages.length === 0) throw new Error("用户输入错误: messages 为空");
-
-        if (!api_key) {
-            const e = new Error("平台错误: 缺少 API Key（请先在 key-manager.html 设置）");
-            e._kind = "平台错误";
-            throw e;
-        }
-
-        const adapter = providerAdapters[provider_id] || null;
-
-        const url = adapter?.buildUrl
-            ? adapter.buildUrl(base_url)
-            : joinUrl(base_url, "/chat/completions");
-
-        const headers = adapter?.buildHeaders
-            ? adapter.buildHeaders(api_key)
-            : { "Authorization": `Bearer ${api_key}`, "Content-Type": "application/json" };
-
-        const body = adapter?.buildBody
-            ? adapter.buildBody({ model_id, messages, temperature, max_tokens, extra_body })
-            : {
-                model: model_id,
-                messages,
-                temperature,
-                max_tokens,
-                ...extra_body
+            const AI_PROVIDERS = {
+                "siliconflow": {
+                    name: "硅基流动 (SiliconFlow)",
+                    keyName: "siliconflow_key",
+                    baseUrl: "https://api.siliconflow.cn/v1",
+                    models: [
+                        { id: "Qwen/Qwen3-235B-A22B", name: "Qwen 3 235B" },
+                        { id: "Pro/deepseek/deepseek-ai/DeepSeek-V3", name: "DeepSeek V3 (Pro)" },
+                        { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
+                        { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" }
+                    ]
+                },
+                "openrouter": {
+                    name: "OpenRouter",
+                    keyName: "openrouter_key",
+                    baseUrl: "https://openrouter.ai/api/v1",
+                    models: [
+                        { id: "anthropic/claude-sonnet-4", name: "Claude Sonnet 4" },
+                        { id: "openai/gpt-4o", name: "GPT-4o" },
+                        { id: "google/gemini-2.0-flash-001", name: "Gemini 2.0 Flash" }
+                    ]
+                },
+                "deepseek": {
+                    name: "DeepSeek Official",
+                    keyName: "deepseek_key",
+                    baseUrl: "https://api.deepseek.com",
+                    models: [
+                        { id: "deepseek-chat", name: "DeepSeek V3" },
+                        { id: "deepseek-reasoner", name: "DeepSeek R1" }
+                    ]
+                },
+                "custom": {
+                    name: "自定义 / 本地（Ollama）",
+                    keyName: "custom_key",
+                    baseUrl: "http://localhost:11434/v1",
+                    models: []
+                }
             };
 
-        const controller = new AbortController();
-        const timer = setTimeout(() => controller.abort(), timeout_ms);
+            const providerAdapters = {};
 
-        try {
-            const resp = await fetch(url, {
-                method: "POST",
-                mode: "cors",
-                headers: { ...headers, ...extra_headers },
-                body: JSON.stringify(body),
-                signal: controller.signal
-            });
-
-            const text = await resp.text();
-            let json = null;
-            const parsed = safeJsonParse(text);
-            if (parsed.ok) json = parsed.value;
-
-            if (!resp.ok) {
-                const e = new Error(`平台错误: HTTP ${resp.status} ${resp.statusText}\n${text.slice(0, 800)}`);
-                e._kind = "平台错误";
-                throw e;
+            function safeJsonParse(str) {
+                try { return { ok: true, value: JSON.parse(str) }; }
+                catch (e) { return { ok: false, error: String(e) }; }
             }
 
-            const outText = adapter?.parseResponse
-                ? adapter.parseResponse(json)
-                : (json?.choices?.[0]?.message?.content ?? "");
-
-            if (!outText) {
-                const e = new Error("平台错误: 响应中未找到可用文本（choices[0].message.content 为空）");
-                e._kind = "平台错误";
-                throw e;
+            function getOverrides() {
+                const raw = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
+                if (!raw) return {};
+                const parsed = safeJsonParse(raw);
+                if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") return {};
+                return parsed.value;
             }
 
-            return { text: String(outText), raw: json };
-        } catch (e) {
-            if (e && e._kind) throw e;
-            const info = classifyFetchError(e);
-            const err = new Error(`${info.kind}: ${info.msg}`);
-            err._kind = info.kind;
-            throw err;
-        } finally {
-            clearTimeout(timer);
-        }
-    }
+            function normalizeBaseUrl(baseUrl) {
+                const s = String(baseUrl || "").trim();
+                return s.replace(/\/+$/, "");
+            }
 
-    function render_ai_settings_html({ container_id = "aiSettingsMount" } = {}) {
-        const providerOptions = Object.keys(AI_PROVIDERS)
-            .map(pid => `<option value="${pid}">${AI_PROVIDERS[pid].name}</option>`)
-            .join("");
+            function joinUrl(baseUrl, path) {
+                const b = normalizeBaseUrl(baseUrl);
+                const p = String(path || "").trim().replace(/^\/+/, "");
+                return `${b}/${p}`;
+            }
 
-        return `
+            function getProvider(providerId) {
+                return AI_PROVIDERS[providerId];
+            }
+
+            function getMergedProviderConfig(providerId) {
+                const p = getProvider(providerId);
+                if (!p) throw new Error(`未知 provider_id: ${providerId}`);
+
+                const overrides = getOverrides();
+                const o = overrides[providerId] || {};
+
+                const customModels = Array.isArray(o.custom_models) ? o.custom_models : [];
+                const mergedModels = [
+                    ...(Array.isArray(p.models) ? p.models : []),
+                    ...customModels
+                        .filter(m => m && typeof m === "object" && m.id)
+                        .map(m => ({ id: String(m.id), name: m.name ? String(m.name) : String(m.id), _custom: true }))
+                ];
+
+                const baseUrl = o.base_url_override ? String(o.base_url_override) : p.baseUrl;
+                const modelId = o.model_id_override ? String(o.model_id_override) : (mergedModels[0]?.id || "");
+
+                return {
+                    provider_id: providerId,
+                    name: p.name,
+                    key_name: p.keyName,
+                    base_url_default: p.baseUrl,
+                    base_url: baseUrl,
+                    models: mergedModels,
+                    model_id_default: mergedModels[0]?.id || "",
+                    model_id: modelId
+                };
+            }
+
+            function getKeyStatus(providerId) {
+                const p = getProvider(providerId);
+                if (!p) return { ok: false, has_key: false, key_name: "" };
+                const keyName = p.keyName;
+                const key = localStorage.getItem(keyName);
+                return { ok: true, has_key: Boolean(key), key_name: keyName };
+            }
+
+            function classifyFetchError(err) {
+                const msg = String(err?.message || err || "");
+                const lower = msg.toLowerCase();
+                if (lower.includes("abort")) return { kind: "环境错误", msg: "请求超时/被取消（Abort）" };
+                if (lower.includes("failed to fetch") || lower.includes("network") || lower.includes("cors")) {
+                    return { kind: "环境错误", msg: msg };
+                }
+                return { kind: "内部错误", msg: msg };
+            }
+
+            function actionableErrorMessage(kind, msg) {
+                if (kind === "用户输入错误") {
+                    return `用户输入错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 Base URL / Model ID / 输入内容是否为空。`;
+                }
+                if (kind === "环境错误") {
+                    return `环境错误：\n- 发生了什么：${msg}\n- 怎么修复：检查网络/CORS/是否 https 页面访问 http。`;
+                }
+                if (kind === "平台错误") {
+                    return `平台错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 key 是否有效、是否限流、模型 ID 是否存在。`;
+                }
+                return `内部错误：\n- 发生了什么：${msg}`;
+            }
+
+            // 域名安全补丁
+            function getHostname(url) {
+                try { return new URL(String(url || "").trim()).hostname; }
+                catch { return ""; }
+            }
+
+            function isDomainAllowed(hostname, allowlist) {
+                if (!hostname) return false;
+                return (allowlist || []).includes(hostname);
+            }
+
+            function ensureDomainConsentOrThrow(hostname, consentKey = "ai_domain_consent_v1") {
+                const raw = localStorage.getItem(consentKey) || "{}";
+                let obj = {};
+                try { obj = JSON.parse(raw); } catch { obj = {}; }
+
+                if (obj[hostname] === true) return true;
+
+                const ok = confirm(
+                    `你即将把请求（包含密钥）发送到域名：${hostname}\n\n` +
+                    `确认要允许吗？\n` +
+                    `如果这个域名不是你信任的平台，请点取消。`
+                );
+                if (!ok) throw new Error("环境错误: 用户取消了域名授权");
+
+                obj[hostname] = true;
+                localStorage.setItem(consentKey, JSON.stringify(obj));
+                return true;
+            }
+
+            async function corsProbe(baseUrl, timeoutMs = 8000) {
+                const now = new Date().toISOString();
+                const url = String(baseUrl || "").trim();
+                if (!url) return { ok: false, kind: "用户输入错误", result: "空 URL", details: { now, url } };
+
+                let u;
+                try { u = new URL(url); }
+                catch (e) {
+                    return { ok: false, kind: "用户输入错误", result: "URL 无效", details: { now, url, error: String(e) } };
+                }
+
+                if (location.protocol === "https:" && u.protocol === "http:") {
+                    return { ok: false, kind: "环境错误", result: "混合内容（https 页面不能访问 http）", details: { now, url } };
+                }
+                if (navigator.onLine === false) {
+                    return { ok: false, kind: "环境错误", result: "离线", details: { now, url } };
+                }
+
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), timeoutMs);
+                try {
+                    const resp = await fetch(url, { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
+                    return { ok: true, kind: "OK", result: "能拿到响应（CORS 可能可用）", details: { now, url, status: resp.status, statusText: resp.statusText } };
+                } catch (e) {
+                    const info = classifyFetchError(e);
+                    return { ok: false, kind: info.kind, result: "可能被 CORS/网络拦截", details: { now, url, error: info.msg } };
+                } finally {
+                    clearTimeout(timer);
+                }
+            }
+
+            async function call_llm_unified({
+                provider_id,
+                base_url,
+                api_key,
+                model_id,
+                messages,
+                temperature = 0.7,
+                max_tokens = 2000,
+                timeout_ms = 60000,
+                extra_headers = {},
+                extra_body = {}
+            }) {
+                if (!provider_id) throw new Error("用户输入错误: provider_id 为空");
+                if (!base_url) throw new Error("用户输入错误: base_url 为空");
+                if (!model_id) throw new Error("用户输入错误: model_id 为空");
+                if (!Array.isArray(messages) || messages.length === 0) throw new Error("用户输入错误: messages 为空");
+
+                if (!api_key) {
+                    const e = new Error("平台错误: 缺少 API Key（请先在 key-manager.html 设置）");
+                    e._kind = "平台错误";
+                    throw e;
+                }
+
+                const adapter = providerAdapters[provider_id] || null;
+
+                const url = adapter?.buildUrl
+                    ? adapter.buildUrl(base_url)
+                    : joinUrl(base_url, "/chat/completions");
+
+                const headers = adapter?.buildHeaders
+                    ? adapter.buildHeaders(api_key)
+                    : { "Authorization": `Bearer ${api_key}`, "Content-Type": "application/json" };
+
+                const body = adapter?.buildBody
+                    ? adapter.buildBody({ model_id, messages, temperature, max_tokens, extra_body })
+                    : {
+                        model: model_id,
+                        messages,
+                        temperature,
+                        max_tokens,
+                        ...extra_body
+                    };
+
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), timeout_ms);
+
+                try {
+                    const resp = await fetch(url, {
+                        method: "POST",
+                        mode: "cors",
+                        headers: { ...headers, ...extra_headers },
+                        body: JSON.stringify(body),
+                        signal: controller.signal
+                    });
+
+                    const text = await resp.text();
+                    let json = null;
+                    const parsed = safeJsonParse(text);
+                    if (parsed.ok) json = parsed.value;
+
+                    if (!resp.ok) {
+                        const e = new Error(`平台错误: HTTP ${resp.status} ${resp.statusText}\n${text.slice(0, 800)}`);
+                        e._kind = "平台错误";
+                        throw e;
+                    }
+
+                    const outText = adapter?.parseResponse
+                        ? adapter.parseResponse(json)
+                        : (json?.choices?.[0]?.message?.content ?? "");
+
+                    if (!outText) {
+                        const e = new Error("平台错误: 响应中未找到可用文本（choices[0].message.content 为空）");
+                        e._kind = "平台错误";
+                        throw e;
+                    }
+
+                    return { text: String(outText), raw: json };
+                } catch (e) {
+                    if (e && e._kind) throw e;
+                    const info = classifyFetchError(e);
+                    const err = new Error(`${info.kind}: ${info.msg}`);
+                    err._kind = info.kind;
+                    throw err;
+                } finally {
+                    clearTimeout(timer);
+                }
+            }
+
+            function render_ai_settings_html({ container_id = "aiSettingsMount" } = {}) {
+                const providerOptions = Object.keys(AI_PROVIDERS)
+                    .map(pid => `<option value="${pid}">${AI_PROVIDERS[pid].name}</option>`)
+                    .join("");
+
+                return `
             <div class="settings-section">
                 <h3>AI 服务配置</h3>
 
@@ -1336,246 +1442,246 @@ const AI_MODULE = (() => {
                 <div class="log-box" id="aiLog" style="margin-top: 10px;">AI 模块就绪。</div>
             </div>
         `;
-    }
-
-    function mount_ai_settings({
-        mount_el,
-        default_provider_id = "siliconflow",
-        on_state_change = null
-    }) {
-        if (!mount_el) throw new Error("mount_el is required");
-
-        mount_el.innerHTML = render_ai_settings_html();
-
-        const aiNetworkingToggle = mount_el.querySelector("#aiNetworkingToggle");
-        const aiProviderSelect = mount_el.querySelector("#aiProviderSelect");
-        const aiBaseUrlInput = mount_el.querySelector("#aiBaseUrlInput");
-        const aiModelPresetSelect = mount_el.querySelector("#aiModelPresetSelect");
-        const aiModelIdInput = mount_el.querySelector("#aiModelIdInput");
-        const aiKeyStatusPill = mount_el.querySelector("#aiKeyStatusPill");
-        const aiTemperature = mount_el.querySelector("#aiTemperature");
-        const aiMaxTokens = mount_el.querySelector("#aiMaxTokens");
-        const aiTimeoutMs = mount_el.querySelector("#aiTimeoutMs");
-        const aiLog = mount_el.querySelector("#aiLog");
-        const aiSyncBtn = mount_el.querySelector("#aiSyncBtn");
-        const aiCorsProbeBtn = mount_el.querySelector("#aiCorsProbeBtn");
-
-        const state = {
-            networking_enabled: false,
-            provider_id: default_provider_id,
-            base_url: "",
-            model_id: "",
-            temperature: 0.7,
-            max_tokens: 2000,
-            timeout_ms: 60000
-        };
-
-        function emit() {
-            on_state_change && on_state_change(get_state());
-        }
-
-        function setKeyStatusPill(providerId) {
-            const ks = getKeyStatus(providerId);
-            if (!ks.ok) {
-                aiKeyStatusPill.className = "pill bad";
-                aiKeyStatusPill.textContent = "密钥状态：未知";
-                return;
             }
-            if (ks.has_key) {
-                aiKeyStatusPill.className = "pill good";
-                aiKeyStatusPill.textContent = `密钥状态：✅ 已设置`;
-            } else {
-                aiKeyStatusPill.className = "pill bad";
-                aiKeyStatusPill.textContent = `密钥状态：❌ 未设置`;
+
+            function mount_ai_settings({
+                mount_el,
+                default_provider_id = "siliconflow",
+                on_state_change = null
+            }) {
+                if (!mount_el) throw new Error("mount_el is required");
+
+                mount_el.innerHTML = render_ai_settings_html();
+
+                const aiNetworkingToggle = mount_el.querySelector("#aiNetworkingToggle");
+                const aiProviderSelect = mount_el.querySelector("#aiProviderSelect");
+                const aiBaseUrlInput = mount_el.querySelector("#aiBaseUrlInput");
+                const aiModelPresetSelect = mount_el.querySelector("#aiModelPresetSelect");
+                const aiModelIdInput = mount_el.querySelector("#aiModelIdInput");
+                const aiKeyStatusPill = mount_el.querySelector("#aiKeyStatusPill");
+                const aiTemperature = mount_el.querySelector("#aiTemperature");
+                const aiMaxTokens = mount_el.querySelector("#aiMaxTokens");
+                const aiTimeoutMs = mount_el.querySelector("#aiTimeoutMs");
+                const aiLog = mount_el.querySelector("#aiLog");
+                const aiSyncBtn = mount_el.querySelector("#aiSyncBtn");
+                const aiCorsProbeBtn = mount_el.querySelector("#aiCorsProbeBtn");
+
+                const state = {
+                    networking_enabled: false,
+                    provider_id: default_provider_id,
+                    base_url: "",
+                    model_id: "",
+                    temperature: 0.7,
+                    max_tokens: 2000,
+                    timeout_ms: 60000
+                };
+
+                function emit() {
+                    on_state_change && on_state_change(get_state());
+                }
+
+                function setKeyStatusPill(providerId) {
+                    const ks = getKeyStatus(providerId);
+                    if (!ks.ok) {
+                        aiKeyStatusPill.className = "pill bad";
+                        aiKeyStatusPill.textContent = "密钥状态：未知";
+                        return;
+                    }
+                    if (ks.has_key) {
+                        aiKeyStatusPill.className = "pill good";
+                        aiKeyStatusPill.textContent = `密钥状态：✅ 已设置`;
+                    } else {
+                        aiKeyStatusPill.className = "pill bad";
+                        aiKeyStatusPill.textContent = `密钥状态：❌ 未设置`;
+                    }
+                }
+
+                function rebuildModelPresetOptions(providerId, preferModelId = "") {
+                    const cfg = getMergedProviderConfig(providerId);
+                    const models = cfg.models || [];
+                    const options = [
+                        ...models.map(m => `<option value="${String(m.id)}">${String(m.name || m.id)}${m._custom ? "（自定义）" : ""}</option>`),
+                        `<option value="_custom_">手动输入模型 ID</option>`
+                    ].join("");
+                    aiModelPresetSelect.innerHTML = options;
+
+                    const effectiveModelId = preferModelId || cfg.model_id || cfg.model_id_default || "";
+                    const hasPreset = models.some(m => String(m.id) === String(effectiveModelId));
+                    aiModelPresetSelect.value = hasPreset ? String(effectiveModelId) : "_custom_";
+                }
+
+                function syncFromKeyManager(providerId) {
+                    const cfg = getMergedProviderConfig(providerId);
+                    state.base_url = String(cfg.base_url || "");
+                    state.model_id = String(cfg.model_id || "");
+                    aiBaseUrlInput.value = state.base_url;
+                    aiModelIdInput.value = state.model_id;
+
+                    rebuildModelPresetOptions(providerId, state.model_id);
+                    setKeyStatusPill(providerId);
+
+                    aiLog.textContent =
+                        `已同步配置：\n` +
+                        `provider: ${cfg.name}\n` +
+                        `base_url: ${state.base_url}\n` +
+                        `model_id: ${state.model_id}`;
+
+                    emit();
+                }
+
+                // Initial
+                aiProviderSelect.value = default_provider_id;
+                syncFromKeyManager(default_provider_id);
+
+                aiNetworkingToggle.addEventListener("change", () => {
+                    state.networking_enabled = Boolean(aiNetworkingToggle.checked);
+                    aiLog.textContent = state.networking_enabled
+                        ? "已允许联网：AI 功能已启用"
+                        : "已关闭联网：AI 功能已禁用";
+                    emit();
+                });
+
+                aiProviderSelect.addEventListener("change", () => {
+                    state.provider_id = aiProviderSelect.value;
+                    syncFromKeyManager(state.provider_id);
+                });
+
+                aiBaseUrlInput.addEventListener("change", () => {
+                    state.base_url = String(aiBaseUrlInput.value || "").trim();
+                    emit();
+                });
+
+                aiModelPresetSelect.addEventListener("change", () => {
+                    const chosen = aiModelPresetSelect.value;
+                    if (chosen === "_custom_") {
+                        aiModelIdInput.focus();
+                        aiModelIdInput.select();
+                        return;
+                    }
+                    aiModelIdInput.value = chosen;
+                    state.model_id = chosen;
+                    emit();
+                });
+
+                aiModelIdInput.addEventListener("change", () => {
+                    state.model_id = String(aiModelIdInput.value || "").trim();
+                    emit();
+                });
+
+                aiTemperature.addEventListener("change", () => {
+                    const v = Number(aiTemperature.value);
+                    state.temperature = Number.isFinite(v) ? v : 0.7;
+                    emit();
+                });
+
+                aiMaxTokens.addEventListener("change", () => {
+                    const v = Number(aiMaxTokens.value);
+                    state.max_tokens = Number.isFinite(v) ? Math.max(1, Math.floor(v)) : 2000;
+                    emit();
+                });
+
+                aiTimeoutMs.addEventListener("change", () => {
+                    const v = Number(aiTimeoutMs.value);
+                    state.timeout_ms = Number.isFinite(v) ? Math.max(1000, Math.floor(v)) : 60000;
+                    emit();
+                });
+
+                aiSyncBtn.addEventListener("click", () => syncFromKeyManager(state.provider_id));
+
+                aiCorsProbeBtn.addEventListener("click", async () => {
+                    const url = String(aiBaseUrlInput.value || "").trim();
+                    aiLog.textContent = "CORS 探测中...";
+                    const res = await corsProbe(url, 8000);
+                    aiLog.textContent = JSON.stringify(res, null, 2);
+                });
+
+                function get_state() {
+                    return {
+                        ...state,
+                        key_status: getKeyStatus(state.provider_id)
+                    };
+                }
+
+                async function call_ai({ messages }) {
+                    const s = get_state();
+                    if (!s.networking_enabled) {
+                        const e = new Error("环境错误: 当前未允许联网（请在设置中开启）");
+                        e._kind = "环境错误";
+                        throw e;
+                    }
+
+                    // 域名安全检查
+                    const hostname = getHostname(s.base_url);
+                    const allowlist = ["api.siliconflow.cn", "openrouter.ai", "api.deepseek.com", "localhost"];
+                    if (!isDomainAllowed(hostname, allowlist)) {
+                        ensureDomainConsentOrThrow(hostname);
+                    }
+
+                    const p = getProvider(s.provider_id);
+                    const apiKey = localStorage.getItem(p.keyName) || "";
+
+                    return await call_llm_unified({
+                        provider_id: s.provider_id,
+                        base_url: s.base_url,
+                        api_key: apiKey,
+                        model_id: s.model_id,
+                        messages,
+                        temperature: s.temperature,
+                        max_tokens: s.max_tokens,
+                        timeout_ms: s.timeout_ms
+                    });
+                }
+
+                function get_actionable_error(err) {
+                    const kind = err?._kind || "内部错误";
+                    const msg = String(err?.message || err || "");
+                    return actionableErrorMessage(kind, msg);
+                }
+
+                return {
+                    get_state,
+                    call_ai,
+                    get_actionable_error,
+                    sync: () => syncFromKeyManager(state.provider_id)
+                };
             }
-        }
 
-        function rebuildModelPresetOptions(providerId, preferModelId = "") {
-            const cfg = getMergedProviderConfig(providerId);
-            const models = cfg.models || [];
-            const options = [
-                ...models.map(m => `<option value="${String(m.id)}">${String(m.name || m.id)}${m._custom ? "（自定义）" : ""}</option>`),
-                `<option value="_custom_">手动输入模型 ID</option>`
-            ].join("");
-            aiModelPresetSelect.innerHTML = options;
-
-            const effectiveModelId = preferModelId || cfg.model_id || cfg.model_id_default || "";
-            const hasPreset = models.some(m => String(m.id) === String(effectiveModelId));
-            aiModelPresetSelect.value = hasPreset ? String(effectiveModelId) : "_custom_";
-        }
-
-        function syncFromKeyManager(providerId) {
-            const cfg = getMergedProviderConfig(providerId);
-            state.base_url = String(cfg.base_url || "");
-            state.model_id = String(cfg.model_id || "");
-            aiBaseUrlInput.value = state.base_url;
-            aiModelIdInput.value = state.model_id;
-
-            rebuildModelPresetOptions(providerId, state.model_id);
-            setKeyStatusPill(providerId);
-
-            aiLog.textContent =
-                `已同步配置：\n` +
-                `provider: ${cfg.name}\n` +
-                `base_url: ${state.base_url}\n` +
-                `model_id: ${state.model_id}`;
-
-            emit();
-        }
-
-        // Initial
-        aiProviderSelect.value = default_provider_id;
-        syncFromKeyManager(default_provider_id);
-
-        aiNetworkingToggle.addEventListener("change", () => {
-            state.networking_enabled = Boolean(aiNetworkingToggle.checked);
-            aiLog.textContent = state.networking_enabled
-                ? "已允许联网：AI 功能已启用"
-                : "已关闭联网：AI 功能已禁用";
-            emit();
-        });
-
-        aiProviderSelect.addEventListener("change", () => {
-            state.provider_id = aiProviderSelect.value;
-            syncFromKeyManager(state.provider_id);
-        });
-
-        aiBaseUrlInput.addEventListener("change", () => {
-            state.base_url = String(aiBaseUrlInput.value || "").trim();
-            emit();
-        });
-
-        aiModelPresetSelect.addEventListener("change", () => {
-            const chosen = aiModelPresetSelect.value;
-            if (chosen === "_custom_") {
-                aiModelIdInput.focus();
-                aiModelIdInput.select();
-                return;
-            }
-            aiModelIdInput.value = chosen;
-            state.model_id = chosen;
-            emit();
-        });
-
-        aiModelIdInput.addEventListener("change", () => {
-            state.model_id = String(aiModelIdInput.value || "").trim();
-            emit();
-        });
-
-        aiTemperature.addEventListener("change", () => {
-            const v = Number(aiTemperature.value);
-            state.temperature = Number.isFinite(v) ? v : 0.7;
-            emit();
-        });
-
-        aiMaxTokens.addEventListener("change", () => {
-            const v = Number(aiMaxTokens.value);
-            state.max_tokens = Number.isFinite(v) ? Math.max(1, Math.floor(v)) : 2000;
-            emit();
-        });
-
-        aiTimeoutMs.addEventListener("change", () => {
-            const v = Number(aiTimeoutMs.value);
-            state.timeout_ms = Number.isFinite(v) ? Math.max(1000, Math.floor(v)) : 60000;
-            emit();
-        });
-
-        aiSyncBtn.addEventListener("click", () => syncFromKeyManager(state.provider_id));
-
-        aiCorsProbeBtn.addEventListener("click", async () => {
-            const url = String(aiBaseUrlInput.value || "").trim();
-            aiLog.textContent = "CORS 探测中...";
-            const res = await corsProbe(url, 8000);
-            aiLog.textContent = JSON.stringify(res, null, 2);
-        });
-
-        function get_state() {
             return {
-                ...state,
-                key_status: getKeyStatus(state.provider_id)
+                AI_PROVIDERS,
+                mount_ai_settings,
+                getMergedProviderConfig,
+                getKeyStatus,
+                corsProbe,
+                call_llm_unified,
+                actionableErrorMessage
             };
-        }
-
-        async function call_ai({ messages }) {
-            const s = get_state();
-            if (!s.networking_enabled) {
-                const e = new Error("环境错误: 当前未允许联网（请在设置中开启）");
-                e._kind = "环境错误";
-                throw e;
-            }
-
-            // 域名安全检查
-            const hostname = getHostname(s.base_url);
-            const allowlist = ["api.siliconflow.cn", "openrouter.ai", "api.deepseek.com", "localhost"];
-            if (!isDomainAllowed(hostname, allowlist)) {
-                ensureDomainConsentOrThrow(hostname);
-            }
-
-            const p = getProvider(s.provider_id);
-            const apiKey = localStorage.getItem(p.keyName) || "";
-
-            return await call_llm_unified({
-                provider_id: s.provider_id,
-                base_url: s.base_url,
-                api_key: apiKey,
-                model_id: s.model_id,
-                messages,
-                temperature: s.temperature,
-                max_tokens: s.max_tokens,
-                timeout_ms: s.timeout_ms
-            });
-        }
-
-        function get_actionable_error(err) {
-            const kind = err?._kind || "内部错误";
-            const msg = String(err?.message || err || "");
-            return actionableErrorMessage(kind, msg);
-        }
-
-        return {
-            get_state,
-            call_ai,
-            get_actionable_error,
-            sync: () => syncFromKeyManager(state.provider_id)
-        };
-    }
-
-    return {
-        AI_PROVIDERS,
-        mount_ai_settings,
-        getMergedProviderConfig,
-        getKeyStatus,
-        corsProbe,
-        call_llm_unified,
-        actionableErrorMessage
-    };
-})();
+        })();
 
 
 
-/******************************
- * Learning Coach Core Engine
- ******************************/
-const LearningCoach = (() => {
-    // Storage keys
-    const STORAGE_KEYS = {
-        profile: 'lc_user_profile_v1',
-        conversation: 'lc_conversation_v1',
-        firstWin: 'lc_first_win_v1',
-        preferences: 'lc_preferences_v1'
-    };
+        /******************************
+         * Learning Coach Core Engine
+         ******************************/
+        const LearningCoach = (() => {
+            // Storage keys
+            const STORAGE_KEYS = {
+                profile: 'lc_user_profile_v1',
+                conversation: 'lc_conversation_v1',
+                firstWin: 'lc_first_win_v1',
+                preferences: 'lc_preferences_v1'
+            };
 
-    // State
-    let currentStep = 0;
-    let conversationHistory = [];
-    let userProfile = {};
-    let firstWinTask = null;
-    let coachStyle = 'warm';
-    let aiInstance = null;
+            // State
+            let currentStep = 0;
+            let conversationHistory = [];
+            let userProfile = {};
+            let firstWinTask = null;
+            let coachStyle = 'warm';
+            let aiInstance = null;
 
-    // System Prompts
-    const SYSTEM_PROMPTS = {
-        base: `你是一位「逆向学习教练」，基于「Do first, learn later」的理念帮助成人学习者。
+            // System Prompts
+            const SYSTEM_PROMPTS = {
+                base: `你是一位「逆向学习教练」，基于「Do first, learn later」的理念帮助成人学习者。
 
 你的核心信念：
 - 学校教的学习方法是成人学习的最大阻碍
@@ -1597,7 +1703,7 @@ const LearningCoach = (() => {
 - 推荐「完整课程」
 - 使用「循序渐进」等词汇`,
 
-        step0: `当前阶段：破冰（Step 0）
+                step0: `当前阶段：破冰（Step 0）
 
 目标：建立信任，打破用户的防御心态。
 
@@ -1612,7 +1718,7 @@ const LearningCoach = (() => {
 
 完成条件：用户表达出想学习某样东西的意愿`,
 
-        step1: `当前阶段：定锚真实问题（Step 1）
+                step1: `当前阶段：定锚真实问题（Step 1）
 
 目标：帮用户定义一个具体的「Jobs-to-be-Done」。
 
@@ -1626,7 +1732,7 @@ const LearningCoach = (() => {
 
 完成条件：用户确认了 JTBD 陈述`,
 
-        step2: `当前阶段：心态陷阱诊断（Step 2）
+                step2: `当前阶段：心态陷阱诊断（Step 2）
 
 目标：识别用户是否陷入「学生心态陷阱」。
 
@@ -1649,7 +1755,7 @@ const LearningCoach = (() => {
 
 完成条件：完成诊断并给出处方`,
 
-        step3: `当前阶段：知识缺口倒推（Step 3）
+                step3: `当前阶段：知识缺口倒推（Step 3）
 
 目标：从 JTBD 逆向推导最小知识集。
 
@@ -1666,7 +1772,7 @@ const LearningCoach = (() => {
 
 完成条件：用户确认了缺口清单`,
 
-        step4: `当前阶段：首胜设计（Step 4）
+                step4: `当前阶段：首胜设计（Step 4）
 
 目标：设计一个 3-7 天能完成的小产出。
 
@@ -1700,7 +1806,7 @@ const LearningCoach = (() => {
 
 完成条件：生成了首胜任务卡`,
 
-        step5: `当前阶段：托底机制激活（Step 5）
+                step5: `当前阶段：托底机制激活（Step 5）
 
 目标：激活托底机制，预防用户放弃。
 
@@ -1712,7 +1818,7 @@ const LearningCoach = (() => {
 
 完成条件：用户确认理解托底机制`,
 
-        sos: `用户触发了 SOS 模式（想放弃）
+                sos: `用户触发了 SOS 模式（想放弃）
 
 你的响应原则：
 1. 不评判、不说教、不催促
@@ -1728,7 +1834,7 @@ const LearningCoach = (() => {
 
 灵活缩水："如果实在完不成 100%，完成 30% 也是胜利。我们来聊聊可以砍掉什么。"`,
 
-        done: `用户报告任务完成
+                done: `用户报告任务完成
 
 你的响应：
 1. 真诚庆祝："🎉 你做到了！"
@@ -1736,572 +1842,572 @@ const LearningCoach = (() => {
 3. 找出 3 个亮点真诚夸奖
 4. 引导反思："做这个过程中，你学到了什么？"
 5. 播种下一颗种子："下一个首胜想挑战什么？"`
-    };
-
-    // Coach style variants
-    const STYLE_MODIFIERS = {
-        warm: '使用温暖鼓励的语气，多用"我理解"、"很棒"、"你已经很厉害了"等表达。',
-        rational: '使用理性分析的语气，多用数据、逻辑、框架来说服，少用情感词汇。',
-        challenge: '使用轻度挑战的语气，敢于质疑用户的假设，用问题引导思考。'
-    };
-
-    // Initialize
-    function init(aiModuleInstance) {
-        aiInstance = aiModuleInstance;
-        loadState();
-        return {
-            getState,
-            processUserInput,
-            handleCommand,
-            setCoachStyle,
-            reset,
-            getCurrentStep: () => currentStep,
-            getConversationHistory: () => conversationHistory,
-            getFirstWinTask: () => firstWinTask,
-            saveState
-        };
-    }
-
-    function loadState() {
-        try {
-            const profile = localStorage.getItem(STORAGE_KEYS.profile);
-            const conversation = localStorage.getItem(STORAGE_KEYS.conversation);
-            const firstWin = localStorage.getItem(STORAGE_KEYS.firstWin);
-            const prefs = localStorage.getItem(STORAGE_KEYS.preferences);
-
-            if (profile) userProfile = JSON.parse(profile);
-            if (conversation) {
-                const data = JSON.parse(conversation);
-                conversationHistory = data.history || [];
-                currentStep = data.currentStep || 0;
-            }
-            if (firstWin) firstWinTask = JSON.parse(firstWin);
-            if (prefs) {
-                const prefsData = JSON.parse(prefs);
-                coachStyle = prefsData.coachStyle || 'warm';
-            }
-        } catch (e) {
-            console.error('Failed to load state:', e);
-        }
-    }
-
-    function saveState() {
-        try {
-            localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(userProfile));
-            localStorage.setItem(STORAGE_KEYS.conversation, JSON.stringify({
-                history: conversationHistory,
-                currentStep: currentStep
-            }));
-            if (firstWinTask) {
-                localStorage.setItem(STORAGE_KEYS.firstWin, JSON.stringify(firstWinTask));
-            }
-            localStorage.setItem(STORAGE_KEYS.preferences, JSON.stringify({
-                coachStyle
-            }));
-        } catch (e) {
-            console.error('Failed to save state:', e);
-        }
-    }
-
-    function getState() {
-        return {
-            currentStep,
-            conversationHistory,
-            userProfile,
-            firstWinTask,
-            coachStyle
-        };
-    }
-
-    function setCoachStyle(style) {
-        if (STYLE_MODIFIERS[style]) {
-            coachStyle = style;
-            saveState();
-        }
-    }
-
-    function buildSystemPrompt(mode = 'normal') {
-        let prompt = SYSTEM_PROMPTS.base + '\n\n';
-        prompt += STYLE_MODIFIERS[coachStyle] + '\n\n';
-
-        if (mode === 'sos') {
-            prompt += SYSTEM_PROMPTS.sos;
-        } else if (mode === 'done') {
-            prompt += SYSTEM_PROMPTS.done;
-        } else {
-            const stepKey = `step${currentStep}`;
-            if (SYSTEM_PROMPTS[stepKey]) {
-                prompt += SYSTEM_PROMPTS[stepKey];
-            }
-        }
-
-        // Add context
-        if (userProfile.jtbd) {
-            prompt += `\n\n用户的 JTBD：${userProfile.jtbd}`;
-        }
-        if (userProfile.traps && userProfile.traps.length > 0) {
-            prompt += `\n\n用户的心态陷阱：${userProfile.traps.join('、')}`;
-        }
-        if (firstWinTask) {
-            prompt += `\n\n当前首胜任务：${firstWinTask.task}`;
-        }
-
-        return prompt;
-    }
-
-    function buildMessages(userInput, mode = 'normal') {
-        const systemPrompt = buildSystemPrompt(mode);
-        const messages = [{ role: 'system', content: systemPrompt }];
-
-        // Add recent conversation history (last 10 exchanges)
-        const recentHistory = conversationHistory.slice(-20);
-        for (const msg of recentHistory) {
-            messages.push({
-                role: msg.role === 'coach' ? 'assistant' : 'user',
-                content: msg.content
-            });
-        }
-
-        // Add current user input
-        messages.push({ role: 'user', content: userInput });
-
-        return messages;
-    }
-
-    async function processUserInput(userInput) {
-        // Add user message to history
-        conversationHistory.push({
-            role: 'user',
-            content: userInput,
-            timestamp: Date.now()
-        });
-
-        // Check for step progression keywords
-        checkStepProgression(userInput);
-
-        try {
-            const messages = buildMessages(userInput);
-            const response = await aiInstance.call_ai({ messages });
-
-            // Add coach response to history
-            conversationHistory.push({
-                role: 'coach',
-                content: response.text,
-                timestamp: Date.now()
-            });
-
-            // Extract structured data from response
-            extractStructuredData(response.text);
-
-            saveState();
-
-            return {
-                success: true,
-                text: response.text,
-                currentStep
             };
-        } catch (error) {
-            return {
-                success: false,
-                error: aiInstance.get_actionable_error(error),
-                currentStep
+
+            // Coach style variants
+            const STYLE_MODIFIERS = {
+                warm: '使用温暖鼓励的语气，多用"我理解"、"很棒"、"你已经很厉害了"等表达。',
+                rational: '使用理性分析的语气，多用数据、逻辑、框架来说服，少用情感词汇。',
+                challenge: '使用轻度挑战的语气，敢于质疑用户的假设，用问题引导思考。'
             };
-        }
-    }
 
-    function handleCommand(command) {
-        const cmd = command.toLowerCase().trim();
+            // Initialize
+            function init(aiModuleInstance) {
+                aiInstance = aiModuleInstance;
+                loadState();
+                return {
+                    getState,
+                    processUserInput,
+                    handleCommand,
+                    setCoachStyle,
+                    reset,
+                    getCurrentStep: () => currentStep,
+                    getConversationHistory: () => conversationHistory,
+                    getFirstWinTask: () => firstWinTask,
+                    saveState
+                };
+            }
 
-        switch (cmd) {
-            case '/restart':
-                reset();
-                return { action: 'restart', message: '已重新开始。让我们重新认识一下？' };
+            function loadState() {
+                try {
+                    const profile = localStorage.getItem(STORAGE_KEYS.profile);
+                    const conversation = localStorage.getItem(STORAGE_KEYS.conversation);
+                    const firstWin = localStorage.getItem(STORAGE_KEYS.firstWin);
+                    const prefs = localStorage.getItem(STORAGE_KEYS.preferences);
 
-            case '/diagnose':
-                currentStep = 2;
-                saveState();
-                return { action: 'diagnose', message: '进入诊断模式。让我来帮你分析一下...' };
+                    if (profile) userProfile = JSON.parse(profile);
+                    if (conversation) {
+                        const data = JSON.parse(conversation);
+                        conversationHistory = data.history || [];
+                        currentStep = data.currentStep || 0;
+                    }
+                    if (firstWin) firstWinTask = JSON.parse(firstWin);
+                    if (prefs) {
+                        const prefsData = JSON.parse(prefs);
+                        coachStyle = prefsData.coachStyle || 'warm';
+                    }
+                } catch (e) {
+                    console.error('Failed to load state:', e);
+                }
+            }
 
-            case '/sos':
-                return { action: 'sos', mode: 'sos', message: null };
+            function saveState() {
+                try {
+                    localStorage.setItem(STORAGE_KEYS.profile, JSON.stringify(userProfile));
+                    localStorage.setItem(STORAGE_KEYS.conversation, JSON.stringify({
+                        history: conversationHistory,
+                        currentStep: currentStep
+                    }));
+                    if (firstWinTask) {
+                        localStorage.setItem(STORAGE_KEYS.firstWin, JSON.stringify(firstWinTask));
+                    }
+                    localStorage.setItem(STORAGE_KEYS.preferences, JSON.stringify({
+                        coachStyle
+                    }));
+                } catch (e) {
+                    console.error('Failed to save state:', e);
+                }
+            }
 
-            case '/plan':
+            function getState() {
+                return {
+                    currentStep,
+                    conversationHistory,
+                    userProfile,
+                    firstWinTask,
+                    coachStyle
+                };
+            }
+
+            function setCoachStyle(style) {
+                if (STYLE_MODIFIERS[style]) {
+                    coachStyle = style;
+                    saveState();
+                }
+            }
+
+            function buildSystemPrompt(mode = 'normal') {
+                let prompt = SYSTEM_PROMPTS.base + '\n\n';
+                prompt += STYLE_MODIFIERS[coachStyle] + '\n\n';
+
+                if (mode === 'sos') {
+                    prompt += SYSTEM_PROMPTS.sos;
+                } else if (mode === 'done') {
+                    prompt += SYSTEM_PROMPTS.done;
+                } else {
+                    const stepKey = `step${currentStep}`;
+                    if (SYSTEM_PROMPTS[stepKey]) {
+                        prompt += SYSTEM_PROMPTS[stepKey];
+                    }
+                }
+
+                // Add context
+                if (userProfile.jtbd) {
+                    prompt += `\n\n用户的 JTBD：${userProfile.jtbd}`;
+                }
+                if (userProfile.traps && userProfile.traps.length > 0) {
+                    prompt += `\n\n用户的心态陷阱：${userProfile.traps.join('、')}`;
+                }
                 if (firstWinTask) {
-                    return { action: 'plan', task: firstWinTask };
+                    prompt += `\n\n当前首胜任务：${firstWinTask.task}`;
                 }
-                return { action: 'plan', message: '你还没有首胜任务。继续对话来设计一个吧！' };
 
-            case '/done':
-                return { action: 'done', mode: 'done', message: null };
+                return prompt;
+            }
 
-            case '/stuck':
-                return { action: 'stuck', mode: 'sos', message: null };
+            function buildMessages(userInput, mode = 'normal') {
+                const systemPrompt = buildSystemPrompt(mode);
+                const messages = [{ role: 'system', content: systemPrompt }];
 
-            default:
-                return { action: 'unknown', message: '未知命令。可用命令：/restart, /diagnose, /sos, /plan, /done, /stuck' };
-        }
-    }
+                // Add recent conversation history (last 10 exchanges)
+                const recentHistory = conversationHistory.slice(-20);
+                for (const msg of recentHistory) {
+                    messages.push({
+                        role: msg.role === 'coach' ? 'assistant' : 'user',
+                        content: msg.content
+                    });
+                }
 
-    function checkStepProgression(userInput) {
-        const input = userInput.toLowerCase();
+                // Add current user input
+                messages.push({ role: 'user', content: userInput });
 
-        // Step 0 → 1: User expresses learning intent
-        if (currentStep === 0 && (
-            input.includes('想学') ||
-            input.includes('学习') ||
-            input.includes('开始') ||
-            input.includes('好的') ||
-            input.includes('愿意')
-        )) {
-            currentStep = 1;
-        }
+                return messages;
+            }
 
-        // Other progressions handled by AI response analysis
-    }
+            async function processUserInput(userInput) {
+                // Add user message to history
+                conversationHistory.push({
+                    role: 'user',
+                    content: userInput,
+                    timestamp: Date.now()
+                });
 
-    function extractStructuredData(response) {
-        // Extract JTBD
-        const jtbdMatch = response.match(/「当我处于(.+?)时，我想要(.+?)，这样我就能(.+?)」/);
-        if (jtbdMatch) {
-            userProfile.jtbd = jtbdMatch[0];
-            if (currentStep < 2) currentStep = 2;
-        }
+                // Check for step progression keywords
+                checkStepProgression(userInput);
 
-        // Extract First Win Task
-        const taskMatch = response.match(/🎯\s*你的首胜任务[\s\S]*?项目[：:]\s*(.+?)[\n\r]/);
-        if (taskMatch) {
-            const deadlineMatch = response.match(/截止[：:]\s*(.+?)[\n\r]/);
-            const stepsMatch = response.match(/□\s*Day\s*\d+[：:]\s*(.+?)[\n\r]/g);
+                try {
+                    const messages = buildMessages(userInput);
+                    const response = await aiInstance.call_ai({ messages });
 
-            firstWinTask = {
-                task: taskMatch[1].trim(),
-                deadline: deadlineMatch ? deadlineMatch[1].trim() : '7天内',
-                steps: stepsMatch ? stepsMatch.map(s => s.replace(/□\s*Day\s*\d+[：:]\s*/, '').trim()) : [],
-                progress: 0,
-                createdAt: Date.now()
-            };
+                    // Add coach response to history
+                    conversationHistory.push({
+                        role: 'coach',
+                        content: response.text,
+                        timestamp: Date.now()
+                    });
 
-            if (currentStep < 5) currentStep = 5;
-        }
+                    // Extract structured data from response
+                    extractStructuredData(response.text);
 
-        // Detect trap mentions
-        const trapKeywords = {
-            '基础执念': ['先打基础', '从头学', '基础不牢'],
-            '系统幻觉': ['系统学习', '完整课程', '体系'],
-            '输入上瘾': ['收藏', '买了很多', '资料'],
-            '完美拖延': ['准备好', '等我', '还没准备'],
-            '路径依赖': ['以前就', '一直这样']
-        };
+                    saveState();
 
-        for (const [trap, keywords] of Object.entries(trapKeywords)) {
-            if (keywords.some(kw => response.includes(kw))) {
-                if (!userProfile.traps) userProfile.traps = [];
-                if (!userProfile.traps.includes(trap)) {
-                    userProfile.traps.push(trap);
+                    return {
+                        success: true,
+                        text: response.text,
+                        currentStep
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        error: aiInstance.get_actionable_error(error),
+                        currentStep
+                    };
                 }
             }
-        }
-    }
 
-    async function getInitialMessage() {
-        if (conversationHistory.length > 0) {
-            // Return last coach message for resuming
-            const lastCoach = [...conversationHistory].reverse().find(m => m.role === 'coach');
-            return lastCoach ? lastCoach.content : null;
-        }
+            function handleCommand(command) {
+                const cmd = command.toLowerCase().trim();
 
-        // Generate initial message
-        try {
-            const messages = buildMessages('（用户刚进入，请给出开场白）');
-            const response = await aiInstance.call_ai({ messages });
+                switch (cmd) {
+                    case '/restart':
+                        reset();
+                        return { action: 'restart', message: '已重新开始。让我们重新认识一下？' };
 
-            conversationHistory.push({
-                role: 'coach',
-                content: response.text,
-                timestamp: Date.now()
-            });
+                    case '/diagnose':
+                        currentStep = 2;
+                        saveState();
+                        return { action: 'diagnose', message: '进入诊断模式。让我来帮你分析一下...' };
 
-            saveState();
-            return response.text;
-        } catch (error) {
-            // Fallback message
-            return `学一个新东西，然后半途而废——这种经历你有过几次了？
+                    case '/sos':
+                        return { action: 'sos', mode: 'sos', message: null };
+
+                    case '/plan':
+                        if (firstWinTask) {
+                            return { action: 'plan', task: firstWinTask };
+                        }
+                        return { action: 'plan', message: '你还没有首胜任务。继续对话来设计一个吧！' };
+
+                    case '/done':
+                        return { action: 'done', mode: 'done', message: null };
+
+                    case '/stuck':
+                        return { action: 'stuck', mode: 'sos', message: null };
+
+                    default:
+                        return { action: 'unknown', message: '未知命令。可用命令：/restart, /diagnose, /sos, /plan, /done, /stuck' };
+                }
+            }
+
+            function checkStepProgression(userInput) {
+                const input = userInput.toLowerCase();
+
+                // Step 0 → 1: User expresses learning intent
+                if (currentStep === 0 && (
+                    input.includes('想学') ||
+                    input.includes('学习') ||
+                    input.includes('开始') ||
+                    input.includes('好的') ||
+                    input.includes('愿意')
+                )) {
+                    currentStep = 1;
+                }
+
+                // Other progressions handled by AI response analysis
+            }
+
+            function extractStructuredData(response) {
+                // Extract JTBD
+                const jtbdMatch = response.match(/「当我处于(.+?)时，我想要(.+?)，这样我就能(.+?)」/);
+                if (jtbdMatch) {
+                    userProfile.jtbd = jtbdMatch[0];
+                    if (currentStep < 2) currentStep = 2;
+                }
+
+                // Extract First Win Task
+                const taskMatch = response.match(/🎯\s*你的首胜任务[\s\S]*?项目[：:]\s*(.+?)[\n\r]/);
+                if (taskMatch) {
+                    const deadlineMatch = response.match(/截止[：:]\s*(.+?)[\n\r]/);
+                    const stepsMatch = response.match(/□\s*Day\s*\d+[：:]\s*(.+?)[\n\r]/g);
+
+                    firstWinTask = {
+                        task: taskMatch[1].trim(),
+                        deadline: deadlineMatch ? deadlineMatch[1].trim() : '7天内',
+                        steps: stepsMatch ? stepsMatch.map(s => s.replace(/□\s*Day\s*\d+[：:]\s*/, '').trim()) : [],
+                        progress: 0,
+                        createdAt: Date.now()
+                    };
+
+                    if (currentStep < 5) currentStep = 5;
+                }
+
+                // Detect trap mentions
+                const trapKeywords = {
+                    '基础执念': ['先打基础', '从头学', '基础不牢'],
+                    '系统幻觉': ['系统学习', '完整课程', '体系'],
+                    '输入上瘾': ['收藏', '买了很多', '资料'],
+                    '完美拖延': ['准备好', '等我', '还没准备'],
+                    '路径依赖': ['以前就', '一直这样']
+                };
+
+                for (const [trap, keywords] of Object.entries(trapKeywords)) {
+                    if (keywords.some(kw => response.includes(kw))) {
+                        if (!userProfile.traps) userProfile.traps = [];
+                        if (!userProfile.traps.includes(trap)) {
+                            userProfile.traps.push(trap);
+                        }
+                    }
+                }
+            }
+
+            async function getInitialMessage() {
+                if (conversationHistory.length > 0) {
+                    // Return last coach message for resuming
+                    const lastCoach = [...conversationHistory].reverse().find(m => m.role === 'coach');
+                    return lastCoach ? lastCoach.content : null;
+                }
+
+                // Generate initial message
+                try {
+                    const messages = buildMessages('（用户刚进入，请给出开场白）');
+                    const response = await aiInstance.call_ai({ messages });
+
+                    conversationHistory.push({
+                        role: 'coach',
+                        content: response.text,
+                        timestamp: Date.now()
+                    });
+
+                    saveState();
+                    return response.text;
+                } catch (error) {
+                    // Fallback message
+                    return `学一个新东西，然后半途而废——这种经历你有过几次了？
 
 别担心，这不是你的问题。是方法错了。
 
 学校教你的那套「先打基础、系统学习」的方法，在成人世界里几乎注定失败。因为没人逼你，你也没那么多时间。
 
 我想用一种完全不同的方式帮你。你最近有什么想学的吗？`;
-        }
-    }
-
-    function reset() {
-        currentStep = 0;
-        conversationHistory = [];
-        userProfile = {};
-        firstWinTask = null;
-
-        localStorage.removeItem(STORAGE_KEYS.profile);
-        localStorage.removeItem(STORAGE_KEYS.conversation);
-        localStorage.removeItem(STORAGE_KEYS.firstWin);
-    }
-
-    return { init, getInitialMessage };
-})();
-
-
-
-/******************************
- * UI Controller
- ******************************/
-const UI = (() => {
-    let coach = null;
-    let aiModule = null;
-
-    // DOM Elements
-    const elements = {};
-
-    function init() {
-        cacheElements();
-        initAIModule();
-        initCoach();
-        bindEvents();
-        applyTheme();
-    }
-
-    function cacheElements() {
-        elements.chatArea = document.getElementById('chatArea');
-        elements.welcomeScreen = document.getElementById('welcomeScreen');
-        elements.inputArea = document.getElementById('inputArea');
-        elements.inputField = document.getElementById('inputField');
-        elements.sendBtn = document.getElementById('sendBtn');
-        elements.startBtn = document.getElementById('startBtn');
-        elements.settingsBtn = document.getElementById('settingsBtn');
-        elements.settingsPanel = document.getElementById('settingsPanel');
-        elements.closeSettings = document.getElementById('closeSettings');
-        elements.overlay = document.getElementById('overlay');
-        elements.progressBar = document.getElementById('progressBar');
-        elements.statusPill = document.getElementById('statusPill');
-        elements.aiSettingsMount = document.getElementById('aiSettingsMount');
-        elements.coachStyleSelect = document.getElementById('coachStyleSelect');
-        elements.exportDataBtn = document.getElementById('exportDataBtn');
-        elements.clearDataBtn = document.getElementById('clearDataBtn');
-    }
-
-    function initAIModule() {
-        aiModule = AI_MODULE.mount_ai_settings({
-            mount_el: elements.aiSettingsMount,
-            default_provider_id: 'siliconflow',
-            on_state_change: (state) => {
-                updateStatusPill(state);
-            }
-        });
-        updateStatusPill(aiModule.get_state());
-    }
-
-    function initCoach() {
-        coach = LearningCoach.init(aiModule);
-
-        // Check for existing conversation
-        const history = coach.getConversationHistory();
-        if (history.length > 0) {
-            showChatMode();
-            restoreConversation(history);
-            updateProgress(coach.getCurrentStep());
-        }
-    }
-
-    function bindEvents() {
-        // Start button
-        elements.startBtn.addEventListener('click', startConversation);
-
-        // Send message
-        elements.sendBtn.addEventListener('click', sendMessage);
-        elements.inputField.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter' && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-            }
-        });
-
-        // Auto-resize textarea
-        elements.inputField.addEventListener('input', () => {
-            elements.inputField.style.height = 'auto';
-            elements.inputField.style.height = Math.min(elements.inputField.scrollHeight, 150) + 'px';
-        });
-
-        // Settings panel
-        elements.settingsBtn.addEventListener('click', openSettings);
-        elements.closeSettings.addEventListener('click', closeSettings);
-        elements.overlay.addEventListener('click', closeSettings);
-
-        // Coach style
-        elements.coachStyleSelect.addEventListener('change', () => {
-            if (coach) coach.setCoachStyle(elements.coachStyleSelect.value);
-        });
-
-        // Command hints
-        document.querySelectorAll('.command-hint').forEach(hint => {
-            hint.addEventListener('click', () => {
-                const cmd = hint.dataset.cmd;
-                elements.inputField.value = cmd;
-                sendMessage();
-            });
-        });
-
-        // Export/Clear data
-        elements.exportDataBtn.addEventListener('click', exportData);
-        elements.clearDataBtn.addEventListener('click', clearData);
-    }
-
-    function updateStatusPill(state) {
-        if (state.networking_enabled && state.key_status.has_key) {
-            elements.statusPill.className = 'pill good';
-            elements.statusPill.textContent = '🟢 AI 已连接';
-        } else if (state.networking_enabled) {
-            elements.statusPill.className = 'pill warn';
-            elements.statusPill.textContent = '⚠️ 缺少密钥';
-        } else {
-            elements.statusPill.className = 'pill info';
-            elements.statusPill.textContent = '离线模式';
-        }
-    }
-
-    async function startConversation() {
-        showChatMode();
-
-        // Show typing indicator
-        showTyping();
-
-        try {
-            const initialMessage = await LearningCoach.getInitialMessage();
-            hideTyping();
-            addMessage('coach', initialMessage);
-            updateProgress(0);
-        } catch (e) {
-            hideTyping();
-            addMessage('coach', `出错了：${e.message}\n\n请检查 AI 设置是否正确配置。`);
-        }
-    }
-
-    function showChatMode() {
-        elements.welcomeScreen.style.display = 'none';
-        elements.inputArea.style.display = 'block';
-        elements.inputField.focus();
-    }
-
-    function restoreConversation(history) {
-        // Clear chat area except welcome screen
-        elements.chatArea.innerHTML = '';
-
-        for (const msg of history) {
-            addMessage(msg.role, msg.content, false);
-        }
-
-        scrollToBottom();
-    }
-
-    async function sendMessage() {
-        const input = elements.inputField.value.trim();
-        if (!input) return;
-
-        elements.inputField.value = '';
-        elements.inputField.style.height = 'auto';
-
-        // Check for commands
-        if (input.startsWith('/')) {
-            const result = coach.handleCommand(input);
-            handleCommandResult(result, input);
-            return;
-        }
-
-        // Add user message
-        addMessage('user', input);
-
-        // Show typing
-        showTyping();
-
-        // Process with AI
-        const result = await coach.processUserInput(input);
-
-        hideTyping();
-
-        if (result.success) {
-            addMessage('coach', result.text);
-            updateProgress(result.currentStep);
-        } else {
-            addMessage('coach', `抱歉，出了点问题：\n\n${result.error}\n\n你可以重试，或者检查一下设置。`);
-        }
-    }
-
-    async function handleCommandResult(result, originalInput) {
-        switch (result.action) {
-            case 'restart':
-                elements.chatArea.innerHTML = '';
-                startConversation();
-                break;
-
-            case 'plan':
-                if (result.task) {
-                    addMessage('coach', renderFirstWinCard(result.task));
-                } else {
-                    addMessage('coach', result.message);
                 }
-                break;
+            }
 
-            case 'sos':
-            case 'done':
-            case 'stuck':
-                addMessage('user', originalInput);
+            function reset() {
+                currentStep = 0;
+                conversationHistory = [];
+                userProfile = {};
+                firstWinTask = null;
+
+                localStorage.removeItem(STORAGE_KEYS.profile);
+                localStorage.removeItem(STORAGE_KEYS.conversation);
+                localStorage.removeItem(STORAGE_KEYS.firstWin);
+            }
+
+            return { init, getInitialMessage };
+        })();
+
+
+
+        /******************************
+         * UI Controller
+         ******************************/
+        const UI = (() => {
+            let coach = null;
+            let aiModule = null;
+
+            // DOM Elements
+            const elements = {};
+
+            function init() {
+                cacheElements();
+                initAIModule();
+                initCoach();
+                bindEvents();
+                applyTheme();
+            }
+
+            function cacheElements() {
+                elements.chatArea = document.getElementById('chatArea');
+                elements.welcomeScreen = document.getElementById('welcomeScreen');
+                elements.inputArea = document.getElementById('inputArea');
+                elements.inputField = document.getElementById('inputField');
+                elements.sendBtn = document.getElementById('sendBtn');
+                elements.startBtn = document.getElementById('startBtn');
+                elements.settingsBtn = document.getElementById('settingsBtn');
+                elements.settingsPanel = document.getElementById('settingsPanel');
+                elements.closeSettings = document.getElementById('closeSettings');
+                elements.overlay = document.getElementById('overlay');
+                elements.progressBar = document.getElementById('progressBar');
+                elements.statusPill = document.getElementById('statusPill');
+                elements.aiSettingsMount = document.getElementById('aiSettingsMount');
+                elements.coachStyleSelect = document.getElementById('coachStyleSelect');
+                elements.exportDataBtn = document.getElementById('exportDataBtn');
+                elements.clearDataBtn = document.getElementById('clearDataBtn');
+            }
+
+            function initAIModule() {
+                aiModule = AI_MODULE.mount_ai_settings({
+                    mount_el: elements.aiSettingsMount,
+                    default_provider_id: 'siliconflow',
+                    on_state_change: (state) => {
+                        updateStatusPill(state);
+                    }
+                });
+                updateStatusPill(aiModule.get_state());
+            }
+
+            function initCoach() {
+                coach = LearningCoach.init(aiModule);
+
+                // Check for existing conversation
+                const history = coach.getConversationHistory();
+                if (history.length > 0) {
+                    showChatMode();
+                    restoreConversation(history);
+                    updateProgress(coach.getCurrentStep());
+                }
+            }
+
+            function bindEvents() {
+                // Start button
+                elements.startBtn.addEventListener('click', startConversation);
+
+                // Send message
+                elements.sendBtn.addEventListener('click', sendMessage);
+                elements.inputField.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendMessage();
+                    }
+                });
+
+                // Auto-resize textarea
+                elements.inputField.addEventListener('input', () => {
+                    elements.inputField.style.height = 'auto';
+                    elements.inputField.style.height = Math.min(elements.inputField.scrollHeight, 150) + 'px';
+                });
+
+                // Settings panel
+                elements.settingsBtn.addEventListener('click', openSettings);
+                elements.closeSettings.addEventListener('click', closeSettings);
+                elements.overlay.addEventListener('click', closeSettings);
+
+                // Coach style
+                elements.coachStyleSelect.addEventListener('change', () => {
+                    if (coach) coach.setCoachStyle(elements.coachStyleSelect.value);
+                });
+
+                // Command hints
+                document.querySelectorAll('.command-hint').forEach(hint => {
+                    hint.addEventListener('click', () => {
+                        const cmd = hint.dataset.cmd;
+                        elements.inputField.value = cmd;
+                        sendMessage();
+                    });
+                });
+
+                // Export/Clear data
+                elements.exportDataBtn.addEventListener('click', exportData);
+                elements.clearDataBtn.addEventListener('click', clearData);
+            }
+
+            function updateStatusPill(state) {
+                if (state.networking_enabled && state.key_status.has_key) {
+                    elements.statusPill.className = 'pill good';
+                    elements.statusPill.textContent = '🟢 AI 已连接';
+                } else if (state.networking_enabled) {
+                    elements.statusPill.className = 'pill warn';
+                    elements.statusPill.textContent = '⚠️ 缺少密钥';
+                } else {
+                    elements.statusPill.className = 'pill info';
+                    elements.statusPill.textContent = '离线模式';
+                }
+            }
+
+            async function startConversation() {
+                showChatMode();
+
+                // Show typing indicator
                 showTyping();
-                const response = await coach.processUserInput(originalInput);
-                hideTyping();
-                if (response.success) {
-                    addMessage('coach', response.text);
-                } else {
-                    addMessage('coach', response.error);
+
+                try {
+                    const initialMessage = await LearningCoach.getInitialMessage();
+                    hideTyping();
+                    addMessage('coach', initialMessage);
+                    updateProgress(0);
+                } catch (e) {
+                    hideTyping();
+                    addMessage('coach', `出错了：${e.message}\n\n请检查 AI 设置是否正确配置。`);
                 }
-                break;
+            }
 
-            default:
-                addMessage('coach', result.message);
-        }
-    }
+            function showChatMode() {
+                elements.welcomeScreen.style.display = 'none';
+                elements.inputArea.style.display = 'block';
+                elements.inputField.focus();
+            }
 
-    function addMessage(role, content, animate = true) {
-        const messageDiv = document.createElement('div');
-        messageDiv.className = `message ${role}`;
-        if (!animate) messageDiv.style.animation = 'none';
+            function restoreConversation(history) {
+                // Clear chat area except welcome screen
+                elements.chatArea.innerHTML = '';
 
-        const avatar = document.createElement('div');
-        avatar.className = 'message-avatar';
-        avatar.textContent = role === 'coach' ? '🧭' : '👤';
+                for (const msg of history) {
+                    addMessage(msg.role, msg.content, false);
+                }
 
-        const contentDiv = document.createElement('div');
-        contentDiv.className = 'message-content';
-        contentDiv.innerHTML = formatMessage(content);
+                scrollToBottom();
+            }
 
-        messageDiv.appendChild(avatar);
-        messageDiv.appendChild(contentDiv);
+            async function sendMessage() {
+                const input = elements.inputField.value.trim();
+                if (!input) return;
 
-        elements.chatArea.appendChild(messageDiv);
-        scrollToBottom();
-    }
+                elements.inputField.value = '';
+                elements.inputField.style.height = 'auto';
 
-    function formatMessage(text) {
-        // Basic markdown-like formatting
-        return text
-            .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
-            .replace(/\*(.+?)\*/g, '<em>$1</em>')
-            .replace(/`(.+?)`/g, '<code>$1</code>')
-            .replace(/\n\n/g, '</p><p>')
-            .replace(/\n/g, '<br>')
-            .replace(/^/, '<p>')
-            .replace(/$/, '</p>');
-    }
+                // Check for commands
+                if (input.startsWith('/')) {
+                    const result = coach.handleCommand(input);
+                    handleCommandResult(result, input);
+                    return;
+                }
 
-     function renderFirstWinCard(task) {
-        const stepsHtml = task.steps.map((step, i) => `
+                // Add user message
+                addMessage('user', input);
+
+                // Show typing
+                showTyping();
+
+                // Process with AI
+                const result = await coach.processUserInput(input);
+
+                hideTyping();
+
+                if (result.success) {
+                    addMessage('coach', result.text);
+                    updateProgress(result.currentStep);
+                } else {
+                    addMessage('coach', `抱歉，出了点问题：\n\n${result.error}\n\n你可以重试，或者检查一下设置。`);
+                }
+            }
+
+            async function handleCommandResult(result, originalInput) {
+                switch (result.action) {
+                    case 'restart':
+                        elements.chatArea.innerHTML = '';
+                        startConversation();
+                        break;
+
+                    case 'plan':
+                        if (result.task) {
+                            addMessage('coach', renderFirstWinCard(result.task));
+                        } else {
+                            addMessage('coach', result.message);
+                        }
+                        break;
+
+                    case 'sos':
+                    case 'done':
+                    case 'stuck':
+                        addMessage('user', originalInput);
+                        showTyping();
+                        const response = await coach.processUserInput(originalInput);
+                        hideTyping();
+                        if (response.success) {
+                            addMessage('coach', response.text);
+                        } else {
+                            addMessage('coach', response.error);
+                        }
+                        break;
+
+                    default:
+                        addMessage('coach', result.message);
+                }
+            }
+
+            function addMessage(role, content, animate = true) {
+                const messageDiv = document.createElement('div');
+                messageDiv.className = `message ${role}`;
+                if (!animate) messageDiv.style.animation = 'none';
+
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = role === 'coach' ? '🧭' : '👤';
+
+                const contentDiv = document.createElement('div');
+                contentDiv.className = 'message-content';
+                contentDiv.innerHTML = formatMessage(content);
+
+                messageDiv.appendChild(avatar);
+                messageDiv.appendChild(contentDiv);
+
+                elements.chatArea.appendChild(messageDiv);
+                scrollToBottom();
+            }
+
+            function formatMessage(text) {
+                // Basic markdown-like formatting
+                return text
+                    .replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\*(.+?)\*/g, '<em>$1</em>')
+                    .replace(/`(.+?)`/g, '<code>$1</code>')
+                    .replace(/\n\n/g, '</p><p>')
+                    .replace(/\n/g, '<br>')
+                    .replace(/^/, '<p>')
+                    .replace(/$/, '</p>');
+            }
+
+            function renderFirstWinCard(task) {
+                const stepsHtml = task.steps.map((step, i) => `
             <li>
                 <div class="step-checkbox ${i < task.progress ? 'completed' : ''}" data-step="${i}">
                     ${i < task.progress ? '✓' : ''}
@@ -2310,7 +2416,7 @@ const UI = (() => {
             </li>
         `).join('');
 
-        return `
+                return `
             <div class="first-win-card">
                 <h4>🎯 你的首胜任务</h4>
                 <div class="first-win-task">${task.task}</div>
@@ -2321,121 +2427,122 @@ const UI = (() => {
             </div>
             <p style="margin-top: 12px;">这是你的首胜任务卡！记住：完成比完美重要 1000 倍。遇到问题随时输入 <code>/stuck</code> 告诉我。</p>
         `;
-    }
+            }
 
-    function showTyping() {
-        const typingDiv = document.createElement('div');
-        typingDiv.className = 'message coach';
-        typingDiv.id = 'typingIndicator';
+            function showTyping() {
+                const typingDiv = document.createElement('div');
+                typingDiv.className = 'message coach';
+                typingDiv.id = 'typingIndicator';
 
-        const avatar = document.createElement('div');
-        avatar.className = 'message-avatar';
-        avatar.textContent = '🧭';
+                const avatar = document.createElement('div');
+                avatar.className = 'message-avatar';
+                avatar.textContent = '🧭';
 
-        const indicator = document.createElement('div');
-        indicator.className = 'typing-indicator';
-        indicator.innerHTML = `
+                const indicator = document.createElement('div');
+                indicator.className = 'typing-indicator';
+                indicator.innerHTML = `
             <div class="typing-dot"></div>
             <div class="typing-dot"></div>
             <div class="typing-dot"></div>
         `;
 
-        typingDiv.appendChild(avatar);
-        typingDiv.appendChild(indicator);
-        elements.chatArea.appendChild(typingDiv);
-        scrollToBottom();
-    }
-
-    function hideTyping() {
-        const typing = document.getElementById('typingIndicator');
-        if (typing) typing.remove();
-    }
-
-    function scrollToBottom() {
-        elements.chatArea.scrollTop = elements.chatArea.scrollHeight;
-    }
-
-    function updateProgress(step) {
-        const steps = elements.progressBar.querySelectorAll('.progress-step');
-        const connectors = elements.progressBar.querySelectorAll('.progress-connector');
-
-        steps.forEach((stepEl, i) => {
-            stepEl.classList.remove('active', 'completed');
-            if (i < step) {
-                stepEl.classList.add('completed');
-            } else if (i === step) {
-                stepEl.classList.add('active');
+                typingDiv.appendChild(avatar);
+                typingDiv.appendChild(indicator);
+                elements.chatArea.appendChild(typingDiv);
+                scrollToBottom();
             }
-        });
 
-        connectors.forEach((conn, i) => {
-            conn.classList.remove('completed');
-            if (i < step) {
-                conn.classList.add('completed');
+            function hideTyping() {
+                const typing = document.getElementById('typingIndicator');
+                if (typing) typing.remove();
             }
+
+            function scrollToBottom() {
+                elements.chatArea.scrollTop = elements.chatArea.scrollHeight;
+            }
+
+            function updateProgress(step) {
+                const steps = elements.progressBar.querySelectorAll('.progress-step');
+                const connectors = elements.progressBar.querySelectorAll('.progress-connector');
+
+                steps.forEach((stepEl, i) => {
+                    stepEl.classList.remove('active', 'completed');
+                    if (i < step) {
+                        stepEl.classList.add('completed');
+                    } else if (i === step) {
+                        stepEl.classList.add('active');
+                    }
+                });
+
+                connectors.forEach((conn, i) => {
+                    conn.classList.remove('completed');
+                    if (i < step) {
+                        conn.classList.add('completed');
+                    }
+                });
+            }
+
+            function openSettings() {
+                elements.settingsPanel.classList.add('open');
+                elements.overlay.classList.add('visible');
+            }
+
+            function closeSettings() {
+                elements.settingsPanel.classList.remove('open');
+                elements.overlay.classList.remove('visible');
+            }
+
+            function applyTheme() {
+                const savedTheme = localStorage.getItem('lc_theme');
+                if (savedTheme) {
+                    document.documentElement.dataset.theme = savedTheme;
+                }
+            }
+
+            function exportData() {
+                const data = {
+                    exported_at: new Date().toISOString(),
+                    version: '1.0.0',
+                    conversation: coach.getConversationHistory(),
+                    profile: coach.getState().userProfile,
+                    firstWin: coach.getFirstWinTask()
+                };
+
+                const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `learning-coach-export-${new Date().toISOString().slice(0, 10)}.json`;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }
+
+            function clearData() {
+                if (confirm('确定要清除所有数据吗？这将删除你的对话记录和首胜任务。')) {
+                    coach.reset();
+                    elements.chatArea.innerHTML = '';
+                    elements.welcomeScreen.style.display = 'flex';
+                    elements.inputArea.style.display = 'none';
+                    updateProgress(0);
+                    closeSettings();
+                }
+            }
+
+            return { init };
+        })();
+
+
+
+        /******************************
+         * Initialize App
+         ******************************/
+        document.addEventListener('DOMContentLoaded', () => {
+            UI.init();
         });
-    }
-
-    function openSettings() {
-        elements.settingsPanel.classList.add('open');
-        elements.overlay.classList.add('visible');
-    }
-
-    function closeSettings() {
-        elements.settingsPanel.classList.remove('open');
-        elements.overlay.classList.remove('visible');
-    }
-
-    function applyTheme() {
-        const savedTheme = localStorage.getItem('lc_theme');
-        if (savedTheme) {
-            document.documentElement.dataset.theme = savedTheme;
-        }
-    }
-
-    function exportData() {
-        const data = {
-            exported_at: new Date().toISOString(),
-            version: '1.0.0',
-            conversation: coach.getConversationHistory(),
-            profile: coach.getState().userProfile,
-            firstWin: coach.getFirstWinTask()
-        };
-
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `learning-coach-export-${new Date().toISOString().slice(0, 10)}.json`;
-        document.body.appendChild(a);
-        a.click();
-        a.remove();
-        URL.revokeObjectURL(url);
-    }
-
-    function clearData() {
-        if (confirm('确定要清除所有数据吗？这将删除你的对话记录和首胜任务。')) {
-            coach.reset();
-            elements.chatArea.innerHTML = '';
-            elements.welcomeScreen.style.display = 'flex';
-            elements.inputArea.style.display = 'none';
-            updateProgress(0);
-            closeSettings();
-        }
-    }
-
-    return { init };
-})();
-
-
-
-/******************************
- * Initialize App
- ******************************/
-document.addEventListener('DOMContentLoaded', () => {
-    UI.init();
-});
-</script>
+    </script>
 
 </body>
+
 </html>
