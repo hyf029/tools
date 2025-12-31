@@ -2855,14 +2855,16 @@ ${paths.includes('D') || paths.includes('E') ? `
                         ];
                     }
 
+                    let fullMarkdown = '';
                     await aiModule.call_ai({
                         messages,
                         onChunk: (chunk, full) => {
+                            fullMarkdown = full;  // 保存原始 Markdown
                             $('decodeOutput').innerHTML = renderMarkdown(full) + '<span class="streaming-cursor"></span>';
                         }
                     });
 
-                    STATE.decodeReport = $('decodeOutput').textContent;
+                    STATE.decodeReport = fullMarkdown;  // 使用原始 Markdown
                     $('decodeOutput').innerHTML = renderMarkdown(STATE.decodeReport);
                     $('confirmDecodeBtn').disabled = false;
                     saveState();
