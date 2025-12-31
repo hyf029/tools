@@ -1,0 +1,3467 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>深度解码器 | Deep Decoder</title>
+
+    <!-- PDF.js for PDF parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+
+    <!-- Mammoth.js for DOCX parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
+
+    <!-- Highlight.js for code highlighting -->
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+
+    <style>
+        /* ==================== 主题系统（与 key-manager 一致）==================== */
+        :root {
+            --bg: #f6f7fb;
+            --bg2: #ffffff;
+            --panel: rgba(255, 255, 255, 0.86);
+            --panel2: rgba(255, 255, 255, 0.72);
+            --text: #0f172a;
+            --muted: #475569;
+            --border: rgba(15, 23, 42, 0.14);
+            --accent: #2563eb;
+            --accent2: #7c3aed;
+            --good: #059669;
+            --bad: #e11d48;
+            --warn: #d97706;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            --shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f19;
+                --bg2: #0b1020;
+                --panel: rgba(17, 24, 39, 0.86);
+                --panel2: rgba(15, 23, 42, 0.72);
+                --text: #e5e7eb;
+                --muted: #9ca3af;
+                --border: rgba(255, 255, 255, 0.14);
+                --accent: #60a5fa;
+                --accent2: #a78bfa;
+                --good: #34d399;
+                --bad: #fb7185;
+                --warn: #fbbf24;
+                --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+            }
+        }
+
+        html[data-theme="light"] {
+            --bg: #f6f7fb;
+            --bg2: #ffffff;
+            --panel: rgba(255, 255, 255, 0.86);
+            --panel2: rgba(255, 255, 255, 0.72);
+            --text: #0f172a;
+            --muted: #475569;
+            --border: rgba(15, 23, 42, 0.14);
+            --accent: #2563eb;
+            --accent2: #7c3aed;
+            --good: #059669;
+            --bad: #e11d48;
+            --warn: #d97706;
+            --shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
+        }
+
+        html[data-theme="dark"] {
+            --bg: #0b0f19;
+            --bg2: #0b1020;
+            --panel: rgba(17, 24, 39, 0.86);
+            --panel2: rgba(15, 23, 42, 0.72);
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.14);
+            --accent: #60a5fa;
+            --accent2: #a78bfa;
+            --good: #34d399;
+            --bad: #fb7185;
+            --warn: #fbbf24;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        /* ==================== 基础样式 ==================== */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--sans);
+            color: var(--text);
+            background:
+                radial-gradient(900px 600px at 20% 10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+                radial-gradient(900px 600px at 85% 0%, color-mix(in srgb, var(--accent2) 14%, transparent), transparent 55%),
+                var(--bg);
+            min-height: 100vh;
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 18px 14px 60px;
+        }
+
+        /* ==================== Header ==================== */
+        header {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 14px 14px;
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            position: sticky;
+            top: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            z-index: 100;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.35;
+            margin-top: 6px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+            align-items: center;
+        }
+
+        /* ==================== 通用组件 ==================== */
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        select,
+        input[type="text"],
+        textarea {
+            background: color-mix(in srgb, var(--bg2) 86%, transparent);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 10px;
+            outline: none;
+            font-family: inherit;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            font-family: var(--mono);
+            font-size: 12px;
+            resize: vertical;
+        }
+
+        .btn {
+            background: color-mix(in srgb, var(--accent) 14%, transparent);
+            color: var(--text);
+            border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+            border-radius: 12px;
+            padding: 9px 14px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 13px;
+            transition: all 0.15s ease;
+        }
+
+        .btn:hover {
+            background: color-mix(in srgb, var(--accent) 22%, transparent);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .btn.primary {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        .btn.primary:hover {
+            background: color-mix(in srgb, var(--accent) 85%, black);
+        }
+
+        .btn.secondary {
+            background: color-mix(in srgb, var(--text) 6%, transparent);
+            border-color: var(--border);
+            font-weight: 700;
+        }
+
+        .btn.danger {
+            background: color-mix(in srgb, var(--bad) 12%, transparent);
+            border-color: color-mix(in srgb, var(--bad) 30%, transparent);
+        }
+
+        .btn.danger:hover {
+            background: color-mix(in srgb, var(--bad) 18%, transparent);
+        }
+
+        .pill {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            padding: 4px 9px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--muted);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+        }
+
+        .pill.good {
+            border-color: color-mix(in srgb, var(--good) 34%, transparent);
+            color: var(--good);
+            background: color-mix(in srgb, var(--good) 10%, transparent);
+        }
+
+        .pill.bad {
+            border-color: color-mix(in srgb, var(--bad) 34%, transparent);
+            color: var(--bad);
+            background: color-mix(in srgb, var(--bad) 10%, transparent);
+        }
+
+        .pill.warn {
+            border-color: color-mix(in srgb, var(--warn) 34%, transparent);
+            color: var(--warn);
+            background: color-mix(in srgb, var(--warn) 10%, transparent);
+        }
+
+        .pill.accent {
+            border-color: color-mix(in srgb, var(--accent) 34%, transparent);
+            color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
+
+        /* ==================== 布局 ==================== */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 200px 1fr;
+            gap: 14px;
+            margin-top: 14px;
+        }
+
+        @media (max-width: 900px) {
+            .main-layout {
+                grid-template-columns: 1fr;
+            }
+
+            .sidebar {
+                display: none;
+            }
+        }
+
+        .sidebar {
+            position: sticky;
+            top: 100px;
+            height: fit-content;
+        }
+
+        .card {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: var(--shadow);
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 15px;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .log {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: color-mix(in srgb, var(--text) 92%, transparent);
+            background: color-mix(in srgb, var(--bg2) 55%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+        }
+
+        @media (max-width: 700px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        details {
+            border: 1px dashed color-mix(in srgb, var(--border) 90%, transparent);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: color-mix(in srgb, var(--bg2) 55%, transparent);
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        code {
+            font-family: var(--mono);
+            font-size: 12px;
+            background: color-mix(in srgb, var(--text) 6%, transparent);
+            border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+            border-radius: 6px;
+            padding: 2px 6px;
+        }
+
+        /* ==================== 阶段导航 ==================== */
+        .stage-nav {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .stage-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .stage-item:hover {
+            background: color-mix(in srgb, var(--text) 5%, transparent);
+        }
+
+        .stage-item.active {
+            background: color-mix(in srgb, var(--accent) 12%, transparent);
+            border-color: color-mix(in srgb, var(--accent) 30%, transparent);
+        }
+
+        .stage-item.completed {
+            color: var(--good);
+        }
+
+        .stage-item.locked {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .stage-number {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: color-mix(in srgb, var(--text) 8%, transparent);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 900;
+            font-size: 13px;
+        }
+
+        .stage-item.active .stage-number {
+            background: var(--accent);
+            color: white;
+        }
+
+        .stage-item.completed .stage-number {
+            background: var(--good);
+            color: white;
+        }
+
+        .stage-label {
+            font-size: 13px;
+            font-weight: 700;
+        }
+
+        /* ==================== 文件上传区 ==================== */
+        .upload-zone {
+            border: 2px dashed var(--border);
+            border-radius: 16px;
+            padding: 40px 20px;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            background: color-mix(in srgb, var(--bg2) 50%, transparent);
+        }
+
+        .upload-zone:hover,
+        .upload-zone.dragover {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 5%, transparent);
+        }
+
+        .upload-icon {
+            font-size: 48px;
+            margin-bottom: 12px;
+        }
+
+        .file-list {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 10px 12px;
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+        }
+
+        .file-info {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-icon {
+            font-size: 20px;
+        }
+
+        .file-name {
+            font-weight: 700;
+            font-size: 13px;
+        }
+
+        .file-size {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        /* ==================== 路径选择卡片 ==================== */
+        .path-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .path-card {
+            padding: 16px;
+            border: 2px solid var(--border);
+            border-radius: 14px;
+            cursor: pointer;
+            transition: all 0.15s ease;
+            background: color-mix(in srgb, var(--bg2) 60%, transparent);
+        }
+
+        .path-card:hover {
+            border-color: var(--accent);
+        }
+
+        .path-card.selected {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
+
+        .path-card-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+        }
+
+        .path-checkbox {
+            width: 20px;
+            height: 20px;
+            border-radius: 6px;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.15s ease;
+        }
+
+        .path-card.selected .path-checkbox {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: white;
+        }
+
+        .path-letter {
+            font-weight: 900;
+            font-size: 16px;
+        }
+
+        .path-name {
+            font-weight: 800;
+            font-size: 14px;
+        }
+
+        .path-desc {
+            font-size: 12px;
+            color: var(--muted);
+            line-height: 1.4;
+        }
+
+        /* ==================== 输出展示区 ==================== */
+        .output-panel {
+            background: color-mix(in srgb, var(--bg2) 80%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            overflow: hidden;
+        }
+
+        .output-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            background: color-mix(in srgb, var(--text) 3%, transparent);
+        }
+
+        .output-title {
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .output-content {
+            padding: 14px;
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .output-content.markdown-body {
+            line-height: 1.7;
+        }
+
+        .output-content.markdown-body h1,
+        .output-content.markdown-body h2,
+        .output-content.markdown-body h3 {
+            margin-top: 1.2em;
+            margin-bottom: 0.6em;
+            font-weight: 800;
+        }
+
+        .output-content.markdown-body h1 {
+            font-size: 1.5em;
+        }
+
+        .output-content.markdown-body h2 {
+            font-size: 1.3em;
+        }
+
+        .output-content.markdown-body h3 {
+            font-size: 1.1em;
+        }
+
+        .output-content.markdown-body p {
+            margin: 0.8em 0;
+        }
+
+        .output-content.markdown-body ul,
+        .output-content.markdown-body ol {
+            padding-left: 1.5em;
+            margin: 0.8em 0;
+        }
+
+        .output-content.markdown-body li {
+            margin: 0.3em 0;
+        }
+
+        .output-content.markdown-body pre {
+            background: color-mix(in srgb, var(--text) 6%, transparent);
+            border-radius: 10px;
+            padding: 14px;
+            overflow-x: auto;
+            margin: 1em 0;
+        }
+
+        .output-content.markdown-body code {
+            font-family: var(--mono);
+            font-size: 0.9em;
+        }
+
+        .output-content.markdown-body pre code {
+            background: transparent;
+            border: none;
+            padding: 0;
+        }
+
+        .output-content.markdown-body table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1em 0;
+        }
+
+        .output-content.markdown-body th,
+        .output-content.markdown-body td {
+            border: 1px solid var(--border);
+            padding: 8px 10px;
+            text-align: left;
+        }
+
+        .output-content.markdown-body th {
+            background: color-mix(in srgb, var(--text) 5%, transparent);
+            font-weight: 800;
+        }
+
+        .output-content.markdown-body blockquote {
+            border-left: 4px solid var(--accent);
+            margin: 1em 0;
+            padding: 0.5em 1em;
+            background: color-mix(in srgb, var(--accent) 5%, transparent);
+        }
+
+        /* ==================== 加载动画 ==================== */
+        .loading-spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .streaming-cursor {
+            display: inline-block;
+            width: 8px;
+            height: 16px;
+            background: var(--accent);
+            margin-left: 2px;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+
+        /* ==================== 交付物标签页 ==================== */
+        .tabs {
+            display: flex;
+            gap: 4px;
+            border-bottom: 1px solid var(--border);
+            padding: 0 14px;
+            background: color-mix(in srgb, var(--text) 2%, transparent);
+        }
+
+        .tab {
+            padding: 10px 16px;
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--muted);
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            margin-bottom: -1px;
+            transition: all 0.15s ease;
+        }
+
+        .tab:hover {
+            color: var(--text);
+        }
+
+        .tab.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+        }
+
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* ==================== 约束表单 ==================== */
+        .constraint-section {
+            margin-bottom: 16px;
+            padding: 14px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--bg2) 50%, transparent);
+        }
+
+        .constraint-title {
+            font-weight: 800;
+            font-size: 14px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .radio-group,
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .radio-item,
+        .checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 13px;
+            transition: all 0.15s ease;
+        }
+
+        .radio-item:hover,
+        .checkbox-item:hover {
+            background: color-mix(in srgb, var(--text) 4%, transparent);
+        }
+
+        .radio-item.selected,
+        .checkbox-item.selected {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
+
+        .radio-item input,
+        .checkbox-item input {
+            width: 16px;
+            height: 16px;
+            cursor: pointer;
+        }
+
+        /* ==================== 自定义添加行 ==================== */
+        .custom-add-row {
+            display: flex;
+            gap: 8px;
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px dashed var(--border);
+        }
+
+        .custom-add-row .custom-input {
+            flex: 1;
+            padding: 6px 10px;
+            font-size: 13px;
+        }
+
+        .custom-add-row .add-custom-btn {
+            padding: 6px 12px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+
+        /* ==================== 多选复选框组 ==================== */
+        .checkbox-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+
+        .checkbox-item {
+            user-select: none;
+        }
+
+        .checkbox-item[data-custom="true"] {
+            background: color-mix(in srgb, var(--warn) 8%, transparent);
+            border-color: color-mix(in srgb, var(--warn) 30%, transparent);
+        }
+
+        .checkbox-item[data-custom="true"].selected {
+            background: color-mix(in srgb, var(--accent) 12%, transparent);
+            border-color: var(--accent);
+        }
+
+        .remove-custom {
+            font-size: 16px;
+            font-weight: bold;
+            opacity: 0.6;
+            transition: opacity 0.15s ease;
+        }
+
+        .remove-custom:hover {
+            opacity: 1;
+        }
+
+        /* ==================== 约束区块标题优化 ==================== */
+        .constraint-section {
+            margin-bottom: 20px;
+            padding: 16px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--bg2) 60%, transparent);
+        }
+
+        .constraint-title {
+            font-weight: 800;
+            font-size: 15px;
+            margin-bottom: 14px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid color-mix(in srgb, var(--border) 60%, transparent);
+        }
+
+        .field>label {
+            font-size: 13px;
+            font-weight: 700;
+            color: var(--text);
+            margin-bottom: 8px;
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ==================== 工具元数据 ==================== -->
+    <script type="application/json" id="tool_meta">
+{
+    "tool_id": "meta-system-architect",
+    "tool_name": "深度解码器",
+    "tool_version": "1.0.0",
+    "description": "洞悉底层逻辑，暴力拆解一切。将任意素材深度萃取，瞬间重铸为您的代码、产品方案与知识体系",
+    "created_at": "2024-12-30",
+    "capabilities": {
+        "paste_first": false,
+        "file_input": true,
+        "download_output": true,
+        "url_state": false,
+        "local_draft": true,
+        "networking": true,
+        "ai": true
+    },
+    "inputs": ["file_upload", "paste_text"],
+    "outputs": ["copy_text", "download_file"],
+    "dependencies": ["pdf.js", "mammoth.js", "marked.js", "highlight.js"],
+    "ai_integration": {
+        "uses_key_manager": true,
+        "providers": ["siliconflow", "openrouter", "deepseek", "custom"],
+        "key_names": ["siliconflow_key", "openrouter_key", "deepseek_key", "custom_key"]
+    },
+    "tags": ["productivity", "ai", "writing", "coding", "knowledge"],
+    "links": {
+        "source_repo": "",
+        "prompt_log": ""
+    }
+}
+</script>
+
+    <!-- ==================== 主容器 ==================== -->
+    <div class="container">
+        <!-- Header -->
+        <header>
+            <div class="left">
+                <div class="title">
+                    ⚛️ 深度解码器
+                    <span class="pill accent">v1.0</span>
+                </div>
+                <div class="subtitle">
+                    洞悉底层逻辑，暴力拆解一切。将任意素材深度萃取，瞬间重铸为您的代码、产品方案与知识体系。<br />
+                    基于「三维萃取协议」与「五阶段工作流」。
+                </div>
+            </div>
+            <div class="controls">
+                <div class="row">
+                    <select id="themeSelect" style="min-width: 100px;">
+                        <option value="auto">🌓 跟随系统</option>
+                        <option value="light">☀️ 浅色</option>
+                        <option value="dark">🌙 深色</option>
+                    </select>
+                    <a href="key-manager.html" target="_blank" class="btn secondary">🔑 Key Manager</a>
+                    <button class="btn secondary" id="resetBtn">🔄 重新开始</button>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Layout -->
+        <div class="main-layout">
+            <!-- Sidebar: Stage Navigation -->
+            <aside class="sidebar">
+                <div class="card">
+                    <h2>工作流阶段</h2>
+                    <div class="stage-nav" id="stageNav">
+                        <div class="stage-item active" data-stage="1">
+                            <div class="stage-number">1</div>
+                            <div class="stage-label">解码</div>
+                        </div>
+                        <div class="stage-item locked" data-stage="2">
+                            <div class="stage-number">2</div>
+                            <div class="stage-label">路由</div>
+                        </div>
+                        <div class="stage-item locked" data-stage="3">
+                            <div class="stage-number">3</div>
+                            <div class="stage-label">接口</div>
+                        </div>
+                        <div class="stage-item locked" data-stage="4">
+                            <div class="stage-number">4</div>
+                            <div class="stage-label">架构</div>
+                        </div>
+                        <div class="stage-item locked" data-stage="5">
+                            <div class="stage-number">5</div>
+                            <div class="stage-label">交付</div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- AI Settings -->
+                <div class="card" style="margin-top: 14px;">
+                    <div id="aiSettingsMount"></div>
+                </div>
+            </aside>
+
+            <!-- Main Content -->
+            <main id="mainContent">
+                <!-- Stage 1: 解码 -->
+                <section class="card" id="stage1" data-stage="1">
+                    <h2>阶段 1：解码与复杂度评估</h2>
+                    <div class="hint" style="margin-bottom: 14px;">
+                        上传您的素材文件（支持 .txt, .md, .pdf, .docx, .jpg, .png），或直接粘贴文本。<br />
+                        系统将执行「三维萃取协议」，输出《方法论解构报告》。
+                    </div>
+
+                    <!-- Upload Zone -->
+                    <div class="upload-zone" id="uploadZone">
+                        <div class="upload-icon">📁</div>
+                        <div style="font-weight: 700; font-size: 15px;">拖拽文件到此处，或点击上传</div>
+                        <div class="hint" style="margin-top: 8px;">支持: .txt .md .pdf .docx .jpg .png .webp</div>
+                        <input type="file" id="fileInput" multiple accept=".txt,.md,.pdf,.docx,.jpg,.jpeg,.png,.webp"
+                            style="display:none;" />
+                    </div>
+
+                    <!-- File List -->
+                    <div class="file-list" id="fileList"></div>
+
+                    <!-- Or paste text -->
+                    <details style="margin-top: 14px;">
+                        <summary>或者：直接粘贴文本</summary>
+                        <div class="field" style="margin-top: 10px;">
+                            <textarea id="pasteTextArea" placeholder="在此粘贴您的素材文本..."></textarea>
+                        </div>
+                    </details>
+
+                    <!-- Content Preview -->
+                    <div style="margin-top: 14px;" id="contentPreviewSection" hidden>
+                        <h3 style="font-size: 14px; margin-bottom: 10px;">📄 内容预览</h3>
+                        <div class="log" id="contentPreview" style="max-height: 200px;"></div>
+                        <div class="hint" style="margin-top: 8px;">
+                            <span id="contentStats"></span>
+                        </div>
+                    </div>
+
+                    <!-- Action Button -->
+                    <div class="row" style="margin-top: 14px; justify-content: flex-end;">
+                        <button class="btn primary" id="startDecodeBtn" disabled>
+                            🚀 开始解码
+                        </button>
+                    </div>
+
+                    <!-- Decode Output -->
+                    <div id="decodeOutputSection" style="margin-top: 14px;" hidden>
+                        <div class="output-panel">
+                            <div class="output-header">
+                                <div class="output-title">📊 方法论解构报告</div>
+                                <div class="row">
+                                    <button class="btn secondary" id="copyDecodeBtn">📋 复制</button>
+                                </div>
+                            </div>
+                            <div class="output-content markdown-body" id="decodeOutput"></div>
+                        </div>
+
+                        <div class="row" style="margin-top: 14px; justify-content: space-between;">
+                            <div class="hint">请确认：我提取的这些「灵魂要素」是否准确？</div>
+                            <div class="row">
+                                <button class="btn secondary" id="reDecodeBtn">🔄 重新解码</button>
+                                <button class="btn primary" id="confirmDecodeBtn">✅ 确认，进入阶段 2</button>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Stage 2: 路由 -->
+                <section class="card" id="stage2" data-stage="2" hidden>
+                    <h2>阶段 2：领域路由与全栈映射</h2>
+                    <div class="hint" style="margin-bottom: 14px;">
+                        逻辑已提取。请选择您希望将这套方法论转译为什么形态（支持多选）。
+                    </div>
+
+                    <div class="path-grid" id="pathGrid">
+                        <div class="path-card" data-path="A">
+                            <div class="path-card-header">
+                                <div class="path-checkbox"></div>
+                                <div class="path-letter">A</div>
+                            </div>
+                            <div class="path-name">内容生产</div>
+                            <div class="path-desc">复用其思想来写文章/教程/脚本</div>
+                        </div>
+
+                        <div class="path-card" data-path="B">
+                            <div class="path-card-header">
+                                <div class="path-checkbox"></div>
+                                <div class="path-letter">B</div>
+                            </div>
+                            <div class="path-name">工具开发</div>
+                            <div class="path-desc">将逻辑转化为代码/脚本/自动化工具</div>
+                        </div>
+
+                        <div class="path-card" data-path="C">
+                            <div class="path-card-header">
+                                <div class="path-checkbox"></div>
+                                <div class="path-letter">C</div>
+                            </div>
+                            <div class="path-name">产品设计</div>
+                            <div class="path-desc">转化为网站/APP 的功能架构</div>
+                        </div>
+
+                        <div class="path-card" data-path="D">
+                            <div class="path-card-header">
+                                <div class="path-checkbox"></div>
+                                <div class="path-letter">D</div>
+                            </div>
+                            <div class="path-name">知识提炼</div>
+                            <div class="path-desc">提炼思维模型，存入知识库</div>
+                        </div>
+
+                        <div class="path-card" data-path="E">
+                            <div class="path-card-header">
+                                <div class="path-checkbox"></div>
+                                <div class="path-letter">E</div>
+                            </div>
+                            <div class="path-name">全栈套装</div>
+                            <div class="path-desc">同时生成 A+B+D，打造完整闭环</div>
+                        </div>
+                    </div>
+
+                    <div class="row"
+                        style="margin-top: 14px; padding: 10px; background: color-mix(in srgb, var(--bg2) 60%, transparent); border-radius: 10px;">
+                        <div class="hint">
+                            <strong>已选路径：</strong><span id="selectedPathsText">尚未选择</span>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top: 14px; justify-content: flex-end;">
+                        <button class="btn secondary" id="backToStage1Btn">← 返回阶段 1</button>
+                        <button class="btn primary" id="confirmPathsBtn" disabled>✅ 确认路径，进入阶段 3</button>
+                    </div>
+                </section>
+
+                <!-- Stage 3: 接口 -->
+                <section class="card" id="stage3" data-stage="3" hidden>
+                    <h2>阶段 3：接口定义与环境约束</h2>
+                    <div class="hint" style="margin-bottom: 14px;">
+                        根据您选择的路径，请填写以下约束条件。这将帮助 AI 生成更精准的交付物。
+                    </div>
+
+                    <div id="constraintsForm"></div>
+
+                    <div class="row" style="margin-top: 14px; justify-content: flex-end;">
+                        <button class="btn secondary" id="backToStage2Btn">← 返回阶段 2</button>
+                        <button class="btn primary" id="confirmConstraintsBtn">✅ 确认约束，进入阶段 4</button>
+                    </div>
+                </section>
+
+                <!-- Stage 4: 架构 -->
+                <section class="card" id="stage4" data-stage="4" hidden>
+                    <h2>阶段 4：架构设计与逻辑硬化</h2>
+                    <div class="hint" style="margin-bottom: 14px;">
+                        AI 正在根据您的路径和约束，设计架构方案并进行逻辑硬化...
+                    </div>
+
+                    <div id="architectureOutputSection">
+                        <div class="output-panel">
+                            <div class="output-header">
+                                <div class="output-title">🏗️ 架构设计方案</div>
+                                <div class="row">
+                                    <button class="btn secondary" id="copyArchitectureBtn">📋 复制</button>
+                                </div>
+                            </div>
+                            <div class="output-content markdown-body" id="architectureOutput"></div>
+                        </div>
+                    </div>
+
+                    <!-- 修改意见区域 -->
+                    <div class="card" id="revisionSection" style="margin-top: 14px; display: none;">
+                        <h3 style="margin: 0 0 12px; font-size: 14px;">💡 提交修改意见</h3>
+                        <div class="hint" style="margin-bottom: 10px;">
+                            如果对架构方案有修改建议，请在下方填写后提交，AI 将根据您的意见重新生成。
+                        </div>
+                        <div class="field">
+                            <textarea id="revisionInput"
+                                placeholder="请描述您希望修改的内容，例如：&#10;- 路径B的工具名称改为「xxx」&#10;- 增加某某功能模块&#10;- 调整风格为更简洁的版本"
+                                style="min-height: 100px;"></textarea>
+                        </div>
+                        <div class="row" style="margin-top: 10px;">
+                            <button class="btn secondary" id="submitRevisionBtn">🔄 提交修改意见</button>
+                        </div>
+                    </div>
+
+                    <div class="row" style="margin-top: 14px; justify-content: space-between;">
+                        <button class="btn secondary" id="backToStage3Btn">← 返回阶段 3</button>
+                        <div class="row" style="gap: 10px;">
+                            <button class="btn secondary" id="showRevisionBtn">💬 我有修改意见</button>
+                            <button class="btn primary" id="confirmArchitectureBtn" disabled>✅ 确认架构，生成交付物</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- Stage 5: 交付 -->
+                <section class="card" id="stage5" data-stage="5" hidden>
+                    <h2>阶段 5：沙盒模拟与交付</h2>
+                    <div class="hint" style="margin-bottom: 14px;">
+                        AI 已完成沙盒模拟，以下是最终交付物。
+                    </div>
+
+                    <!-- Test Report -->
+                    <details style="margin-bottom: 14px;">
+                        <summary>📋 压力测试报告</summary>
+                        <div class="log" id="testReportOutput" style="margin-top: 10px;"></div>
+                    </details>
+
+                    <!-- Deliverables Tabs -->
+                    <div class="output-panel">
+                        <div class="tabs" id="deliverableTabs"></div>
+                        <div id="deliverableContents"></div>
+                    </div>
+
+                    <div class="row" style="margin-top: 14px; justify-content: space-between;">
+                        <div class="row">
+                            <button class="btn secondary" id="downloadAllBtn">📥 下载全部 (Markdown)</button>
+                            <button class="btn secondary" id="downloadJsonBtn">📥 下载 JSON</button>
+                        </div>
+                        <button class="btn primary" id="newProjectBtn">🆕 开始新项目</button>
+                    </div>
+                </section>
+            </main>
+        </div>
+    </div>
+
+    <!-- ==================== AI Module ==================== -->
+    <script>
+        /******************************
+         * AI Module v2 (Chinese UI)
+         * - With Domain Security Patch
+         ******************************/
+
+        const AI_MODULE = (() => {
+            const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
+
+            const AI_PROVIDERS = {
+                "siliconflow": {
+                    name: "硅基流动 (SiliconFlow)",
+                    keyName: "siliconflow_key",
+                    baseUrl: "https://api.siliconflow.cn/v1",
+                    models: [
+                        { id: "Qwen/Qwen3-VL-235B-A22B-Thinking", name: "Qwen 3 VL（Thinking）" },
+                        { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2（Thinking）" },
+                        { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B（Fast）" },
+                        { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+                        { id: "Pro/zai-org/GLM-4.7", name: "GLM-4.7" },
+                        { id: "Qwen/Qwen3-VL-32B-Thinking", name: "Qwen 3 VL 32B（Thinking）" }
+                    ]
+                },
+                "openrouter": {
+                    name: "OpenRouter",
+                    keyName: "openrouter_key",
+                    baseUrl: "https://openrouter.ai/api/v1",
+                    models: [
+                        { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
+                        { id: "openai/gpt-5.2-chat", name: "GPT-5.2 Chat" },
+                        { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" },
+                        { id: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5" },
+                        { id: "nano banana pro", name: "Nano Banana Pro" }
+                    ]
+                },
+                "deepseek": {
+                    name: "DeepSeek Official",
+                    keyName: "deepseek_key",
+                    baseUrl: "https://api.deepseek.com",
+                    models: [
+                        { id: "deepseek-chat", name: "DeepSeek V3" },
+                        { id: "deepseek-reasoner", name: "DeepSeek R1" }
+                    ]
+                },
+                "custom": {
+                    name: "自定义 / 本地（Ollama）",
+                    keyName: "custom_key",
+                    baseUrl: "http://localhost:11434/v1",
+                    models: []
+                }
+            };
+
+            const providerAdapters = {};
+
+            function safeJsonParse(str) {
+                try { return { ok: true, value: JSON.parse(str) }; }
+                catch (e) { return { ok: false, error: String(e) }; }
+            }
+
+            function getOverrides() {
+                const raw = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
+                if (!raw) return {};
+                const parsed = safeJsonParse(raw);
+                if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") return {};
+                return parsed.value;
+            }
+
+            function normalizeBaseUrl(baseUrl) {
+                const s = String(baseUrl || "").trim();
+                return s.replace(/\/+$/, "");
+            }
+
+            function joinUrl(baseUrl, path) {
+                const b = normalizeBaseUrl(baseUrl);
+                const p = String(path || "").trim().replace(/^\/+/, "");
+                return `${b}/${p}`;
+            }
+
+            function getProvider(providerId) {
+                return AI_PROVIDERS[providerId];
+            }
+
+            function getMergedProviderConfig(providerId) {
+                const p = getProvider(providerId);
+                if (!p) throw new Error(`未知 provider_id: ${providerId}`);
+
+                const overrides = getOverrides();
+                const o = overrides[providerId] || {};
+
+                const customModels = Array.isArray(o.custom_models) ? o.custom_models : [];
+                const mergedModels = [
+                    ...(Array.isArray(p.models) ? p.models : []),
+                    ...customModels
+                        .filter(m => m && typeof m === "object" && m.id)
+                        .map(m => ({ id: String(m.id), name: m.name ? String(m.name) : String(m.id), _custom: true }))
+                ];
+
+                const baseUrl = o.base_url_override ? String(o.base_url_override) : p.baseUrl;
+                const modelId = o.model_id_override ? String(o.model_id_override) : (mergedModels[0]?.id || "");
+
+                return {
+                    provider_id: providerId,
+                    name: p.name,
+                    key_name: p.keyName,
+                    base_url_default: p.baseUrl,
+                    base_url: baseUrl,
+                    models: mergedModels,
+                    model_id_default: mergedModels[0]?.id || "",
+                    model_id: modelId
+                };
+            }
+
+            function getKeyStatus(providerId) {
+                const p = getProvider(providerId);
+                if (!p) return { ok: false, has_key: false, key_name: "" };
+                const keyName = p.keyName;
+                const key = localStorage.getItem(keyName);
+                return { ok: true, has_key: Boolean(key), key_name: keyName };
+            }
+
+            // Domain Security Functions
+            function getHostname(url) {
+                try { return new URL(String(url || "").trim()).hostname; }
+                catch { return ""; }
+            }
+
+            function isDomainAllowed(hostname, allowlist) {
+                if (!hostname) return false;
+                return (allowlist || []).some(allowed => {
+                    if (hostname === allowed) return true;
+                    if (hostname.endsWith('.' + allowed)) return true;
+                    return false;
+                });
+            }
+
+            function ensureDomainConsentOrThrow(hostname, consentKey = "ai_domain_consent_v1") {
+                const raw = localStorage.getItem(consentKey) || "{}";
+                let obj = {};
+                try { obj = JSON.parse(raw); } catch { obj = {}; }
+
+                if (obj[hostname] === true) return true;
+
+                const ok = confirm(
+                    `你即将把请求（包含密钥）发送到域名：${hostname}\n\n` +
+                    `确认要允许吗？\n` +
+                    `如果这个域名不是你信任的平台，请点取消。`
+                );
+                if (!ok) throw new Error("环境错误: 用户取消了域名授权");
+
+                obj[hostname] = true;
+                localStorage.setItem(consentKey, JSON.stringify(obj));
+                return true;
+            }
+
+            const DOMAIN_ALLOWLIST = [
+                "api.siliconflow.cn",
+                "openrouter.ai",
+                "api.deepseek.com",
+                "api.openai.com",
+                "localhost"
+            ];
+
+            function classifyFetchError(err) {
+                const msg = String(err?.message || err || "");
+                const lower = msg.toLowerCase();
+                if (lower.includes("abort")) return { kind: "环境错误", msg: "请求超时/被取消（Abort）" };
+                if (lower.includes("failed to fetch") || lower.includes("network") || lower.includes("cors")) {
+                    return { kind: "环境错误", msg: msg };
+                }
+                return { kind: "内部错误", msg: msg };
+            }
+
+            function actionableErrorMessage(kind, msg) {
+                if (kind === "用户输入错误") {
+                    return `用户输入错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 Base URL / Model ID / 输入内容是否为空。`;
+                }
+                if (kind === "环境错误") {
+                    return `环境错误：\n- 发生了什么：${msg}\n- 怎么修复：检查网络/CORS/是否 https 页面访问 http（混合内容）。`;
+                }
+                if (kind === "平台错误") {
+                    return `平台错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 key 是否有效、是否限流、模型 ID 是否存在。`;
+                }
+                return `内部错误：\n- 发生了什么：${msg}`;
+            }
+
+            async function corsProbe(baseUrl, timeoutMs = 8000) {
+                const now = new Date().toISOString();
+                const url = String(baseUrl || "").trim();
+                if (!url) return { ok: false, kind: "用户输入错误", result: "空 URL", details: { now, url } };
+
+                let u;
+                try { u = new URL(url); }
+                catch (e) {
+                    return { ok: false, kind: "用户输入错误", result: "URL 无效", details: { now, url, error: String(e) } };
+                }
+
+                if (location.protocol === "https:" && u.protocol === "http:") {
+                    return { ok: false, kind: "环境错误", result: "混合内容（https 页面不能访问 http）", details: { now, url } };
+                }
+                if (navigator.onLine === false) {
+                    return { ok: false, kind: "环境错误", result: "离线", details: { now, url } };
+                }
+
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), timeoutMs);
+                try {
+                    const resp = await fetch(url, { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
+                    return { ok: true, kind: "OK", result: "能拿到响应（CORS 可能可用）", details: { now, url, status: resp.status, statusText: resp.statusText } };
+                } catch (e) {
+                    const info = classifyFetchError(e);
+                    return { ok: false, kind: info.kind, result: "可能被 CORS/网络拦截", details: { now, url, error: info.msg } };
+                } finally {
+                    clearTimeout(timer);
+                }
+            }
+
+            // Unified caller with streaming support
+            async function call_llm_stream({
+                provider_id,
+                base_url,
+                api_key,
+                model_id,
+                messages,
+                temperature = 0.7,
+                max_tokens = 4096,
+                timeout_ms = 120000,
+                onChunk = null
+            }) {
+                if (!provider_id) throw new Error("用户输入错误: provider_id 为空");
+                if (!base_url) throw new Error("用户输入错误: base_url 为空");
+                if (!model_id) throw new Error("用户输入错误: model_id 为空");
+                if (!Array.isArray(messages) || messages.length === 0) throw new Error("用户输入错误: messages 为空");
+
+                if (!api_key) {
+                    const e = new Error("平台错误: 缺少 API Key（请先在 key-manager.html 设置）");
+                    e._kind = "平台错误";
+                    throw e;
+                }
+
+                // Domain security check
+                const hostname = getHostname(base_url);
+                if (!isDomainAllowed(hostname, DOMAIN_ALLOWLIST)) {
+                    ensureDomainConsentOrThrow(hostname);
+                }
+
+                const url = joinUrl(base_url, "/chat/completions");
+                const headers = {
+                    "Authorization": `Bearer ${api_key}`,
+                    "Content-Type": "application/json"
+                };
+
+                const body = {
+                    model: model_id,
+                    messages,
+                    temperature,
+                    max_tokens,
+                    stream: true
+                };
+
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), timeout_ms);
+
+                try {
+                    const resp = await fetch(url, {
+                        method: "POST",
+                        mode: "cors",
+                        headers,
+                        body: JSON.stringify(body),
+                        signal: controller.signal
+                    });
+
+                    if (!resp.ok) {
+                        const text = await resp.text();
+                        const e = new Error(`平台错误: HTTP ${resp.status} ${resp.statusText}\n${text.slice(0, 800)}`);
+                        e._kind = "平台错误";
+                        throw e;
+                    }
+
+                    const reader = resp.body.getReader();
+                    const decoder = new TextDecoder();
+                    let fullContent = "";
+
+                    while (true) {
+                        const { done, value } = await reader.read();
+                        if (done) break;
+
+                        const chunk = decoder.decode(value, { stream: true });
+                        const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
+
+                        for (const line of lines) {
+                            const data = line.slice(6).trim();
+                            if (data === '[DONE]') continue;
+
+                            try {
+                                const json = JSON.parse(data);
+                                const content = json.choices?.[0]?.delta?.content || '';
+                                if (content) {
+                                    fullContent += content;
+                                    if (onChunk) onChunk(content, fullContent);
+                                }
+                            } catch (e) {
+                                // Skip malformed JSON
+                            }
+                        }
+                    }
+
+                    return { text: fullContent };
+                } catch (e) {
+                    if (e && e._kind) throw e;
+                    const info = classifyFetchError(e);
+                    const err = new Error(`${info.kind}: ${info.msg}`);
+                    err._kind = info.kind;
+                    throw err;
+                } finally {
+                    clearTimeout(timer);
+                }
+            }
+
+            // UI renderer
+            function render_ai_settings_html() {
+                const providerOptions = Object.keys(AI_PROVIDERS)
+                    .map(pid => `<option value="${pid}">${AI_PROVIDERS[pid].name}</option>`)
+                    .join("");
+
+                return `
+            <details id="aiSettings">
+                <summary style="font-weight:900;">⚙️ AI 设置</summary>
+                <div style="margin-top:10px;">
+                    <div class="hint">
+                        请先在 <a href="key-manager.html" target="_blank">Key Manager</a> 设置密钥。
+                    </div>
+
+                    <div class="row" style="margin-top:10px;">
+                        <span class="pill warn">
+                            <input id="aiNetworkingToggle" type="checkbox" style="transform: translateY(1px);" />
+                            <span>允许联网</span>
+                        </span>
+                        <span class="pill" id="aiKeyStatusPill">密钥：未检查</span>
+                    </div>
+
+                    <div class="field" style="margin-top:10px;">
+                        <label for="aiProviderSelect">平台</label>
+                        <select id="aiProviderSelect">${providerOptions}</select>
+                    </div>
+
+                    <div class="field" style="margin-top:10px;">
+                        <label for="aiModelPresetSelect">模型</label>
+                        <select id="aiModelPresetSelect"></select>
+                    </div>
+
+                    <div class="field" style="margin-top:10px;">
+                        <label for="aiBaseUrlInput">Base URL</label>
+                        <input id="aiBaseUrlInput" type="text" placeholder="https://api.xxx.com/v1" />
+                    </div>
+
+                    <div class="field" style="margin-top:10px;">
+                        <label for="aiModelIdInput">模型 ID</label>
+                        <input id="aiModelIdInput" type="text" placeholder="模型名称" />
+                    </div>
+
+                    <details style="margin-top:10px;">
+                        <summary>高级参数</summary>
+                        <div class="two-col" style="margin-top:10px;">
+                            <div class="field">
+                                <label for="aiTemperature">temperature</label>
+                                <input id="aiTemperature" type="text" value="0.7" />
+                            </div>
+                            <div class="field">
+                                <label for="aiMaxTokens">max_tokens</label>
+                                <input id="aiMaxTokens" type="text" value="4096" />
+                            </div>
+                        </div>
+                    </details>
+
+                    <div class="row" style="margin-top:10px;">
+                        <button class="btn secondary" id="aiSyncBtn" type="button">🔄 同步配置</button>
+                    </div>
+
+                    <div class="log" id="aiLog" style="margin-top:10px; max-height: 100px;">AI 模块就绪。</div>
+                </div>
+            </details>
+        `;
+            }
+
+            function mount_ai_settings({ mount_el, default_provider_id = "siliconflow" }) {
+                if (!mount_el) throw new Error("mount_el is required");
+
+                mount_el.innerHTML = render_ai_settings_html();
+                const $ = (id) => mount_el.querySelector(id);
+
+                const aiNetworkingToggle = $("#aiNetworkingToggle");
+                const aiProviderSelect = $("#aiProviderSelect");
+                const aiBaseUrlInput = $("#aiBaseUrlInput");
+                const aiModelPresetSelect = $("#aiModelPresetSelect");
+                const aiModelIdInput = $("#aiModelIdInput");
+                const aiKeyStatusPill = $("#aiKeyStatusPill");
+                const aiTemperature = $("#aiTemperature");
+                const aiMaxTokens = $("#aiMaxTokens");
+                const aiLog = $("#aiLog");
+                const aiSyncBtn = $("#aiSyncBtn");
+
+                const state = {
+                    networking_enabled: false,
+                    provider_id: default_provider_id,
+                    base_url: "",
+                    model_id: "",
+                    temperature: 0.7,
+                    max_tokens: 4096
+                };
+
+                function setKeyStatusPill(providerId) {
+                    const ks = getKeyStatus(providerId);
+                    if (!ks.ok) {
+                        aiKeyStatusPill.className = "pill bad";
+                        aiKeyStatusPill.textContent = "密钥：未知";
+                        return;
+                    }
+                    if (ks.has_key) {
+                        aiKeyStatusPill.className = "pill good";
+                        aiKeyStatusPill.textContent = `密钥：✅ 已设置`;
+                    } else {
+                        aiKeyStatusPill.className = "pill bad";
+                        aiKeyStatusPill.textContent = `密钥：❌ 未设置`;
+                    }
+                }
+
+                function rebuildModelPresetOptions(providerId, preferModelId = "") {
+                    const cfg = getMergedProviderConfig(providerId);
+                    const models = cfg.models || [];
+                    const options = [
+                        ...models.map(m => `<option value="${String(m.id)}">${String(m.name || m.id)}${m._custom ? "（自定义）" : ""}</option>`),
+                        `<option value="__custom__">手动输入模型 ID</option>`
+                    ].join("");
+                    aiModelPresetSelect.innerHTML = options;
+
+                    const effectiveModelId = preferModelId || cfg.model_id || cfg.model_id_default || "";
+                    const hasPreset = models.some(m => String(m.id) === String(effectiveModelId));
+                    aiModelPresetSelect.value = hasPreset ? String(effectiveModelId) : "__custom__";
+                }
+
+                function syncFromKeyManager(providerId) {
+                    const cfg = getMergedProviderConfig(providerId);
+                    state.base_url = String(cfg.base_url || "");
+                    state.model_id = String(cfg.model_id || "");
+                    aiBaseUrlInput.value = state.base_url;
+                    aiModelIdInput.value = state.model_id;
+
+                    rebuildModelPresetOptions(providerId, state.model_id);
+                    setKeyStatusPill(providerId);
+
+                    aiLog.textContent = `已同步：${cfg.name}\nBase URL: ${state.base_url}\nModel: ${state.model_id}`;
+                }
+
+                // Initial
+                aiProviderSelect.value = default_provider_id;
+                syncFromKeyManager(default_provider_id);
+
+                aiNetworkingToggle.addEventListener("change", () => {
+                    state.networking_enabled = Boolean(aiNetworkingToggle.checked);
+                    aiLog.textContent = state.networking_enabled
+                        ? "已允许联网：可以调用 AI API。"
+                        : "已关闭联网：不会发起任何 AI 请求。";
+                });
+
+                aiProviderSelect.addEventListener("change", () => {
+                    state.provider_id = aiProviderSelect.value;
+                    syncFromKeyManager(state.provider_id);
+                });
+
+                aiBaseUrlInput.addEventListener("change", () => {
+                    state.base_url = String(aiBaseUrlInput.value || "").trim();
+                });
+
+                aiModelPresetSelect.addEventListener("change", () => {
+                    const chosen = aiModelPresetSelect.value;
+                    if (chosen === "__custom__") {
+                        aiModelIdInput.focus();
+                        return;
+                    }
+                    aiModelIdInput.value = chosen;
+                    state.model_id = chosen;
+                });
+
+                aiModelIdInput.addEventListener("change", () => {
+                    state.model_id = String(aiModelIdInput.value || "").trim();
+                });
+
+                aiTemperature.addEventListener("change", () => {
+                    const v = Number(aiTemperature.value);
+                    state.temperature = Number.isFinite(v) ? v : 0.7;
+                });
+
+                aiMaxTokens.addEventListener("change", () => {
+                    const v = Number(aiMaxTokens.value);
+                    state.max_tokens = Number.isFinite(v) ? Math.max(1, Math.floor(v)) : 4096;
+                });
+
+                aiSyncBtn.addEventListener("click", () => syncFromKeyManager(state.provider_id));
+
+                function get_state() {
+                    return {
+                        ...state,
+                        key_status: getKeyStatus(state.provider_id)
+                    };
+                }
+
+                async function call_ai({ messages, onChunk }) {
+                    const s = get_state();
+                    if (!s.networking_enabled) {
+                        const e = new Error("环境错误: 当前未允许联网（请勾选「允许联网」）");
+                        e._kind = "环境错误";
+                        throw e;
+                    }
+                    const p = getProvider(s.provider_id);
+                    const apiKey = localStorage.getItem(p.keyName) || "";
+
+                    return await call_llm_stream({
+                        provider_id: s.provider_id,
+                        base_url: s.base_url,
+                        api_key: apiKey,
+                        model_id: s.model_id,
+                        messages,
+                        temperature: s.temperature,
+                        max_tokens: s.max_tokens,
+                        onChunk
+                    });
+                }
+
+                function get_actionable_error(err) {
+                    const kind = err?._kind || "内部错误";
+                    const msg = String(err?.message || err || "");
+                    return actionableErrorMessage(kind, msg);
+                }
+
+                return {
+                    get_state,
+                    call_ai,
+                    get_actionable_error,
+                    sync: () => syncFromKeyManager(state.provider_id)
+                };
+            }
+
+            return {
+                AI_PROVIDERS,
+                mount_ai_settings,
+                getMergedProviderConfig,
+                getKeyStatus,
+                corsProbe,
+                actionableErrorMessage
+            };
+        })();
+    </script>
+
+    <!-- ==================== File Parser Module ==================== -->
+    <script>
+        const FILE_PARSER = (() => {
+            // Set PDF.js worker
+            if (typeof pdfjsLib !== 'undefined') {
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+            }
+
+            async function parseTextFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => resolve(reader.result);
+                    reader.onerror = () => reject(new Error('读取文本文件失败'));
+                    reader.readAsText(file);
+                });
+            }
+
+            async function parsePdfFile(file) {
+                if (typeof pdfjsLib === 'undefined') {
+                    throw new Error('PDF.js 未加载，请检查网络连接');
+                }
+
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+                let text = '';
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const content = await page.getTextContent();
+                    const pageText = content.items.map(item => item.str).join(' ');
+                    text += pageText + '\n\n';
+                }
+
+                return text.trim();
+            }
+
+            async function parseDocxFile(file) {
+                if (typeof mammoth === 'undefined') {
+                    throw new Error('Mammoth.js 未加载，请检查网络连接');
+                }
+
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer });
+                return result.value;
+            }
+
+            async function parseImageFile(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const base64 = reader.result;
+                        resolve({
+                            type: 'image',
+                            base64: base64,
+                            mimeType: file.type,
+                            name: file.name
+                        });
+                    };
+                    reader.onerror = () => reject(new Error('读取图片失败'));
+                    reader.readAsDataURL(file);
+                });
+            }
+
+            async function parseFile(file) {
+                const ext = file.name.split('.').pop().toLowerCase();
+                const mimeType = file.type;
+
+                if (ext === 'txt' || ext === 'md' || mimeType === 'text/plain' || mimeType === 'text/markdown') {
+                    return { type: 'text', content: await parseTextFile(file), name: file.name };
+                }
+
+                if (ext === 'pdf' || mimeType === 'application/pdf') {
+                    return { type: 'text', content: await parsePdfFile(file), name: file.name };
+                }
+
+                if (ext === 'docx' || mimeType === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document') {
+                    return { type: 'text', content: await parseDocxFile(file), name: file.name };
+                }
+
+                if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext) || mimeType.startsWith('image/')) {
+                    return await parseImageFile(file);
+                }
+
+                throw new Error(`不支持的文件格式: ${ext}`);
+            }
+
+            async function parseMultipleFiles(files) {
+                const results = [];
+                const errors = [];
+
+                for (const file of files) {
+                    try {
+                        const result = await parseFile(file);
+                        results.push(result);
+                    } catch (e) {
+                        errors.push({ file: file.name, error: e.message });
+                    }
+                }
+
+                return { results, errors };
+            }
+
+            function formatSize(bytes) {
+                if (bytes < 1024) return bytes + ' B';
+                if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(1) + ' KB';
+                return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+            }
+
+            return {
+                parseFile,
+                parseMultipleFiles,
+                formatSize
+            };
+        })();
+    </script>
+
+    <!-- ==================== Prompt Templates ==================== -->
+    <script>
+        const PROMPT_TEMPLATES = (() => {
+
+            const stage1Decode = (content, images = []) => `你是一名「深度解码器」，正在执行「深度解码与逻辑提取」协议。
+
+## 核心理念
+- 方法论即资产：任何优秀的原始素材，都可以被拆解为可复用的代码或 Prompt
+- 分工即效率：复杂的任务必须拆解为不同的"职能代理（Agents）"来协作完成
+- 流程即产品：交付的不只是 Prompt，而是包含输入、处理、输出、反馈闭环的完整生产线
+
+## 任务
+对用户提供的素材进行「三维萃取」，输出一份深度专业的《方法论解构报告》。
+
+## 输入素材
+\`\`\`
+${content.slice(0, 50000)}
+\`\`\`
+
+${images.length > 0 ? `## 附带图片\n共 ${images.length} 张图片，请结合图片内容进行深度分析。` : ''}
+
+## 输出要求
+请严格按照以下结构输出深度专业的解构报告：
+
+---
+
+# 📊 方法论解构报告
+
+## 一、元信息概览
+
+| 维度 | 分析结果 |
+|------|----------|
+| 素材类型 | [方法论/教程/案例/理论框架/操作指南/...] |
+| 领域归属 | [写作/营销/产品/技术/管理/...] |
+| 复杂度评级 | [L1 轻量/L2 系统/L3 复杂] |
+| 适用场景 | [具体描述适用的业务场景] |
+| 目标产出 | [该方法论最终要产出什么] |
+
+---
+
+## 二、骨架层：核心算法提取
+
+### 2.1 底层思维模型
+
+主模型识别：[识别素材背后的核心思维模型]
+
+| 模型名称 | 模型本质 | 在素材中的体现 |
+|----------|----------|----------------|
+| [如：漏斗模型] | [本质描述] | [具体体现] |
+| [如：飞轮效应] | [本质描述] | [具体体现] |
+
+模型间关系：[描述多个模型如何协同运作]
+
+### 2.2 核心执行链路
+
+\`\`\`pseudo
+// 主流程伪代码
+FUNCTION 方法论主流程(输入参数):
+    
+    // 第一阶段：[阶段名称]
+    IF 条件A THEN
+        执行步骤 1.1
+        执行步骤 1.2
+    ELSE
+        执行备选路径
+    
+    // 第二阶段：[阶段名称]
+    WHILE 未达到目标 DO
+        执行核心循环
+        检查退出条件
+    
+    // 第三阶段：[阶段名称]
+    FOR EACH 元素 IN 集合 DO
+        处理单个元素
+        累积结果
+    
+    RETURN 最终产出
+
+// 关键子函数
+FUNCTION 子流程A(参数):
+    [具体逻辑]
+    RETURN 结果
+\`\`\`
+
+### 2.3 关键变量字典
+
+| 变量标识 | 变量名称 | 数据类型 | 必填 | 说明 | 质量要求 |
+|----------|----------|----------|------|------|----------|
+| \`[Q_Input_1]\` | [名称] | [文本/数据/案例] | 是/否 | [说明] | [具体质量标准] |
+| \`[Q_Input_2]\` | [名称] | [文本/数据/案例] | 是/否 | [说明] | [具体质量标准] |
+| \`[Q_Context]\` | [名称] | [文本/数据/案例] | 是/否 | [说明] | [具体质量标准] |
+
+### 2.4 决策分支图谱
+
+\`\`\`
+[起点]
+    │
+    ▼
+[判断条件 1] ─── Yes ──→ [路径 A] ──→ [子判断] ─── Yes ──→ [结果 A1]
+    │                                    │
+    No                                   No
+    │                                    │
+    ▼                                    ▼
+[判断条件 2] ─── Yes ──→ [路径 B]      [结果 A2]
+    │
+    No
+    │
+    ▼
+[默认路径 C]
+\`\`\`
+
+---
+
+## 三、血肉层：技法与纹理提取
+
+### 3.1 风格指纹分析
+
+| 风格维度 | 具体特征 | 典型示例 |
+|----------|----------|----------|
+| 整体调性 | [如：严肃专业/轻松幽默/温暖治愈/犀利锐利] | "[引用原文示例]" |
+| 语言密度 | [高信息密度/中等/低密度叙事] | "[引用原文示例]" |
+| 句式偏好 | [长句为主/短句节奏/问答交替] | "[引用原文示例]" |
+| 修辞特点 | [善用类比/数据驱动/故事化/清单化] | "[引用原文示例]" |
+| 情感曲线 | [平稳/起伏/递进高潮] | "[描述情感走向]" |
+
+### 3.2 颗粒度还原（微细节库）
+
+> ⚠️ 这些是"内行才懂"的细节，普通 AI 概括时最容易丢失
+
+技法类微细节：
+- 🔸 [微细节 1]：[详细描述] → 这个细节的作用是 [说明]
+- 🔸 [微细节 2]：[详细描述] → 这个细节的作用是 [说明]
+- 🔸 [微细节 3]：[详细描述] → 这个细节的作用是 [说明]
+
+结构类微细节：
+- 🔹 [微细节 1]：[详细描述]
+- 🔹 [微细节 2]：[详细描述]
+
+表达类微细节：
+- 🔻 [微细节 1]：[详细描述]
+- 🔻 [微细节 2]：[详细描述]
+
+### 3.3 黑话与术语体系
+
+| 术语/黑话 | 标准解释 | 使用语境 | 替代表达 |
+|-----------|----------|----------|----------|
+| "[术语1]" | [解释] | [什么时候用] | [可替换的说法] |
+| "[术语2]" | [解释] | [什么时候用] | [可替换的说法] |
+
+### 3.4 隐喻与类比库
+
+| 隐喻/类比 | 原文表达 | 映射关系 | 可复用场景 |
+|-----------|----------|----------|------------|
+| [隐喻1] | "[原文]" | A 比作 B，因为 [原因] | [其他可用场景] |
+| [隐喻2] | "[原文]" | A 比作 B，因为 [原因] | [其他可用场景] |
+
+---
+
+## 四、灵魂层：心法与边界提取
+
+### 4.1 价值锚点（为什么它有效）
+
+核心洞察：
+> [用一段话总结这个方法论最颠覆认知、最有价值的点]
+
+有效性归因：
+| 成功因素 | 深层原因 | 可迁移性 |
+|----------|----------|----------|
+| [因素1] | [为什么这个因素有效] | [是否可以迁移到其他场景] |
+| [因素2] | [为什么这个因素有效] | [是否可以迁移到其他场景] |
+
+### 4.2 边界条件（什么时候不适用）
+
+> ⚠️ 这是区分专家与 AI 的关键能力
+
+| 不适用场景 | 原因分析 | 替代方案建议 |
+|------------|----------|--------------|
+| [场景1] | [为什么在这个场景下会失效] | [应该用什么替代] |
+| [场景2] | [为什么在这个场景下会失效] | [应该用什么替代] |
+| [场景3] | [为什么在这个场景下会失效] | [应该用什么替代] |
+
+失效信号（出现以下情况时应停止使用）：
+- ❌ [信号1]
+- ❌ [信号2]
+- ❌ [信号3]
+
+### 4.3 元认知提取（底层价值观）
+
+| 元认知维度 | 作者隐含的信念 | 证据/体现 |
+|------------|----------------|-----------|
+| 世界观 | [作者如何看待这个领域] | "[引用证据]" |
+| 方法论 | [作者相信什么样的方法有效] | "[引用证据]" |
+| 价值排序 | [作者认为什么最重要] | "[引用证据]" |
+| 风险偏好 | [作者对风险的态度] | "[引用证据]" |
+
+### 4.4 反常识要点
+
+| 常识认知 | 素材中的反常识观点 | 论证逻辑 |
+|----------|---------------------|----------|
+| "人们通常认为..." | "但实际上..." | [为什么反常识是对的] |
+
+---
+
+## 五、系统设计预判
+
+### 5.1 复杂度评估
+
+| 评估维度 | 当前状态 | 评分(1-5) |
+|----------|----------|-----------|
+| 逻辑分支数量 | [描述] | ⭐⭐⭐☆☆ |
+| 变量耦合程度 | [描述] | ⭐⭐⭐☆☆ |
+| 领域知识依赖 | [描述] | ⭐⭐⭐☆☆ |
+| 输出质量要求 | [描述] | ⭐⭐⭐☆☆ |
+
+综合评级：Level [1/2/3]
+
+### 5.2 建议架构
+
+| 架构方案 | 适用条件 | 推荐指数 |
+|----------|----------|----------|
+| 单体 Prompt | [什么情况下选择] | ⭐⭐⭐☆☆ |
+| 双 Agent 协作 | [什么情况下选择] | ⭐⭐⭐☆☆ |
+| 多 Agent 流水线 | [什么情况下选择] | ⭐⭐⭐☆☆ |
+
+推荐方案：[具体推荐哪种架构，以及为什么]
+
+### 5.3 预判的 Agent 角色
+
+基于素材特性，预判需要以下 Agent 角色：
+
+| Agent 角色 | 职责 | 输入 | 输出 |
+|------------|------|------|------|
+| [角色1，如：拆解者] | [具体职责] | [需要什么输入] | [产出什么] |
+| [角色2，如：融合者] | [具体职责] | [需要什么输入] | [产出什么] |
+| [角色3，如：架构师] | [具体职责] | [需要什么输入] | [产出什么] |
+| [角色4，如：矿工] | [具体职责] | [需要什么输入] | [产出什么] |
+
+### 5.4 潜在风险预警
+
+| 风险类型 | 具体风险 | 预防措施 |
+|----------|----------|----------|
+| 信息丢失风险 | [什么信息容易在转译中丢失] | [如何预防] |
+| 逻辑断层风险 | [哪个环节容易出现断层] | [如何预防] |
+| 质量波动风险 | [什么情况下质量会下降] | [如何预防] |
+
+---
+
+## 六、待确认事项
+
+在进入下一阶段前，请确认以下问题：
+
+### 6.1 关于您的身份（Who）
+- 您的职业/角色是什么？
+- 您在这个领域的经验水平？
+- 您的个人风格偏好？
+
+### 6.2 关于目标受众（To Whom）
+- 这套系统的产出是给谁看的？
+- 受众的认知水平如何？
+- 受众最关心什么？
+
+### 6.3 关于核心诉求（What）
+- 您希望这套系统主要解决什么问题？
+- 您希望产出的形式是什么？
+- 有没有必须包含/排除的元素？
+
+---
+
+请确认：以上解构报告是否准确？有需要补充或修正的地方吗？
+`;
+
+            const stage4Architecture = (decodeReport, paths, constraints) => `你是一名「深度解码器」，正在执行「架构设计与逻辑硬化」。
+
+## 已有信息
+
+### 解构报告摘要
+${decodeReport}
+
+### 用户选择的路径
+${paths.join(', ')}
+
+### 用户约束
+${JSON.stringify(constraints, null, 2)}
+
+## 任务
+根据上述信息，为每条选中的路径设计架构方案并进行逻辑硬化。
+
+## 输出要求
+请严格按照以下 Markdown 结构输出：
+
+# 架构设计方案
+
+${paths.includes('A') || paths.includes('E') ? `
+## 路径 A：内容生产架构
+
+### 架构设计
+[根据复杂度选择单体 Prompt 或多 Agent 系统]
+
+### 逻辑硬化措施
+- **Y型路由**：[热启动 vs 冷启动策略]
+- **结构通胀**：[内容扩容策略]
+- **纹理保真**：[风格保持策略]
+
+### 核心 Prompt 框架
+\`\`\`
+[写作 Prompt 的核心框架]
+\`\`\`
+` : ''}
+
+${paths.includes('B') || paths.includes('E') ? `
+## 路径 B：工具开发架构
+
+### 架构设计
+[技术架构方案]
+
+### 逻辑硬化措施
+- **边界防御**：[错误处理策略]
+- **规范对齐**：[代码规范]
+- **伪代码锚定**：[核心逻辑伪代码]
+
+### 核心功能模块
+| 模块 | 功能 | 输入 | 输出 |
+|------|------|------|------|
+| ... | ... | ... | ... |
+` : ''}
+
+${paths.includes('C') ? `
+## 路径 C：产品设计架构
+
+### 架构设计
+[产品功能架构]
+
+### 逻辑硬化措施
+- **价值闭环**：[用户旅程设计]
+- **功能映射**：[核心功能列表]
+
+### 功能架构图
+[文字描述产品功能架构]
+` : ''}
+
+${paths.includes('D') || paths.includes('E') ? `
+## 路径 D：知识提炼架构
+
+### 架构设计
+[知识组织方案]
+
+### 逻辑硬化措施
+- **概念降维**：[如何让复杂概念易懂]
+- **元认知提取**：[提取哪些元认知]
+
+### 知识卡片模板
+[卡片结构设计]
+` : ''}
+
+## 硬化检查清单
+
+| 检查项 | 状态 | 说明 |
+|--------|------|------|
+| 变量命名一致性 | ✅ | ... |
+| 边界条件覆盖 | ✅ | ... |
+| 错误处理预案 | ✅ | ... |
+`;
+
+            const stage5Deliver = (fullContext, paths) => `你是一名「深度解码器」，正在执行「沙盒模拟与交付」。
+
+## 完整上下文
+${JSON.stringify(fullContext, null, 2)}
+
+## 任务
+1. 执行沙盒模拟，输出《压力测试报告》
+2. 根据用户选择的路径（${paths.join(', ')}），生成最终交付物
+
+## 输出要求
+
+首先输出压力测试报告，然后为每条路径输出完整的交付物。
+
+使用以下分隔符区分不同部分：
+- \`===TEST_REPORT===\` 开始压力测试报告
+- \`===PATH_A===\` 开始路径 A 交付物
+- \`===PATH_B===\` 开始路径 B 交付物
+- \`===PATH_C===\` 开始路径 C 交付物
+- \`===PATH_D===\` 开始路径 D 交付物
+
+===TEST_REPORT===
+
+# 压力测试报告
+
+## 数据流转检查
+[检查上游输出能否被下游正确读取]
+
+## 潜在风险点
+| 风险 | 级别 | 预防措施 |
+|------|------|----------|
+| ... | ... | ... |
+
+## 修复建议
+[预埋的自我修正逻辑]
+
+${paths.includes('A') || paths.includes('E') ? `
+===PATH_A===
+
+# 路径 A 交付物：内容生产
+
+## System Prompt
+
+\`\`\`
+[完整的可直接使用的写作 System Prompt]
+\`\`\`
+
+## 文章模板
+
+[文章结构模板，包含 Hook、痛点、方法、案例、CTA 等]
+
+## 标题/金句素材
+
+- [标题建议 1]
+- [标题建议 2]
+- [金句 1]
+- [金句 2]
+` : ''}
+
+${paths.includes('B') || paths.includes('E') ? `
+===PATH_B===
+
+# 路径 B 交付物：工具开发
+
+## 核心逻辑伪代码
+
+\`\`\`pseudo
+[完整的逻辑伪代码]
+\`\`\`
+
+## 技术实现方案
+
+[技术架构说明]
+
+## 核心代码框架
+
+\`\`\`javascript
+[核心代码框架/示例]
+\`\`\`
+
+## 使用说明
+
+[如何使用这个工具]
+` : ''}
+
+${paths.includes('C') ? `
+===PATH_C===
+
+# 路径 C 交付物：产品设计
+
+## 产品 PRD
+
+### 产品概述
+[产品定位和核心价值]
+
+### 目标用户
+[用户画像]
+
+### 核心功能
+| 功能 | 描述 | 优先级 |
+|------|------|--------|
+| ... | ... | P0/P1/P2 |
+
+### 用户旅程
+[用户使用流程]
+
+## 功能架构图
+
+[文字描述的功能架构]
+
+## MVP 建议
+
+[最小可行产品范围建议]
+` : ''}
+
+${paths.includes('D') || paths.includes('E') ? `
+===PATH_D===
+
+# 路径 D 交付物：知识提炼
+
+## 核心概念卡片
+
+### 概念 1：[名称]
+- **定义**：
+- **应用场景**：
+- **边界条件**：
+- **关联概念**：
+
+### 概念 2：[名称]
+- **定义**：
+- **应用场景**：
+- **边界条件**：
+- **关联概念**：
+
+## 思维模型图谱
+
+[核心思维模型及其关系]
+
+## 元认知清单
+
+- [ ] [元认知 1]
+- [ ] [元认知 2]
+- [ ] [元认知 3]
+
+## 可导出格式
+
+### Obsidian 格式
+\`\`\`markdown
+[Obsidian 双链格式的知识卡片]
+\`\`\`
+` : ''}
+`;
+
+            return {
+                stage1Decode,
+                stage4Architecture,
+                stage5Deliver
+            };
+        })();
+    </script>
+
+    <!-- ==================== Main Application ==================== -->
+    <script>
+        const APP = (() => {
+            // ==================== State ====================
+            const STATE = {
+                currentStage: 1,
+                files: [],
+                parsedContent: {
+                    texts: [],
+                    images: []
+                },
+                decodeReport: '',
+                selectedPaths: [],
+                constraints: {
+                    A: {
+                        audience: [],      // 改为数组
+                        format: [],        // 改为数组
+                        style: [],         // 改为数组
+                        platform: []       // 新增
+                    },
+                    B: {
+                        toolName: '',      // 工具名称
+                        toolFunction: '',  // 核心功能描述
+                        techStack: [],     // 改为数组
+                        environment: [],   // 改为数组
+                        toolType: [],      // 新增
+                        integration: []    // 新增
+                    },
+                    C: {
+                        productName: '',   // 产品名称
+                        productFunction: '', // 核心功能需求
+                        platform: [],      // 改为数组
+                        positioning: '',   // 保持单选
+                        targetUser: [],    // 改为数组
+                        mvpScope: ''       // 新增，单选
+                    },
+                    D: {
+                        deliveryFormat: [], // 改为数组
+                        granularity: [],    // 改为数组
+                        usage: []           // 新增
+                    }
+                },
+                architecture: '',
+                deliverables: {
+                    testReport: '',
+                    A: '',
+                    B: '',
+                    C: '',
+                    D: ''
+                }
+            };
+
+            // ==================== DOM Elements ====================
+            const $ = id => document.getElementById(id);
+            const $$ = sel => document.querySelectorAll(sel);
+
+            // ==================== AI Module Instance ====================
+            let aiModule = null;
+
+            // ==================== Theme ====================
+            function initTheme() {
+                const saved = localStorage.getItem('msa_theme') || 'auto';
+                $('themeSelect').value = saved;
+                applyTheme(saved);
+
+                $('themeSelect').addEventListener('change', (e) => {
+                    const theme = e.target.value;
+                    localStorage.setItem('msa_theme', theme);
+                    applyTheme(theme);
+                });
+            }
+
+            function applyTheme(mode) {
+                if (mode === 'light') document.documentElement.dataset.theme = 'light';
+                else if (mode === 'dark') document.documentElement.dataset.theme = 'dark';
+                else delete document.documentElement.dataset.theme;
+            }
+
+            // ==================== Stage Navigation ====================
+            function updateStageNav() {
+                $$('.stage-item').forEach(item => {
+                    const stage = parseInt(item.dataset.stage);
+                    item.classList.remove('active', 'completed', 'locked');
+
+                    if (stage < STATE.currentStage) {
+                        item.classList.add('completed');
+                    } else if (stage === STATE.currentStage) {
+                        item.classList.add('active');
+                    } else {
+                        item.classList.add('locked');
+                    }
+                });
+
+                // Show/hide stage sections
+                for (let i = 1; i <= 5; i++) {
+                    const section = $(`stage${i}`);
+                    if (section) {
+                        section.hidden = (i !== STATE.currentStage);
+                    }
+                }
+            }
+
+            function goToStage(stage) {
+                STATE.currentStage = stage;
+                updateStageNav();
+                saveState();
+            }
+
+            // ==================== File Upload ====================
+            function initFileUpload() {
+                const uploadZone = $('uploadZone');
+                const fileInput = $('fileInput');
+
+                uploadZone.addEventListener('click', () => fileInput.click());
+
+                uploadZone.addEventListener('dragover', (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.add('dragover');
+                });
+
+                uploadZone.addEventListener('dragleave', () => {
+                    uploadZone.classList.remove('dragover');
+                });
+
+                uploadZone.addEventListener('drop', async (e) => {
+                    e.preventDefault();
+                    uploadZone.classList.remove('dragover');
+                    await handleFiles(e.dataTransfer.files);
+                });
+
+                fileInput.addEventListener('change', async (e) => {
+                    await handleFiles(e.target.files);
+                });
+
+                // Paste text
+                $('pasteTextArea').addEventListener('input', () => {
+                    updateContentPreview();
+                });
+            }
+
+            async function handleFiles(fileList) {
+                const files = Array.from(fileList);
+                STATE.files = [...STATE.files, ...files];
+
+                renderFileList();
+                await parseAllFiles();
+                updateContentPreview();
+            }
+
+            function renderFileList() {
+                const container = $('fileList');
+
+                if (STATE.files.length === 0) {
+                    container.innerHTML = '';
+                    return;
+                }
+
+                container.innerHTML = STATE.files.map((file, index) => `
+            <div class="file-item">
+                <div class="file-info">
+                    <span class="file-icon">${getFileIcon(file)}</span>
+                    <div>
+                        <div class="file-name">${escapeHtml(file.name)}</div>
+                        <div class="file-size">${FILE_PARSER.formatSize(file.size)}</div>
+                    </div>
+                </div>
+                <button class="btn secondary" onclick="APP.removeFile(${index})" style="padding: 6px 10px;">✕</button>
+            </div>
+        `).join('');
+            }
+
+            function getFileIcon(file) {
+                const ext = file.name.split('.').pop().toLowerCase();
+                if (['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext)) return '🖼️';
+                if (ext === 'pdf') return '📕';
+                if (ext === 'docx') return '📘';
+                return '📄';
+            }
+
+            function removeFile(index) {
+                STATE.files.splice(index, 1);
+                renderFileList();
+                parseAllFiles().then(updateContentPreview);
+            }
+
+            async function parseAllFiles() {
+                STATE.parsedContent = { texts: [], images: [] };
+
+                if (STATE.files.length === 0) return;
+
+                const { results, errors } = await FILE_PARSER.parseMultipleFiles(STATE.files);
+
+                for (const result of results) {
+                    if (result.type === 'text') {
+                        STATE.parsedContent.texts.push({ name: result.name, content: result.content });
+                    } else if (result.type === 'image') {
+                        STATE.parsedContent.images.push(result);
+                    }
+                }
+
+                if (errors.length > 0) {
+                    console.warn('File parsing errors:', errors);
+                }
+            }
+
+            function updateContentPreview() {
+                const pasteText = $('pasteTextArea').value.trim();
+                const hasContent = STATE.parsedContent.texts.length > 0 ||
+                    STATE.parsedContent.images.length > 0 ||
+                    pasteText.length > 0;
+
+                $('contentPreviewSection').hidden = !hasContent;
+                $('startDecodeBtn').disabled = !hasContent;
+
+                if (!hasContent) return;
+
+                // Build preview
+                let preview = '';
+                let totalChars = 0;
+
+                for (const item of STATE.parsedContent.texts) {
+                    preview += `--- ${item.name} ---\n${item.content.slice(0, 500)}${item.content.length > 500 ? '...' : ''}\n\n`;
+                    totalChars += item.content.length;
+                }
+
+                if (pasteText) {
+                    preview += `--- 粘贴文本 ---\n${pasteText.slice(0, 500)}${pasteText.length > 500 ? '...' : ''}\n`;
+                    totalChars += pasteText.length;
+                }
+
+                if (STATE.parsedContent.images.length > 0) {
+                    preview += `\n--- 图片 (${STATE.parsedContent.images.length} 张) ---\n`;
+                    preview += STATE.parsedContent.images.map(img => img.name).join('\n');
+                }
+
+                $('contentPreview').textContent = preview;
+                $('contentStats').textContent = `共 ${totalChars.toLocaleString()} 字符，${STATE.parsedContent.images.length} 张图片`;
+            }
+
+            // ==================== Stage 1: Decode ====================
+            function initStage1() {
+                $('startDecodeBtn').addEventListener('click', startDecode);
+                $('reDecodeBtn').addEventListener('click', startDecode);
+                $('confirmDecodeBtn').addEventListener('click', () => goToStage(2));
+                $('copyDecodeBtn').addEventListener('click', () => copyToClipboard(STATE.decodeReport));
+            }
+
+            async function startDecode() {
+                const state = aiModule.get_state();
+                if (!state.networking_enabled) {
+                    alert('请先在左侧「AI 设置」中勾选「允许联网」');
+                    return;
+                }
+
+                if (!state.key_status.has_key) {
+                    alert('请先在 Key Manager 中设置 API Key');
+                    return;
+                }
+
+                // Gather content
+                let content = '';
+                for (const item of STATE.parsedContent.texts) {
+                    content += `\n\n--- ${item.name} ---\n${item.content}`;
+                }
+                const pasteText = $('pasteTextArea').value.trim();
+                if (pasteText) {
+                    content += `\n\n--- 粘贴文本 ---\n${pasteText}`;
+                }
+
+                if (!content.trim()) {
+                    alert('请先上传文件或粘贴文本');
+                    return;
+                }
+
+                // Show output section
+                $('decodeOutputSection').hidden = false;
+                $('decodeOutput').innerHTML = '<div class="loading-spinner"></div> AI 正在分析...';
+                $('startDecodeBtn').disabled = true;
+                $('confirmDecodeBtn').disabled = true;
+
+                try {
+                    const prompt = PROMPT_TEMPLATES.stage1Decode(content, STATE.parsedContent.images);
+
+                    const messages = [{ role: 'user', content: prompt }];
+
+                    // Add images if any (for multimodal)
+                    if (STATE.parsedContent.images.length > 0) {
+                        // Note: This is simplified. Real implementation would need proper multimodal message format
+                        messages[0].content = [
+                            { type: 'text', text: prompt },
+                            ...STATE.parsedContent.images.map(img => ({
+                                type: 'image_url',
+                                image_url: { url: img.base64 }
+                            }))
+                        ];
+                    }
+
+                    await aiModule.call_ai({
+                        messages,
+                        onChunk: (chunk, full) => {
+                            $('decodeOutput').innerHTML = renderMarkdown(full) + '<span class="streaming-cursor"></span>';
+                        }
+                    });
+
+                    STATE.decodeReport = $('decodeOutput').textContent;
+                    $('decodeOutput').innerHTML = renderMarkdown(STATE.decodeReport);
+                    $('confirmDecodeBtn').disabled = false;
+                    saveState();
+
+                } catch (e) {
+                    $('decodeOutput').innerHTML = `<div class="pill bad">错误</div><pre>${aiModule.get_actionable_error(e)}</pre>`;
+                } finally {
+                    $('startDecodeBtn').disabled = false;
+                }
+            }
+
+            // ==================== Stage 2: Path Selection ====================
+            function initStage2() {
+                $$('.path-card').forEach(card => {
+                    card.addEventListener('click', () => togglePath(card.dataset.path));
+                });
+
+                $('backToStage1Btn').addEventListener('click', () => goToStage(1));
+                $('confirmPathsBtn').addEventListener('click', () => {
+                    if (STATE.selectedPaths.length === 0) {
+                        alert('请至少选择一条路径');
+                        return;
+                    }
+                    renderConstraintsForm();
+                    goToStage(3);
+                });
+            }
+
+            function togglePath(path) {
+                // Special handling for E (Full Stack)
+                if (path === 'E') {
+                    if (STATE.selectedPaths.includes('E')) {
+                        STATE.selectedPaths = [];
+                    } else {
+                        STATE.selectedPaths = ['E'];
+                    }
+                } else {
+                    // Remove E if selecting individual paths
+                    STATE.selectedPaths = STATE.selectedPaths.filter(p => p !== 'E');
+
+                    const index = STATE.selectedPaths.indexOf(path);
+                    if (index > -1) {
+                        STATE.selectedPaths.splice(index, 1);
+                    } else {
+                        STATE.selectedPaths.push(path);
+                    }
+                }
+
+                updatePathSelection();
+            }
+
+            function updatePathSelection() {
+                $$('.path-card').forEach(card => {
+                    const path = card.dataset.path;
+                    const isSelected = STATE.selectedPaths.includes(path) ||
+                        (STATE.selectedPaths.includes('E') && ['A', 'B', 'D'].includes(path));
+
+                    card.classList.toggle('selected', isSelected);
+                    card.querySelector('.path-checkbox').textContent = isSelected ? '✓' : '';
+                });
+
+                // Update summary
+                let summary = '尚未选择';
+                if (STATE.selectedPaths.length > 0) {
+                    if (STATE.selectedPaths.includes('E')) {
+                        summary = 'E (全栈套装: A + B + D)';
+                    } else {
+                        summary = STATE.selectedPaths.join(' + ');
+                    }
+                }
+                $('selectedPathsText').textContent = summary;
+                $('confirmPathsBtn').disabled = STATE.selectedPaths.length === 0;
+            }
+
+            // ==================== Stage 3: Constraints ====================
+            function initStage3() {
+                $('backToStage2Btn').addEventListener('click', () => goToStage(2));
+                $('confirmConstraintsBtn').addEventListener('click', () => {
+                    collectConstraints();
+                    startArchitecture();
+                });
+            }
+
+            function renderConstraintsForm() {
+                const container = $('constraintsForm');
+                const paths = STATE.selectedPaths.includes('E') ? ['A', 'B', 'D'] : STATE.selectedPaths;
+
+                let html = '';
+
+                if (paths.includes('A')) {
+                    html += `
+                <div class="constraint-section">
+                    <div class="constraint-title">
+                        <span class="pill accent">A</span> 内容生产约束
+                    </div>
+                    
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>目标受众</label>
+                        <div class="radio-group" data-field="A.audience">
+                            <label class="radio-item" data-value="beginner">
+                                <input type="radio" name="A_audience" value="beginner">
+                                小白（零基础）
+                            </label>
+                            <label class="radio-item" data-value="intermediate">
+                                <input type="radio" name="A_audience" value="intermediate">
+                                进阶者（有一定经验）
+                            </label>
+                            <label class="radio-item" data-value="expert">
+                                <input type="radio" name="A_audience" value="expert">
+                                专家/同行
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>内容形式</label>
+                        <div class="radio-group" data-field="A.format">
+                            <label class="radio-item" data-value="long-article">
+                                <input type="radio" name="A_format" value="long-article">
+                                长文教程
+                            </label>
+                            <label class="radio-item" data-value="short-article">
+                                <input type="radio" name="A_format" value="short-article">
+                                短文/推文
+                            </label>
+                            <label class="radio-item" data-value="video-script">
+                                <input type="radio" name="A_format" value="video-script">
+                                视频脚本
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>风格偏好</label>
+                        <div class="radio-group" data-field="A.style">
+                            <label class="radio-item" data-value="academic">
+                                <input type="radio" name="A_style" value="academic">
+                                学院派（严谨）
+                            </label>
+                            <label class="radio-item" data-value="practical">
+                                <input type="radio" name="A_style" value="practical">
+                                实战派（接地气）
+                            </label>
+                            <label class="radio-item" data-value="geek">
+                                <input type="radio" name="A_style" value="geek">
+                                极客派（硬核）
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+                }
+
+                if (paths.includes('B')) {
+                    html += `
+                <div class="constraint-section">
+                    <div class="constraint-title">
+                        <span class="pill accent">B</span> 工具开发约束
+                    </div>
+                    
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>工具名称 *</label>
+                        <input type="text" id="toolNameInput" placeholder="给你的工具起一个名字，如：文章润色助手" style="width: 100%;" />
+                    </div>
+
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>核心功能描述 *</label>
+                        <textarea id="toolFunctionInput" placeholder="描述这个工具的核心功能，例如：&#10;- 自动分析文章结构&#10;- 识别并优化冗余表述&#10;- 生成多版本改写建议" style="min-height: 80px;"></textarea>
+                    </div>
+
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>技术栈</label>
+                        <div class="radio-group" data-field="B.techStack">
+                            <label class="radio-item" data-value="python">
+                                <input type="radio" name="B_techStack" value="python">
+                                Python
+                            </label>
+                            <label class="radio-item" data-value="javascript">
+                                <input type="radio" name="B_techStack" value="javascript">
+                                JavaScript
+                            </label>
+                            <label class="radio-item" data-value="prompt-only">
+                                <input type="radio" name="B_techStack" value="prompt-only">
+                                纯 Prompt
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>运行环境</label>
+                        <div class="radio-group" data-field="B.environment">
+                            <label class="radio-item" data-value="cli">
+                                <input type="radio" name="B_environment" value="cli">
+                                命令行脚本
+                            </label>
+                            <label class="radio-item" data-value="web">
+                                <input type="radio" name="B_environment" value="web">
+                                Web 应用
+                            </label>
+                            <label class="radio-item" data-value="api">
+                                <input type="radio" name="B_environment" value="api">
+                                API 服务
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+                }
+
+                if (paths.includes('C')) {
+                    html += `
+                <div class="constraint-section">
+                    <div class="constraint-title">
+                        <span class="pill accent">C</span> 产品设计约束
+                    </div>
+                    
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>产品名称 *</label>
+                        <input type="text" id="productNameInput" placeholder="给你的产品起一个名字，如：AI写作助手" style="width: 100%;" />
+                    </div>
+
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>核心功能需求 *</label>
+                        <textarea id="productFunctionInput" placeholder="描述产品需要实现的核心功能，例如：&#10;1. 用户上传文档后自动分析&#10;2. 生成优化建议并一键改写&#10;3. 支持多风格切换" style="min-height: 80px;"></textarea>
+                    </div>
+
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>目标平台</label>
+                        <div class="radio-group" data-field="C.platform">
+                            <label class="radio-item" data-value="web">
+                                <input type="radio" name="C_platform" value="web">
+                                Web 应用
+                            </label>
+                            <label class="radio-item" data-value="mobile">
+                                <input type="radio" name="C_platform" value="mobile">
+                                移动端 APP
+                            </label>
+                            <label class="radio-item" data-value="mini-program">
+                                <input type="radio" name="C_platform" value="mini-program">
+                                小程序
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>产品定位</label>
+                        <div class="radio-group" data-field="C.positioning">
+                            <label class="radio-item" data-value="free-tool">
+                                <input type="radio" name="C_positioning" value="free-tool">
+                                免费工具
+                            </label>
+                            <label class="radio-item" data-value="saas">
+                                <input type="radio" name="C_positioning" value="saas">
+                                付费 SaaS
+                            </label>
+                            <label class="radio-item" data-value="open-source">
+                                <input type="radio" name="C_positioning" value="open-source">
+                                开源项目
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>核心用户</label>
+                        <div class="radio-group" data-field="C.targetUser">
+                            <label class="radio-item" data-value="creators">
+                                <input type="radio" name="C_targetUser" value="creators">
+                                内容创作者
+                            </label>
+                            <label class="radio-item" data-value="developers">
+                                <input type="radio" name="C_targetUser" value="developers">
+                                开发者
+                            </label>
+                            <label class="radio-item" data-value="general">
+                                <input type="radio" name="C_targetUser" value="general">
+                                通用用户
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+                }
+
+                if (paths.includes('D')) {
+                    html += `
+                <div class="constraint-section">
+                    <div class="constraint-title">
+                        <span class="pill accent">D</span> 知识提炼约束
+                    </div>
+                    
+                    <div class="field" style="margin-bottom: 12px;">
+                        <label>交付格式</label>
+                        <div class="radio-group" data-field="D.deliveryFormat">
+                            <label class="radio-item" data-value="obsidian">
+                                <input type="radio" name="D_deliveryFormat" value="obsidian">
+                                Obsidian 双链
+                            </label>
+                            <label class="radio-item" data-value="notion">
+                                <input type="radio" name="D_deliveryFormat" value="notion">
+                                Notion 卡片
+                            </label>
+                            <label class="radio-item" data-value="markdown">
+                                <input type="radio" name="D_deliveryFormat" value="markdown">
+                                纯 Markdown
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="field">
+                        <label>知识颗粒度</label>
+                        <div class="radio-group" data-field="D.granularity">
+                            <label class="radio-item" data-value="concept">
+                                <input type="radio" name="D_granularity" value="concept">
+                                概念级（每个概念一张卡）
+                            </label>
+                            <label class="radio-item" data-value="module">
+                                <input type="radio" name="D_granularity" value="module">
+                                模块级（每个阶段一个模块）
+                            </label>
+                            <label class="radio-item" data-value="system">
+                                <input type="radio" name="D_granularity" value="system">
+                                系统级（完整一份）
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            `;
+                }
+
+                container.innerHTML = html;
+
+                // Add click handlers for radio items
+                $$('.radio-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const input = item.querySelector('input');
+                        input.checked = true;
+
+                        // Update visual state
+                        item.closest('.radio-group').querySelectorAll('.radio-item').forEach(i => {
+                            i.classList.remove('selected');
+                        });
+                        item.classList.add('selected');
+                    });
+                });
+            }
+
+            function collectConstraints() {
+                // 处理多选 checkbox 组
+                $$('.checkbox-group').forEach(group => {
+                    const field = group.dataset.field;
+                    const [path, key] = field.split('.');
+                    const checkedItems = group.querySelectorAll('input:checked');
+                    const values = Array.from(checkedItems).map(input => input.value);
+
+                    if (!STATE.constraints[path]) {
+                        STATE.constraints[path] = {};
+                    }
+                    STATE.constraints[path][key] = values;
+                });
+
+                // 处理单选 radio 组
+                $$('.radio-group').forEach(group => {
+                    const field = group.dataset.field;
+                    const [path, key] = field.split('.');
+                    const selected = group.querySelector('input:checked');
+
+                    if (!STATE.constraints[path]) {
+                        STATE.constraints[path] = {};
+                    }
+                    STATE.constraints[path][key] = selected ? selected.value : '';
+                });
+
+                // 处理路径B的工具名称和功能描述
+                const toolNameInput = $('toolNameInput');
+                const toolFunctionInput = $('toolFunctionInput');
+                if (toolNameInput) {
+                    STATE.constraints.B.toolName = toolNameInput.value.trim();
+                }
+                if (toolFunctionInput) {
+                    STATE.constraints.B.toolFunction = toolFunctionInput.value.trim();
+                }
+
+                // 处理路径C的产品名称和功能需求
+                const productNameInput = $('productNameInput');
+                const productFunctionInput = $('productFunctionInput');
+                if (productNameInput) {
+                    STATE.constraints.C.productName = productNameInput.value.trim();
+                }
+                if (productFunctionInput) {
+                    STATE.constraints.C.productFunction = productFunctionInput.value.trim();
+                }
+            }
+
+            // ==================== Stage 4: Architecture ====================
+            async function startArchitecture() {
+                goToStage(4);
+
+                const state = aiModule.get_state();
+                if (!state.networking_enabled) {
+                    $('architectureOutput').innerHTML = '<div class="pill bad">请先允许联网</div>';
+                    return;
+                }
+
+                $('architectureOutput').innerHTML = '<div class="loading-spinner"></div> AI 正在设计架构...';
+                $('confirmArchitectureBtn').disabled = true;
+
+                try {
+                    const paths = STATE.selectedPaths.includes('E') ? ['A', 'B', 'D'] : STATE.selectedPaths;
+                    const prompt = PROMPT_TEMPLATES.stage4Architecture(
+                        STATE.decodeReport,
+                        paths,
+                        STATE.constraints
+                    );
+
+                    await aiModule.call_ai({
+                        messages: [{ role: 'user', content: prompt }],
+                        onChunk: (chunk, full) => {
+                            $('architectureOutput').innerHTML = renderMarkdown(full) + '<span class="streaming-cursor"></span>';
+                        }
+                    });
+
+                    STATE.architecture = $('architectureOutput').textContent;
+                    $('architectureOutput').innerHTML = renderMarkdown(STATE.architecture);
+                    $('confirmArchitectureBtn').disabled = false;
+                    saveState();
+
+                } catch (e) {
+                    $('architectureOutput').innerHTML = `<div class="pill bad">错误</div><pre>${aiModule.get_actionable_error(e)}</pre>`;
+                }
+            }
+
+            // ==================== 修改意见功能 ====================
+            async function reviseArchitecture() {
+                const revisionText = $('revisionInput').value.trim();
+                if (!revisionText) {
+                    alert('请填写修改意见');
+                    return;
+                }
+
+                const state = aiModule.get_state();
+                if (!state.networking_enabled) {
+                    $('architectureOutput').innerHTML = '<div class="pill bad">请先允许联网</div>';
+                    return;
+                }
+
+                $('architectureOutput').innerHTML = '<div class="loading-spinner"></div> AI 正在根据您的意见修改架构...';
+                $('submitRevisionBtn').disabled = true;
+                $('confirmArchitectureBtn').disabled = true;
+
+                try {
+                    const paths = STATE.selectedPaths.includes('E') ? ['A', 'B', 'D'] : STATE.selectedPaths;
+                    const revisionPrompt = `你是一名「深度解码器」，用户对你之前生成的架构方案提出了修改意见。
+
+## 原架构方案
+${STATE.architecture}
+
+## 用户约束
+${JSON.stringify(STATE.constraints, null, 2)}
+
+## 用户修改意见
+${revisionText}
+
+## 任务
+请根据用户的修改意见，重新输出完整的架构设计方案。保持原有格式，只修改用户指出的问题。
+
+请输出完整修改后的架构方案：`;
+
+                    let fullResponse = '';
+                    await aiModule.call_ai({
+                        messages: [{ role: 'user', content: revisionPrompt }],
+                        onChunk: (chunk, full) => {
+                            fullResponse = full;
+                            $('architectureOutput').innerHTML = renderMarkdown(full) + '<span class="streaming-cursor"></span>';
+                        }
+                    });
+
+                    STATE.architecture = fullResponse;
+                    $('architectureOutput').innerHTML = renderMarkdown(STATE.architecture);
+                    $('revisionInput').value = '';
+                    $('revisionSection').style.display = 'none';
+                    $('submitRevisionBtn').disabled = false;
+                    $('confirmArchitectureBtn').disabled = false;
+                    saveState();
+
+                } catch (e) {
+                    $('architectureOutput').innerHTML = `<div class="pill bad">错误</div><pre>${aiModule.get_actionable_error(e)}</pre>`;
+                    $('submitRevisionBtn').disabled = false;
+                }
+            }
+
+            function initStage4() {
+                $('backToStage3Btn').addEventListener('click', () => goToStage(3));
+                $('confirmArchitectureBtn').addEventListener('click', startDelivery);
+                $('copyArchitectureBtn').addEventListener('click', () => copyToClipboard(STATE.architecture));
+
+                // 修改意见功能
+                $('showRevisionBtn').addEventListener('click', () => {
+                    const section = $('revisionSection');
+                    section.style.display = section.style.display === 'none' ? 'block' : 'none';
+                });
+                $('submitRevisionBtn').addEventListener('click', reviseArchitecture);
+            }
+
+            // ==================== Stage 5: Delivery ====================
+            async function startDelivery() {
+                goToStage(5);
+
+                const state = aiModule.get_state();
+                if (!state.networking_enabled) {
+                    $('testReportOutput').textContent = '请先允许联网';
+                    return;
+                }
+
+                $('testReportOutput').textContent = 'AI 正在执行沙盒模拟...';
+                $('deliverableTabs').innerHTML = '';
+                $('deliverableContents').innerHTML = '<div class="output-content"><div class="loading-spinner"></div> 正在生成交付物...</div>';
+
+                try {
+                    const paths = STATE.selectedPaths.includes('E') ? ['A', 'B', 'D'] : STATE.selectedPaths;
+                    const fullContext = {
+                        decodeReport: STATE.decodeReport,
+                        selectedPaths: paths,
+                        constraints: STATE.constraints,
+                        architecture: STATE.architecture
+                    };
+
+                    const prompt = PROMPT_TEMPLATES.stage5Deliver(fullContext, paths);
+                    let fullResponse = '';
+
+                    await aiModule.call_ai({
+                        messages: [{ role: 'user', content: prompt }],
+                        onChunk: (chunk, full) => {
+                            fullResponse = full;
+                            $('deliverableContents').innerHTML = `<div class="output-content markdown-body">${renderMarkdown(full)}<span class="streaming-cursor"></span></div>`;
+                        }
+                    });
+
+                    // Parse the response
+                    parseDeliverables(fullResponse, paths);
+                    saveState();
+
+                } catch (e) {
+                    $('deliverableContents').innerHTML = `<div class="output-content"><div class="pill bad">错误</div><pre>${aiModule.get_actionable_error(e)}</pre></div>`;
+                }
+            }
+
+            function parseDeliverables(response, paths) {
+                // Parse sections
+                const sections = {
+                    testReport: extractSection(response, '===TEST_REPORT===', '===PATH_'),
+                    A: extractSection(response, '===PATH_A===', '===PATH_'),
+                    B: extractSection(response, '===PATH_B===', '===PATH_'),
+                    C: extractSection(response, '===PATH_C===', '===PATH_'),
+                    D: extractSection(response, '===PATH_D===', '===PATH_')
+                };
+
+                STATE.deliverables = sections;
+
+                // Render test report
+                $('testReportOutput').textContent = sections.testReport || '无压力测试报告';
+
+                // Build tabs
+                const tabs = [];
+                const contents = [];
+
+                paths.forEach((path, index) => {
+                    if (sections[path]) {
+                        const isActive = index === 0;
+                        tabs.push(`<div class="tab ${isActive ? 'active' : ''}" data-tab="${path}">路径 ${path}</div>`);
+                        contents.push(`
+                    <div class="tab-content ${isActive ? 'active' : ''}" data-tab="${path}">
+                        <div class="output-content markdown-body">${renderMarkdown(sections[path])}</div>
+                    </div>
+                `);
+                    }
+                });
+
+                $('deliverableTabs').innerHTML = tabs.join('');
+                $('deliverableContents').innerHTML = contents.join('');
+
+                // Tab switching
+                $$('.tab').forEach(tab => {
+                    tab.addEventListener('click', () => {
+                        $$('.tab').forEach(t => t.classList.remove('active'));
+                        $$('.tab-content').forEach(c => c.classList.remove('active'));
+
+                        tab.classList.add('active');
+                        document.querySelector(`.tab-content[data-tab="${tab.dataset.tab}"]`).classList.add('active');
+                    });
+                });
+            }
+
+            function extractSection(text, startMarker, endMarkerPrefix) {
+                const startIndex = text.indexOf(startMarker);
+                if (startIndex === -1) return '';
+
+                let content = text.slice(startIndex + startMarker.length);
+
+                // Find the next section marker
+                const endIndex = content.indexOf(endMarkerPrefix);
+                if (endIndex > -1) {
+                    content = content.slice(0, endIndex);
+                }
+
+                return content.trim();
+            }
+
+            function initStage5() {
+                $('downloadAllBtn').addEventListener('click', downloadAllMarkdown);
+                $('downloadJsonBtn').addEventListener('click', downloadJson);
+                $('newProjectBtn').addEventListener('click', resetProject);
+            }
+
+            function downloadAllMarkdown() {
+                let content = `# 深度解码器 - 项目交付物\n\n`;
+                content += `生成时间: ${new Date().toLocaleString()}\n\n`;
+                content += `---\n\n`;
+                content += `## 解构报告\n\n${STATE.decodeReport}\n\n`;
+                content += `---\n\n`;
+                content += `## 架构设计\n\n${STATE.architecture}\n\n`;
+                content += `---\n\n`;
+
+                const paths = STATE.selectedPaths.includes('E') ? ['A', 'B', 'D'] : STATE.selectedPaths;
+                paths.forEach(path => {
+                    if (STATE.deliverables[path]) {
+                        content += `## 路径 ${path} 交付物\n\n${STATE.deliverables[path]}\n\n---\n\n`;
+                    }
+                });
+
+                downloadFile('meta-system-architect-output.md', content, 'text/markdown');
+            }
+
+            function downloadJson() {
+                const data = {
+                    version: '1.0.0',
+                    generatedAt: new Date().toISOString(),
+                    selectedPaths: STATE.selectedPaths,
+                    constraints: STATE.constraints,
+                    decodeReport: STATE.decodeReport,
+                    architecture: STATE.architecture,
+                    deliverables: STATE.deliverables
+                };
+
+                downloadFile('meta-system-architect-output.json', JSON.stringify(data, null, 2), 'application/json');
+            }
+
+            function downloadFile(filename, content, mimeType) {
+                const blob = new Blob([content], { type: mimeType });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                URL.revokeObjectURL(url);
+            }
+
+            function resetProject() {
+                if (!confirm('确定要开始新项目吗？当前进度将被清除。')) return;
+
+                localStorage.removeItem('msa_state');
+                location.reload();
+            }
+
+            // ==================== Utilities ====================
+            function renderMarkdown(text) {
+                if (typeof marked === 'undefined') return escapeHtml(text);
+
+                marked.setOptions({
+                    highlight: function (code, lang) {
+                        if (typeof hljs !== 'undefined' && lang && hljs.getLanguage(lang)) {
+                            return hljs.highlight(code, { language: lang }).value;
+                        }
+                        return code;
+                    }
+                });
+
+                return marked.parse(text);
+            }
+
+            function escapeHtml(str) {
+                return String(str)
+                    .replace(/&/g, '&amp;')
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/"/g, '&quot;')
+                    .replace(/'/g, '&#039;');
+            }
+
+            function copyToClipboard(text) {
+                navigator.clipboard.writeText(text).then(() => {
+                    // Could show a toast notification here
+                }).catch(err => {
+                    console.error('Failed to copy:', err);
+                });
+            }
+
+            function saveState() {
+                const stateToSave = {
+                    currentStage: STATE.currentStage,
+                    decodeReport: STATE.decodeReport,
+                    selectedPaths: STATE.selectedPaths,
+                    constraints: STATE.constraints,
+                    architecture: STATE.architecture,
+                    deliverables: STATE.deliverables
+                };
+                localStorage.setItem('msa_state', JSON.stringify(stateToSave));
+            }
+
+            function loadState() {
+                const saved = localStorage.getItem('msa_state');
+                if (saved) {
+                    try {
+                        const parsed = JSON.parse(saved);
+                        Object.assign(STATE, parsed);
+
+                        if (STATE.currentStage > 1) {
+                            // Restore UI state
+                            if (STATE.decodeReport) {
+                                $('decodeOutputSection').hidden = false;
+                                $('decodeOutput').innerHTML = renderMarkdown(STATE.decodeReport);
+                                $('confirmDecodeBtn').disabled = false;
+                            }
+                            updatePathSelection();
+                        }
+                    } catch (e) {
+                        console.error('Failed to load state:', e);
+                    }
+                }
+            }
+
+            // ==================== Init ====================
+            function init() {
+                initTheme();
+
+                // Mount AI settings
+                aiModule = AI_MODULE.mount_ai_settings({
+                    mount_el: $('aiSettingsMount'),
+                    default_provider_id: 'siliconflow'
+                });
+
+                initFileUpload();
+                initStage1();
+                initStage2();
+                initStage3();
+                initStage4();
+                initStage5();
+
+                // Reset button
+                $('resetBtn').addEventListener('click', resetProject);
+
+                // Load saved state
+                loadState();
+                updateStageNav();
+            }
+
+            // Expose for global access
+            return {
+                init,
+                removeFile,
+                STATE
+            };
+        })();
+
+        // Initialize when DOM is ready
+        document.addEventListener('DOMContentLoaded', APP.init);
+    </script>
+
+</body>
+
+</html>

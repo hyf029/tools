@@ -1,0 +1,358 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard Registrar v3.1 - 工具注册助手</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body { background-color: #f3f4f6; color: #1f2937; font-family: system-ui, -apple-system, sans-serif; }
+        .glass-panel { background: white; border: 1px solid #e5e7eb; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); border-radius: 0.75rem; }
+        .code-block { font-family: 'Menlo', 'Monaco', 'Courier New', monospace; background: #1e293b; color: #e2e8f0; line-height: 1.5; }
+        /* Loading Animation */
+        .typing-indicator span { animation: blink 1.4s infinite both; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes blink { 0% { opacity: 0.2; } 20% { opacity: 1; } 100% { opacity: 0.2; } }
+    </style>
+</head>
+<body class="min-h-screen p-6 flex flex-col items-center">
+
+    <header class="w-full max-w-3xl mb-8 flex justify-between items-center">
+        <div class="flex items-center gap-3">
+            <div class="text-4xl">®️</div>
+            <div>
+                <h1 class="text-2xl font-bold tracking-tight text-gray-900">Dashboard Registrar <span class="text-xs bg-gray-200 px-2 py-0.5 rounded text-gray-500">v3.1</span></h1>
+                <p class="text-sm text-gray-500">工具注册配置生成器 (中文版)</p>
+            </div>
+        </div>
+        <button id="settingsBtn" class="text-sm text-gray-600 hover:text-gray-900 underline">⚙️ 模型设置</button>
+    </header>
+
+    <main class="w-full max-w-3xl space-y-6">
+
+        <details id="aiSettings" class="glass-panel p-4 hidden open:block">
+            <summary class="cursor-pointer font-semibold text-gray-700 mb-2">AI 模型配置 (Universal Protocol)</summary>
+            <div class="space-y-4 mt-2 text-sm">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">Provider</label>
+                        <select id="providerSelect" class="w-full border rounded p-2 bg-gray-50"></select>
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">Model</label>
+                        <select id="modelSelect" class="w-full border rounded p-2 bg-gray-50"></select>
+                    </div>
+                </div>
+                
+                <div id="customConfig" class="hidden grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="block text-gray-600 mb-1">Base URL</label>
+                        <input type="text" id="customBaseUrl" class="w-full border rounded p-2" placeholder="http://localhost:11434/v1">
+                    </div>
+                    <div>
+                        <label class="block text-gray-600 mb-1">Model ID</label>
+                        <input type="text" id="customModelId" class="w-full border rounded p-2" placeholder="llama3">
+                    </div>
+                </div>
+
+                <div class="flex justify-between items-center pt-2 border-t">
+                    <span id="keyStatus" class="text-xs font-mono">Checking keys...</span>
+                    <a href="key-manager.html" target="_blank" class="text-blue-600 hover:underline text-xs">管理 API Keys &rarr;</a>
+                </div>
+            </div>
+        </details>
+
+        <div class="glass-panel p-6">
+            <label class="block font-medium text-gray-700 mb-2">新工具描述 / 源代码</label>
+            <textarea id="toolInput" class="w-full h-40 border border-gray-300 rounded-lg p-3 focus:ring-2 focus:ring-blue-500 focus:outline-none resize-none font-mono text-sm" 
+            placeholder="粘贴您的工具源代码，或者描述它：&#10;'我做了一个 PDF 分割工具，可以把大文件按页拆分。'"></textarea>
+            
+            <div class="mt-4 flex justify-between items-center">
+                <span class="text-xs text-gray-400">支持拖拽 HTML 文件到此处</span>
+                <button id="generateBtn" class="bg-black text-white px-6 py-2 rounded-lg hover:bg-gray-800 transition flex items-center gap-2">
+                    <span>✨ 生成中文配置</span>
+                </button>
+            </div>
+        </div>
+
+        <div id="outputSection" class="hidden glass-panel overflow-hidden">
+            <div class="bg-gray-50 px-4 py-2 border-b flex justify-between items-center">
+                <span class="text-sm font-semibold text-gray-600">Generated Config (JSON)</span>
+                <button id="copyBtn" class="text-xs bg-white border px-2 py-1 rounded hover:bg-gray-100 text-gray-700">📋 Copy to Clipboard</button>
+            </div>
+            <div class="p-0 relative">
+                <pre class="code-block p-4 overflow-x-auto text-sm"><code id="resultCode"></code></pre>
+            </div>
+            
+            <div class="p-4 bg-gray-50 border-t">
+                <p class="text-xs text-gray-500 uppercase font-bold mb-2">Dashboard Preview</p>
+                <div class="bg-white p-4 rounded-xl border shadow-sm flex items-start gap-4 max-w-md mx-auto">
+                    <div id="previewIcon" class="text-3xl bg-gray-100 p-2 rounded-lg">🔧</div>
+                    <div>
+                        <h3 id="previewName" class="font-bold text-gray-900">Tool Name</h3>
+                        <p id="previewDesc" class="text-sm text-gray-500 leading-snug mt-1">Tool description will appear here.</p>
+                        <div id="previewTags" class="flex flex-wrap gap-1 mt-2"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // ==========================================
+        // 1. UNIVERSAL AI PROTOCOL (v3.0)
+        // ==========================================
+        const AI_PROVIDERS = {
+            "siliconflow": {
+                name: "硅基流动 (SiliconFlow)",
+                keyName: "siliconflow_key",
+                baseUrl: "https://api.siliconflow.cn/v1",
+                models: [
+                    { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B (Fast)" },
+                    { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3 (Strong)" }
+                ]
+            },
+            "openrouter": {
+                name: "OpenRouter",
+                keyName: "openrouter_key",
+                baseUrl: "https://openrouter.ai/api/v1",
+                models: [
+                    { id: "google/gemini-2.0-flash-exp", name: "Gemini 2.0 Flash (Free)" },
+                    { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" }
+                ]
+            },
+            "deepseek": {
+                name: "DeepSeek Official",
+                keyName: "deepseek_key",
+                baseUrl: "https://api.deepseek.com",
+                models: [
+                    { id: "deepseek-chat", name: "DeepSeek V3" }
+                ]
+            },
+            "custom": {
+                name: "Custom / Local (Ollama)",
+                keyName: "custom_key",
+                baseUrl: "http://localhost:11434/v1",
+                models: []
+            }
+        };
+
+        // State & Elements
+        let currentProvider = 'siliconflow'; 
+        const els = {
+            provider: document.getElementById('providerSelect'),
+            model: document.getElementById('modelSelect'),
+            customConfig: document.getElementById('customConfig'),
+            keyStatus: document.getElementById('keyStatus'),
+            settings: document.getElementById('aiSettings'),
+            input: document.getElementById('toolInput'),
+            btn: document.getElementById('generateBtn'),
+            output: document.getElementById('outputSection'),
+            code: document.getElementById('resultCode'),
+            copy: document.getElementById('copyBtn'),
+            previewIcon: document.getElementById('previewIcon'),
+            previewName: document.getElementById('previewName'),
+            previewDesc: document.getElementById('previewDesc'),
+            previewTags: document.getElementById('previewTags')
+        };
+
+        // Init UI
+        function initAI() {
+            for (const [key, val] of Object.entries(AI_PROVIDERS)) {
+                const opt = document.createElement('option');
+                opt.value = key;
+                opt.textContent = val.name;
+                els.provider.appendChild(opt);
+            }
+            els.provider.addEventListener('change', (e) => {
+                currentProvider = e.target.value;
+                updateModelList();
+                checkKey();
+            });
+            document.getElementById('settingsBtn').addEventListener('click', () => {
+                els.settings.open = !els.settings.open;
+            });
+            updateModelList();
+            checkKey();
+        }
+
+        function updateModelList() {
+            els.model.innerHTML = '';
+            const p = AI_PROVIDERS[currentProvider];
+            if (currentProvider === 'custom') {
+                els.customConfig.classList.remove('hidden');
+                const opt = document.createElement('option');
+                opt.value = 'custom-model';
+                opt.textContent = 'Use Custom Input Below';
+                els.model.appendChild(opt);
+            } else {
+                els.customConfig.classList.add('hidden');
+                p.models.forEach(m => {
+                    const opt = document.createElement('option');
+                    opt.value = m.id;
+                    opt.textContent = m.name;
+                    els.model.appendChild(opt);
+                });
+            }
+        }
+
+        function checkKey() {
+            const p = AI_PROVIDERS[currentProvider];
+            const key = localStorage.getItem(p.keyName);
+            if (key || currentProvider === 'custom') {
+                els.keyStatus.textContent = "✅ Key detected from Global Manager";
+                els.keyStatus.className = "text-xs font-mono text-green-600";
+                return true;
+            } else {
+                els.keyStatus.textContent = "❌ Key missing. Configure in Key Manager";
+                els.keyStatus.className = "text-xs font-mono text-red-600";
+                return false;
+            }
+        }
+
+        function getAPIConfig() {
+            const p = AI_PROVIDERS[currentProvider];
+            const isCustom = currentProvider === 'custom';
+            return {
+                baseUrl: isCustom ? document.getElementById('customBaseUrl').value : p.baseUrl,
+                apiKey: isCustom ? 'sk-custom' : localStorage.getItem(p.keyName),
+                model: isCustom ? document.getElementById('customModelId').value : els.model.value
+            };
+        }
+
+        // ==========================================
+        // 2. CORE LOGIC (Updated for Chinese & Layout)
+        // ==========================================
+
+        const SYSTEM_PROMPT = `
+You are the **Dashboard Registrar**. 
+Your task is to analyze the user's tool input (either code or a description) and generate a JSON configuration object for their dashboard.
+
+**Schema:**
+{
+    id: "string (unique, kebab-case, e.g., 'pdf-merger-v1')",
+    name: "string (Short Title, MUST BE IN CHINESE, max 10 chars)",
+    desc: "string (1 sentence, value-focused, MUST BE IN CHINESE, max 30 chars)",
+    icon: "emoji (semantically relevant)",
+    file: "string (suggest a filename ending in .html)",
+    category: "string (Choose EXACTLY one: 'AI', 'Utility', 'Dev', 'System', 'Media')",
+    tags: ["array", "of", "3-4", "english_keywords"]
+}
+
+**Rules:**
+1. Return ONLY the valid JSON object. No markdown formatting, no explanations.
+2. If the input is code, infer the functionality.
+3. The 'name' and 'desc' MUST be Chinese. 
+4. The 'tags' are keywords for searching, can be English or Chinese mixed.
+`;
+
+        async function generateConfig() {
+            const input = els.input.value.trim();
+            if (!input) return alert("Please enter a description or code.");
+            if (!checkKey()) return alert("Missing API Key.");
+
+            const config = getAPIConfig();
+            
+            // UI State: Loading
+            const originalBtnText = els.btn.innerHTML;
+            els.btn.innerHTML = `<div class="typing-indicator flex gap-1"><span>•</span><span>•</span><span>•</span></div> Thinking`;
+            els.btn.disabled = true;
+
+            try {
+                const response = await fetch(`${config.baseUrl}/chat/completions`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${config.apiKey}`
+                    },
+                    body: JSON.stringify({
+                        model: config.model,
+                        messages: [
+                            { role: "system", content: SYSTEM_PROMPT },
+                            { role: "user", content: `Tool Input:\n${input}` }
+                        ],
+                        temperature: 0.3
+                    })
+                });
+
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                const data = await response.json();
+                
+                let content = data.choices[0].message.content;
+                content = content.replace(/```json/g, '').replace(/```/g, '').trim();
+                
+                const jsonObj = JSON.parse(content);
+                renderResult(jsonObj);
+
+            } catch (err) {
+                console.error(err);
+                alert("Generation failed: " + err.message);
+            } finally {
+                els.btn.innerHTML = originalBtnText;
+                els.btn.disabled = false;
+            }
+        }
+
+        function renderResult(data) {
+            // Step 1: Standard pretty print
+            let jsonString = JSON.stringify(data, null, 4);
+
+            // Step 2: Post-process to force tags onto a single line
+            // Matches: "tags": [ \n "a", \n "b" \n ]  -> "tags": [ "a", "b" ]
+            jsonString = jsonString.replace(/("tags": \[)([\s\S]*?)(\])/g, function(match, start, content, end) {
+                // Remove newlines and extra spaces inside the array
+                let compressed = content.replace(/\s+/g, ' ').trim();
+                return `${start} ${compressed} ${end}`;
+            });
+
+            els.code.textContent = jsonString + ","; 
+            els.output.classList.remove('hidden');
+
+            // Update Preview
+            els.previewIcon.textContent = data.icon;
+            els.previewName.textContent = data.name;
+            els.previewDesc.textContent = data.desc;
+            els.previewTags.innerHTML = data.tags.map(t => 
+                `<span class="text-[10px] bg-gray-200 px-1.5 py-0.5 rounded text-gray-600">#${t}</span>`
+            ).join('');
+
+            els.output.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // Copy Feature
+        els.copy.addEventListener('click', () => {
+            navigator.clipboard.writeText(els.code.textContent).then(() => {
+                const originalText = els.copy.textContent;
+                els.copy.textContent = "✅ Copied!";
+                setTimeout(() => els.copy.textContent = originalText, 2000);
+            });
+        });
+
+        // Drag and Drop Logic
+        document.body.addEventListener('dragover', e => e.preventDefault());
+        document.body.addEventListener('drop', e => {
+            e.preventDefault();
+            const file = e.dataTransfer.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    els.input.value = e.target.result;
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        window.addEventListener('paste', (e) => {
+            if (document.activeElement.tagName !== 'INPUT' && document.activeElement.tagName !== 'TEXTAREA') {
+                els.input.focus();
+            }
+        });
+
+        els.btn.addEventListener('click', generateConfig);
+        initAI();
+
+    </script>
+</body>
+</html>

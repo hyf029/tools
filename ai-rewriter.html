@@ -1,0 +1,837 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>示例：AI 改写器（对接 Key Manager）</title>
+    <style>
+        :root{
+            --bg:#f6f7fb; --bg2:#ffffff;
+            --panel: rgba(255,255,255,0.86); --panel2: rgba(255,255,255,0.72);
+            --text:#0f172a; --muted:#475569;
+            --border: rgba(15,23,42,0.14);
+            --accent:#2563eb; --good:#059669; --bad:#e11d48; --warn:#d97706;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+            --shadow: 0 10px 40px rgba(2,6,23,0.08);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root{
+                --bg:#0b0f19; --bg2:#0b1020;
+                --panel: rgba(17,24,39,0.86); --panel2: rgba(15,23,42,0.72);
+                --text:#e5e7eb; --muted:#9ca3af;
+                --border: rgba(255,255,255,0.14);
+                --accent:#60a5fa; --good:#34d399; --bad:#fb7185; --warn:#fbbf24;
+                --shadow: 0 10px 40px rgba(0,0,0,0.35);
+            }
+        }
+        html[data-theme="light"]{
+            --bg:#f6f7fb; --bg2:#ffffff;
+            --panel: rgba(255,255,255,0.86); --panel2: rgba(255,255,255,0.72);
+            --text:#0f172a; --muted:#475569;
+            --border: rgba(15,23,42,0.14);
+            --accent:#2563eb; --good:#059669; --bad:#e11d48; --warn:#d97706;
+            --shadow: 0 10px 40px rgba(2,6,23,0.08);
+        }
+        html[data-theme="dark"]{
+            --bg:#0b0f19; --bg2:#0b1020;
+            --panel: rgba(17,24,39,0.86); --panel2: rgba(15,23,42,0.72);
+            --text:#e5e7eb; --muted:#9ca3af;
+            --border: rgba(255,255,255,0.14);
+            --accent:#60a5fa; --good:#34d399; --bad:#fb7185; --warn:#fbbf24;
+            --shadow: 0 10px 40px rgba(0,0,0,0.35);
+        }
+
+        *{ box-sizing:border-box; }
+        body{
+            margin:0; font-family:var(--sans); color:var(--text);
+            background:
+                radial-gradient(900px 600px at 20% 10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+                radial-gradient(900px 600px at 85% 0%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+                var(--bg);
+        }
+        .wrap{ max-width:1200px; margin:0 auto; padding:18px 14px 60px; }
+        header{
+            position:sticky; top:10px; z-index:10;
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:14px 14px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            display:flex; gap:12px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;
+        }
+        .title{ font-weight:950; font-size:16px; }
+        .subtitle{ color:var(--muted); font-size:12.5px; line-height:1.35; margin-top:6px; }
+        .meta{ font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:6px; }
+        .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; align-items:flex-end; }
+        .btn{
+            cursor:pointer; user-select:none;
+            border-radius:12px;
+            border:1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+            background: color-mix(in srgb, var(--accent) 14%, transparent);
+            color:var(--text);
+            padding:9px 11px;
+            font-weight:900; font-size:13px;
+        }
+        .btn:hover{ background: color-mix(in srgb, var(--accent) 20%, transparent); }
+        .btn.secondary{
+            border-color: var(--border);
+            background: color-mix(in srgb, var(--text) 6%, transparent);
+            font-weight:800;
+        }
+        .pill{
+            display:inline-flex; gap:6px; align-items:center;
+            padding:4px 9px; border-radius:999px;
+            border:1px solid var(--border);
+            font-size:12px; color:var(--muted);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+        }
+        .pill.good{ border-color: color-mix(in srgb, var(--good) 34%, transparent); background: color-mix(in srgb, var(--good) 10%, transparent); color: var(--good); }
+        .pill.bad{ border-color: color-mix(in srgb, var(--bad) 34%, transparent); background: color-mix(in srgb, var(--bad) 10%, transparent); color: var(--bad); }
+        .pill.warn{ border-color: color-mix(in srgb, var(--warn) 34%, transparent); background: color-mix(in srgb, var(--warn) 10%, transparent); color: var(--warn); }
+
+        label{ color:var(--muted); font-size:12px; }
+        textarea, input[type="text"], select{
+            width:100%;
+            background: color-mix(in srgb, var(--bg2) 86%, transparent);
+            color: var(--text);
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:10px 10px;
+            outline:none;
+            font-family: var(--mono);
+            font-size:12.5px;
+        }
+        textarea{ min-height: 260px; resize: vertical; }
+        .hint{ color:var(--muted); font-size:12px; line-height:1.45; }
+        .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .field{ display:flex; flex-direction:column; gap:6px; }
+        .grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; margin-top:12px; }
+        .card{
+            grid-column: span 12;
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:14px;
+            box-shadow: var(--shadow);
+        }
+        .card h2{ margin:0 0 10px; font-size:14px; }
+        .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+        @media (max-width: 920px){
+            header{ position:static; }
+            .two-col{ grid-template-columns: 1fr; }
+        }
+        details{
+            border: 1px dashed color-mix(in srgb, var(--border) 90%, transparent);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: color-mix(in srgb, var(--bg2) 55%, transparent);
+        }
+        summary{ cursor:pointer; font-weight:950; }
+        .log{
+            font-family: var(--mono);
+            font-size: 12px;
+            background: color-mix(in srgb, var(--bg2) 55%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            color: color-mix(in srgb, var(--text) 92%, transparent);
+        }
+        .kbd{
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+            background: color-mix(in srgb, var(--text) 5%, transparent);
+            color: color-mix(in srgb, var(--text) 90%, transparent);
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <div>
+            <div class="title">示例：AI 改写器（对接 key-manager）</div>
+            <div class="subtitle">
+                默认不联网。若要用 AI：先在 <code>key-manager.html</code> 设置密钥 → 回来勾选“允许联网” → 运行 AI。<br />
+                无 key 时也可用：工具会原样输出（降级模式）。
+            </div>
+            <div class="meta">single_file=是 · build_step=无 · 支持：Preset+Override · CORS 探测 · 错误分类</div>
+        </div>
+
+        <div class="controls">
+            <div class="field" style="min-width: 160px;">
+                <label for="themeSelect">主题</label>
+                <select id="themeSelect">
+                    <option value="auto">跟随系统</option>
+                    <option value="light">浅色</option>
+                    <option value="dark">深色</option>
+                </select>
+            </div>
+            <button class="btn secondary" id="btnLoadSample" type="button">加载示例</button>
+            <button class="btn secondary" id="btnClear" type="button">清空</button>
+            <button class="btn" id="btnRunAi" type="button">运行 AI 改写</button>
+            <button class="btn secondary" id="btnCopyOut" type="button">复制输出</button>
+            <span class="pill" id="statusPill">空闲</span>
+        </div>
+    </header>
+
+    <div class="grid">
+        <section class="card">
+            <h2>AI 设置</h2>
+            <div id="aiMount"></div>
+        </section>
+
+        <section class="card">
+            <h2>输入 / 输出</h2>
+            <div class="two-col">
+                <div class="field">
+                    <label for="inputArea">输入（粘贴）</label>
+                    <textarea id="inputArea" placeholder="粘贴你要改写的文本…"></textarea>
+                    <div class="hint">提示：如果你不想联网，把“允许联网”关掉，此时“运行 AI”会给出提示但不会发请求。</div>
+                </div>
+                <div class="field">
+                    <label for="outputArea">输出</label>
+                    <textarea id="outputArea" readonly placeholder="改写结果会显示在这里…"></textarea>
+                    <div class="hint">默认降级：无 key/不联网时，会原样输出，保证工具可用。</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>调试</h2>
+            <details>
+                <summary>打开调试面板</summary>
+                <div class="log" id="debugLog" style="margin-top:10px;">尚无日志。</div>
+            </details>
+        </section>
+    </div>
+</div>
+
+<script>
+/***********************
+ * Theme
+ ***********************/
+const UI_THEME_KEY = "tool_theme_mode_v1";
+const themeSelect = document.getElementById("themeSelect");
+function applyTheme(mode){
+    if (mode === "light") document.documentElement.dataset.theme = "light";
+    else if (mode === "dark") document.documentElement.dataset.theme = "dark";
+    else delete document.documentElement.dataset.theme;
+}
+function loadTheme(){
+    const mode = localStorage.getItem(UI_THEME_KEY) || "auto";
+    themeSelect.value = mode;
+    applyTheme(mode);
+}
+function saveTheme(mode){
+    localStorage.setItem(UI_THEME_KEY, mode);
+    applyTheme(mode);
+}
+themeSelect.addEventListener("change", () => saveTheme(themeSelect.value));
+loadTheme();
+</script>
+
+<script>
+/* ---- Paste AI_MODULE from section A here (already included below for convenience) ---- */
+</script>
+
+<script>
+/******************************
+ * AI Module v2 (inline)
+ ******************************/
+const AI_MODULE = (() => {
+    const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
+    const AI_PROVIDERS = {
+        "siliconflow": {
+            name: "硅基流动 (SiliconFlow)",
+            keyName: "siliconflow_key",
+            baseUrl: "https://api.siliconflow.cn/v1",
+            models: [
+                { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B（Fast）" },
+                { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" }
+            ]
+        },
+        "openrouter": {
+            name: "OpenRouter",
+            keyName: "openrouter_key",
+            baseUrl: "https://openrouter.ai/api/v1",
+            models: [
+                { id: "openai/gpt-5.2-chat", name: "GPT-5.2 Chat" },
+                { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" }
+            ]
+        },
+        "deepseek": {
+            name: "DeepSeek Official",
+            keyName: "deepseek_key",
+            baseUrl: "https://api.deepseek.com",
+            models: [
+                { id: "deepseek-chat", name: "DeepSeek V3" }
+            ]
+        },
+        "custom": {
+            name: "自定义 / 本地（Ollama）",
+            keyName: "custom_key",
+            baseUrl: "http://localhost:11434/v1",
+            models: []
+        }
+    };
+    const providerAdapters = {};
+
+    function safeJsonParse(str) {
+        try { return { ok: true, value: JSON.parse(str) }; }
+        catch (e) { return { ok: false, error: String(e) }; }
+    }
+    function getOverrides() {
+        const raw = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
+        if (!raw) return {};
+        const parsed = safeJsonParse(raw);
+        if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") return {};
+        return parsed.value;
+    }
+    function normalizeBaseUrl(baseUrl) {
+        const s = String(baseUrl || "").trim();
+        return s.replace(/\/+$/, "");
+    }
+    function joinUrl(baseUrl, path) {
+        const b = normalizeBaseUrl(baseUrl);
+        const p = String(path || "").trim().replace(/^\/+/, "");
+        return `${b}/${p}`;
+    }
+    function getProvider(providerId) { return AI_PROVIDERS[providerId]; }
+
+    function getMergedProviderConfig(providerId) {
+        const p = getProvider(providerId);
+        if (!p) throw new Error(`未知 provider_id: ${providerId}`);
+
+        const overrides = getOverrides();
+        const o = overrides[providerId] || {};
+
+        const customModels = Array.isArray(o.custom_models) ? o.custom_models : [];
+        const mergedModels = [
+            ...(Array.isArray(p.models) ? p.models : []),
+            ...customModels
+                .filter(m => m && typeof m === "object" && m.id)
+                .map(m => ({ id: String(m.id), name: m.name ? String(m.name) : String(m.id), _custom: true }))
+        ];
+
+        const baseUrl = o.base_url_override ? String(o.base_url_override) : p.baseUrl;
+        const modelId = o.model_id_override ? String(o.model_id_override) : (mergedModels[0]?.id || "");
+
+        return {
+            provider_id: providerId,
+            name: p.name,
+            key_name: p.keyName,
+            base_url: baseUrl,
+            models: mergedModels,
+            model_id: modelId
+        };
+    }
+
+    function getKeyStatus(providerId) {
+        const p = getProvider(providerId);
+        if (!p) return { ok: false, has_key: false, key_name: "" };
+        const keyName = p.keyName;
+        const key = localStorage.getItem(keyName);
+        return { ok: true, has_key: Boolean(key), key_name: keyName };
+    }
+
+    function classifyFetchError(err) {
+        const msg = String(err?.message || err || "");
+        const lower = msg.toLowerCase();
+        if (lower.includes("abort")) return { kind: "环境错误", msg: "请求超时/被取消（Abort）" };
+        if (lower.includes("failed to fetch") || lower.includes("network") || lower.includes("cors")) {
+            return { kind: "环境错误", msg: msg };
+        }
+        return { kind: "内部错误", msg: msg };
+    }
+
+    function actionableErrorMessage(kind, msg) {
+        if (kind === "用户输入错误") {
+            return `用户输入错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 Base URL / Model ID / 输入内容是否为空。`;
+        }
+        if (kind === "环境错误") {
+            return `环境错误：\n- 发生了什么：${msg}\n- 怎么修复：检查网络/CORS/混合内容（https 页面访问 http）。`;
+        }
+        if (kind === "平台错误") {
+            return `平台错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 key、限流、模型 ID。`;
+        }
+        return `内部错误：\n- 发生了什么：${msg}`;
+    }
+
+    async function corsProbe(baseUrl, timeoutMs = 8000) {
+        const now = new Date().toISOString();
+        const url = String(baseUrl || "").trim();
+        if (!url) return { ok: false, kind: "用户输入错误", result: "空 URL", details: { now, url } };
+
+        let u;
+        try { u = new URL(url); }
+        catch (e) {
+            return { ok: false, kind: "用户输入错误", result: "URL 无效", details: { now, url, error: String(e) } };
+        }
+
+        if (location.protocol === "https:" && u.protocol === "http:") {
+            return { ok: false, kind: "环境错误", result: "混合内容（https 页面不能访问 http）", details: { now, url } };
+        }
+        if (navigator.onLine === false) {
+            return { ok: false, kind: "环境错误", result: "离线", details: { now, url } };
+        }
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const resp = await fetch(url, { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
+            return { ok: true, kind: "OK", result: "能拿到响应（CORS 可能可用）", details: { now, url, status: resp.status, statusText: resp.statusText } };
+        } catch (e) {
+            const info = classifyFetchError(e);
+            return { ok: false, kind: info.kind, result: "可能被 CORS/网络拦截", details: { now, url, error: info.msg } };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    async function call_llm_unified({
+        provider_id,
+        base_url,
+        api_key,
+        model_id,
+        messages,
+        temperature = 0.2,
+        max_tokens = 800,
+        timeout_ms = 30000
+    }) {
+        if (!provider_id) throw new Error("用户输入错误: provider_id 为空");
+        if (!base_url) throw new Error("用户输入错误: base_url 为空");
+        if (!model_id) throw new Error("用户输入错误: model_id 为空");
+        if (!Array.isArray(messages) || messages.length === 0) throw new Error("用户输入错误: messages 为空");
+
+        if (!api_key) {
+            const e = new Error("平台错误: 缺少 API Key（请先在 key-manager.html 设置）");
+            e._kind = "平台错误";
+            throw e;
+        }
+
+        const adapter = providerAdapters[provider_id] || null;
+
+        const url = adapter?.buildUrl
+            ? adapter.buildUrl(base_url)
+            : joinUrl(base_url, "/chat/completions");
+
+        const headers = adapter?.buildHeaders
+            ? adapter.buildHeaders(api_key)
+            : { "Authorization": `Bearer ${api_key}`, "Content-Type": "application/json" };
+
+        const body = adapter?.buildBody
+            ? adapter.buildBody({ model_id, messages, temperature, max_tokens })
+            : { model: model_id, messages, temperature, max_tokens };
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeout_ms);
+
+        try {
+            const resp = await fetch(url, { method: "POST", mode: "cors", headers, body: JSON.stringify(body), signal: controller.signal });
+            const text = await resp.text();
+
+            const parsed = safeJsonParse(text);
+            const json = parsed.ok ? parsed.value : null;
+
+            if (!resp.ok) {
+                const e = new Error(`平台错误: HTTP ${resp.status} ${resp.statusText}\n${text.slice(0, 800)}`);
+                e._kind = "平台错误";
+                throw e;
+            }
+
+            const outText = adapter?.parseResponse
+                ? adapter.parseResponse(json)
+                : (json?.choices?.[0]?.message?.content ?? "");
+
+            if (!outText) {
+                const e = new Error("平台错误: 响应中未找到可用文本");
+                e._kind = "平台错误";
+                throw e;
+            }
+
+            return { text: String(outText), raw: json };
+        } catch (e) {
+            if (e && e._kind) throw e;
+            const info = classifyFetchError(e);
+            const err = new Error(`${info.kind}: ${info.msg}`);
+            err._kind = info.kind;
+            throw err;
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    function render_ai_settings_html() {
+        const providerOptions = Object.keys(AI_PROVIDERS)
+            .map(pid => `<option value="${pid}">${AI_PROVIDERS[pid].name}</option>`)
+            .join("");
+
+        return `
+            <details open>
+                <summary>AI 设置（可选）</summary>
+                <div class="hint" style="margin-top:10px;">
+                    * 默认不联网。要用 AI：先去 <code>key-manager.html</code> 设置密钥，然后在这里勾选“允许联网”。<br />
+                    * 下拉框是快捷方式；最终以 Base URL / Model ID 输入框为准。
+                </div>
+
+                <div class="row" style="margin-top:10px;">
+                    <span class="pill warn">
+                        <input id="aiNetworkingToggle" type="checkbox" style="transform: translateY(1px);" />
+                        <span>允许联网（默认关闭）</span>
+                    </span>
+                    <span class="pill" id="aiKeyStatusPill">密钥状态：未检查</span>
+                </div>
+
+                <div class="two-col" style="margin-top:10px;">
+                    <div class="field">
+                        <label for="aiProviderSelect">平台（Provider）</label>
+                        <select id="aiProviderSelect">${providerOptions}</select>
+
+                        <div style="height:10px;"></div>
+
+                        <label for="aiBaseUrlInput">Base URL（真值）</label>
+                        <input id="aiBaseUrlInput" type="text" />
+                    </div>
+
+                    <div class="field">
+                        <label for="aiModelPresetSelect">模型预设（快捷）</label>
+                        <select id="aiModelPresetSelect"></select>
+
+                        <div style="height:10px;"></div>
+
+                        <label for="aiModelIdInput">模型 ID（真值）</label>
+                        <input id="aiModelIdInput" type="text" />
+                    </div>
+                </div>
+
+                <details style="margin-top:10px;">
+                    <summary>高级参数</summary>
+                    <div class="two-col" style="margin-top:10px;">
+                        <div class="field">
+                            <label for="aiTemperature">temperature</label>
+                            <input id="aiTemperature" type="text" value="0.2" />
+                        </div>
+                        <div class="field">
+                            <label for="aiMaxTokens">max_tokens</label>
+                            <input id="aiMaxTokens" type="text" value="800" />
+                        </div>
+                        <div class="field">
+                            <label for="aiTimeoutMs">timeout_ms</label>
+                            <input id="aiTimeoutMs" type="text" value="30000" />
+                        </div>
+                    </div>
+                </details>
+
+                <div class="row" style="margin-top:10px;">
+                    <button class="btn secondary" id="aiSyncBtn" type="button">从 Key Manager 同步预设</button>
+                    <button class="btn secondary" id="aiCorsProbeBtn" type="button">CORS 探测（不带密钥）</button>
+                </div>
+
+                <div class="log" id="aiLog" style="margin-top:10px;">AI 模块就绪。</div>
+            </details>
+        `;
+    }
+
+    function mount_ai_settings({ mount_el, default_provider_id = "siliconflow", on_state_change = null }) {
+        mount_el.innerHTML = render_ai_settings_html();
+        const $ = (id) => mount_el.querySelector(id);
+
+        const aiNetworkingToggle = $("#aiNetworkingToggle");
+        const aiProviderSelect = $("#aiProviderSelect");
+        const aiBaseUrlInput = $("#aiBaseUrlInput");
+        const aiModelPresetSelect = $("#aiModelPresetSelect");
+        const aiModelIdInput = $("#aiModelIdInput");
+        const aiKeyStatusPill = $("#aiKeyStatusPill");
+        const aiTemperature = $("#aiTemperature");
+        const aiMaxTokens = $("#aiMaxTokens");
+        const aiTimeoutMs = $("#aiTimeoutMs");
+        const aiLog = $("#aiLog");
+        const aiSyncBtn = $("#aiSyncBtn");
+        const aiCorsProbeBtn = $("#aiCorsProbeBtn");
+
+        const state = {
+            networking_enabled: false,
+            provider_id: default_provider_id,
+            base_url: "",
+            model_id: "",
+            temperature: 0.2,
+            max_tokens: 800,
+            timeout_ms: 30000
+        };
+
+        function emit() {
+            on_state_change && on_state_change(get_state());
+        }
+
+        function setKeyStatusPill(providerId) {
+            const ks = getKeyStatus(providerId);
+            if (!ks.ok) {
+                aiKeyStatusPill.className = "pill bad";
+                aiKeyStatusPill.textContent = "密钥状态：未知";
+                return;
+            }
+            if (ks.has_key) {
+                aiKeyStatusPill.className = "pill good";
+                aiKeyStatusPill.textContent = `密钥状态：✅ 已设置（${ks.key_name}）`;
+            } else {
+                aiKeyStatusPill.className = "pill bad";
+                aiKeyStatusPill.textContent = `密钥状态：❌ 未设置（${ks.key_name}）`;
+            }
+        }
+
+        function rebuildModelPresetOptions(providerId, preferModelId = "") {
+            const cfg = getMergedProviderConfig(providerId);
+            const models = cfg.models || [];
+            const options = [
+                ...models.map(m => `<option value="${String(m.id)}">${String(m.name || m.id)}${m._custom ? "（自定义）" : ""}</option>`),
+                `<option value="__custom__">手动输入模型 ID</option>`
+            ].join("");
+            aiModelPresetSelect.innerHTML = options;
+
+            const effectiveModelId = preferModelId || cfg.model_id || "";
+            const hasPreset = models.some(m => String(m.id) === String(effectiveModelId));
+            aiModelPresetSelect.value = hasPreset ? String(effectiveModelId) : "__custom__";
+        }
+
+        function syncFromKeyManager(providerId) {
+            const cfg = getMergedProviderConfig(providerId);
+            state.base_url = String(cfg.base_url || "");
+            state.model_id = String(cfg.model_id || "");
+            aiBaseUrlInput.value = state.base_url;
+            aiModelIdInput.value = state.model_id;
+
+            rebuildModelPresetOptions(providerId, state.model_id);
+            setKeyStatusPill(providerId);
+
+            aiLog.textContent =
+                `已同步（不含密钥）：\n` +
+                `平台: ${cfg.name}\n` +
+                `Base URL: ${state.base_url}\n` +
+                `Model ID: ${state.model_id}\n` +
+                `提示：密钥需在 key-manager.html 设置，本页只显示 ✅/❌。`;
+
+            emit();
+        }
+
+        aiProviderSelect.value = default_provider_id;
+        syncFromKeyManager(default_provider_id);
+
+        aiNetworkingToggle.addEventListener("change", () => {
+            state.networking_enabled = Boolean(aiNetworkingToggle.checked);
+            aiLog.textContent = state.networking_enabled
+                ? "已允许联网：运行 AI 将发起网络请求。"
+                : "已关闭联网：不会发起 AI 请求。";
+            emit();
+        });
+
+        aiProviderSelect.addEventListener("change", () => {
+            state.provider_id = aiProviderSelect.value;
+            syncFromKeyManager(state.provider_id);
+        });
+
+        aiBaseUrlInput.addEventListener("change", () => {
+            state.base_url = String(aiBaseUrlInput.value || "").trim();
+            emit();
+        });
+
+        aiModelPresetSelect.addEventListener("change", () => {
+            const chosen = aiModelPresetSelect.value;
+            if (chosen === "__custom__") {
+                aiModelIdInput.focus();
+                aiModelIdInput.select();
+                return;
+            }
+            aiModelIdInput.value = chosen;
+            state.model_id = chosen;
+            emit();
+        });
+
+        aiModelIdInput.addEventListener("change", () => {
+            state.model_id = String(aiModelIdInput.value || "").trim();
+            emit();
+        });
+
+        aiTemperature.addEventListener("change", () => {
+            const v = Number(aiTemperature.value);
+            state.temperature = Number.isFinite(v) ? v : 0.2;
+            emit();
+        });
+
+        aiMaxTokens.addEventListener("change", () => {
+            const v = Number(aiMaxTokens.value);
+            state.max_tokens = Number.isFinite(v) ? Math.max(1, Math.floor(v)) : 800;
+            emit();
+        });
+
+        aiTimeoutMs.addEventListener("change", () => {
+            const v = Number(aiTimeoutMs.value);
+            state.timeout_ms = Number.isFinite(v) ? Math.max(1000, Math.floor(v)) : 30000;
+            emit();
+        });
+
+        aiSyncBtn.addEventListener("click", () => syncFromKeyManager(state.provider_id));
+
+        aiCorsProbeBtn.addEventListener("click", async () => {
+            const url = String(aiBaseUrlInput.value || "").trim();
+            aiLog.textContent = "CORS 探测中（不带密钥）…";
+            const res = await corsProbe(url, 8000);
+            aiLog.textContent = JSON.stringify(res, null, 2);
+        });
+
+        function get_state() {
+            return {
+                ...state,
+                key_status: getKeyStatus(state.provider_id)
+            };
+        }
+
+        async function call_ai({ messages }) {
+            const s = get_state();
+            if (!s.networking_enabled) {
+                const e = new Error("环境错误: 当前未允许联网（请勾选“允许联网”）");
+                e._kind = "环境错误";
+                throw e;
+            }
+            const p = getProvider(s.provider_id);
+            const apiKey = localStorage.getItem(p.keyName) || "";
+            return await call_llm_unified({
+                provider_id: s.provider_id,
+                base_url: s.base_url,
+                api_key: apiKey,
+                model_id: s.model_id,
+                messages,
+                temperature: s.temperature,
+                max_tokens: s.max_tokens,
+                timeout_ms: s.timeout_ms
+            });
+        }
+
+        function get_actionable_error(err) {
+            const kind = err?._kind || "内部错误";
+            const msg = String(err?.message || err || "");
+            return actionableErrorMessage(kind, msg);
+        }
+
+        return { get_state, call_ai, get_actionable_error, sync: () => syncFromKeyManager(state.provider_id) };
+    }
+
+    return { mount_ai_settings, getMergedProviderConfig, getKeyStatus, corsProbe, call_llm_unified, actionableErrorMessage };
+})();
+</script>
+
+<script>
+/***********************
+ * Tool logic
+ ***********************/
+const inputArea = document.getElementById("inputArea");
+const outputArea = document.getElementById("outputArea");
+const statusPill = document.getElementById("statusPill");
+const debugLog = document.getElementById("debugLog");
+
+const btnLoadSample = document.getElementById("btnLoadSample");
+const btnClear = document.getElementById("btnClear");
+const btnRunAi = document.getElementById("btnRunAi");
+const btnCopyOut = document.getElementById("btnCopyOut");
+
+function setStatus(kind, text) {
+    statusPill.textContent = text;
+    statusPill.className = "pill";
+    if (kind === "good") statusPill.classList.add("good");
+    if (kind === "bad") statusPill.classList.add("bad");
+    if (kind === "warn") statusPill.classList.add("warn");
+}
+
+function logDebug(text) {
+    debugLog.textContent = String(text || "");
+}
+
+const ai = AI_MODULE.mount_ai_settings({
+    mount_el: document.getElementById("aiMount"),
+    default_provider_id: "siliconflow",
+    on_state_change: (s) => {
+        logDebug(JSON.stringify({
+            note: "ai_state（脱敏）",
+            networking_enabled: s.networking_enabled,
+            provider_id: s.provider_id,
+            base_url: s.base_url,
+            model_id: s.model_id,
+            key_status: s.key_status
+        }, null, 2));
+    }
+});
+
+btnLoadSample.addEventListener("click", () => {
+    inputArea.value = "请把下面这段话改写得更清晰、结构更好、语气更克制：\n\n我感觉我每天都很忙，但回头一看好像没做成什么。";
+    outputArea.value = "";
+    setStatus("warn", "已加载示例");
+});
+
+btnClear.addEventListener("click", () => {
+    inputArea.value = "";
+    outputArea.value = "";
+    setStatus("warn", "空闲");
+});
+
+btnCopyOut.addEventListener("click", async () => {
+    try {
+        const text = String(outputArea.value || "");
+        if (!text) { setStatus("warn", "无输出"); return; }
+        await navigator.clipboard.writeText(text);
+        setStatus("good", "已复制");
+        setTimeout(() => setStatus("warn", "空闲"), 600);
+    } catch (e) {
+        setStatus("bad", "复制失败");
+        outputArea.focus();
+        outputArea.select();
+    }
+});
+
+btnRunAi.addEventListener("click", async () => {
+    try {
+        setStatus("warn", "处理中…");
+        const s = ai.get_state();
+        const input = String(inputArea.value || "").trim();
+
+        if (!input) {
+            outputArea.value = "用户输入错误：\n- 发生了什么：输入为空\n- 怎么修复：粘贴一些文本再运行。";
+            setStatus("bad", "出错");
+            return;
+        }
+
+        // No-key / no-network downgrade: keep tool usable
+        if (!s.networking_enabled) {
+            outputArea.value = input;
+            setStatus("warn", "未联网：已降级为原样输出");
+            return;
+        }
+        if (!s.key_status?.has_key) {
+            outputArea.value = "平台错误：\n- 发生了什么：未设置密钥\n- 怎么修复：打开 key-manager.html → 对应平台点击“设置/更新密钥”\n- 然后回到本页再次运行。";
+            setStatus("bad", "缺少密钥");
+            return;
+        }
+
+        const messages = [
+            { role: "system", content: "你是一个写作改写助手。要求：更清晰、更结构化、语气克制；不要夸张营销；不添加虚构事实。只输出改写后的文本。" },
+            { role: "user", content: input }
+        ];
+
+        const res = await ai.call_ai({ messages });
+        outputArea.value = res.text;
+        setStatus("good", "完成");
+        setTimeout(() => setStatus("warn", "空闲"), 600);
+    } catch (e) {
+        outputArea.value = ai.get_actionable_error(e);
+        setStatus("bad", "出错");
+    }
+});
+
+setStatus("warn", "空闲");
+</script>
+</body>
+</html>

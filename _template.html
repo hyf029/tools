@@ -1,0 +1,1519 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>单文件工具统一模板 v2.2</title>
+    <style>
+        :root{
+            --bg:#f6f7fb; --bg2:#ffffff;
+            --panel: rgba(255,255,255,0.92);
+            --panel2: rgba(255,255,255,0.80);
+            --text:#0f172a; --muted:#475569;
+            --border: rgba(15,23,42,0.14);
+            --accent:#2563eb; --good:#059669; --bad:#e11d48; --warn:#d97706;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+            --shadow: 0 10px 40px rgba(2,6,23,0.08);
+        }
+        @media (prefers-color-scheme: dark){
+            :root{
+                --bg:#0b0f19; --bg2:#0b1020;
+                --panel: rgba(17,24,39,0.92);
+                --panel2: rgba(15,23,42,0.80);
+                --text:#e5e7eb; --muted:#9ca3af;
+                --border: rgba(255,255,255,0.14);
+                --accent:#60a5fa; --good:#34d399; --bad:#fb7185; --warn:#fbbf24;
+                --shadow: 0 10px 40px rgba(0,0,0,0.35);
+            }
+        }
+        html[data-theme="light"]{
+            --bg:#f6f7fb; --bg2:#ffffff;
+            --panel: rgba(255,255,255,0.92);
+            --panel2: rgba(255,255,255,0.80);
+            --text:#0f172a; --muted:#475569;
+            --border: rgba(15,23,42,0.14);
+            --accent:#2563eb; --good:#059669; --bad:#e11d48; --warn:#d97706;
+            --shadow: 0 10px 40px rgba(2,6,23,0.08);
+        }
+        html[data-theme="dark"]{
+            --bg:#0b0f19; --bg2:#0b1020;
+            --panel: rgba(17,24,39,0.92);
+            --panel2: rgba(15,23,42,0.80);
+            --text:#e5e7eb; --muted:#9ca3af;
+            --border: rgba(255,255,255,0.14);
+            --accent:#60a5fa; --good:#34d399; --bad:#fb7185; --warn:#fbbf24;
+            --shadow: 0 10px 40px rgba(0,0,0,0.35);
+        }
+
+        *{ box-sizing:border-box; }
+        body{
+            margin:0;
+            font-family:var(--sans);
+            color:var(--text);
+            background: var(--bg);
+        }
+        .wrap{ max-width:1200px; margin:0 auto; padding:18px 14px 60px; }
+        header{
+            position:sticky; top:10px; z-index:10;
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:14px 14px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            display:flex; gap:12px; justify-content:space-between; align-items:flex-start; flex-wrap:wrap;
+        }
+        .title{ font-weight:950; font-size:16px; }
+        .subtitle{ color:var(--muted); font-size:12.5px; line-height:1.45; margin-top:6px; }
+        .meta{ font-family:var(--mono); font-size:12px; color:var(--muted); margin-top:6px; }
+
+        .controls{ display:flex; gap:10px; flex-wrap:wrap; justify-content:flex-end; align-items:flex-end; }
+        .btn{
+            cursor:pointer; user-select:none;
+            border-radius:12px;
+            border:1px solid rgba(37,99,235,0.30);
+            background: rgba(37,99,235,0.10);
+            color:var(--text);
+            padding:9px 11px;
+            font-weight:900; font-size:13px;
+        }
+        .btn:hover{ background: rgba(37,99,235,0.14); }
+        .btn.secondary{
+            border-color: var(--border);
+            background: rgba(0,0,0,0.04);
+            font-weight:800;
+        }
+        .btn.danger{
+            border-color: rgba(225,29,72,0.30);
+            background: rgba(225,29,72,0.08);
+        }
+        .btn.danger:hover{ background: rgba(225,29,72,0.12); }
+
+        .pill{
+            display:inline-flex; gap:6px; align-items:center;
+            padding:4px 9px; border-radius:999px;
+            border:1px solid var(--border);
+            font-size:12px; color:var(--muted);
+            background: rgba(0,0,0,0.03);
+        }
+        .pill.good{ color: var(--good); border-color: rgba(5,150,105,0.28); background: rgba(5,150,105,0.08); }
+        .pill.bad{ color: var(--bad); border-color: rgba(225,29,72,0.28); background: rgba(225,29,72,0.08); }
+        .pill.warn{ color: var(--warn); border-color: rgba(217,119,6,0.28); background: rgba(217,119,6,0.08); }
+
+        label{ color:var(--muted); font-size:12px; }
+        textarea, input[type="text"], select{
+            width:100%;
+            background: rgba(255,255,255,0.85);
+            color: var(--text);
+            border:1px solid var(--border);
+            border-radius:12px;
+            padding:10px 10px;
+            outline:none;
+            font-family: var(--mono);
+            font-size:12.5px;
+        }
+        @media (prefers-color-scheme: dark){
+            textarea, input[type="text"], select{ background: rgba(2,6,23,0.40); }
+        }
+        html[data-theme="dark"] textarea, html[data-theme="dark"] input, html[data-theme="dark"] select{
+            background: rgba(2,6,23,0.40);
+        }
+        textarea{ min-height: 280px; resize: vertical; }
+        .hint{ color:var(--muted); font-size:12px; line-height:1.45; }
+        .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; }
+        .field{ display:flex; flex-direction:column; gap:6px; }
+
+        .grid{ display:grid; grid-template-columns: repeat(12, 1fr); gap:12px; margin-top:12px; }
+        .card{
+            grid-column: span 12;
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border:1px solid var(--border);
+            border-radius:16px;
+            padding:14px;
+            box-shadow: var(--shadow);
+        }
+        .card h2{ margin:0 0 10px; font-size:14px; }
+        .two-col{ display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+        @media (max-width: 920px){
+            header{ position:static; }
+            .two-col{ grid-template-columns: 1fr; }
+        }
+        .dropzone{
+            border: 1px dashed rgba(15,23,42,0.20);
+            background: rgba(0,0,0,0.02);
+            border-radius: 14px;
+            padding: 10px;
+        }
+        .dropzone.dragover{
+            border-color: rgba(37,99,235,0.45);
+            background: rgba(37,99,235,0.06);
+        }
+        details{
+            border: 1px dashed rgba(15,23,42,0.18);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: rgba(0,0,0,0.02);
+        }
+        summary{ cursor:pointer; font-weight:950; }
+        .log{
+            font-family: var(--mono);
+            font-size: 12px;
+            background: rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+        code{
+            font-family: var(--mono);
+            font-size: 12px;
+            background: rgba(0,0,0,0.03);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 2px 6px;
+        }
+        .kbd{
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.03);
+        }
+    </style>
+</head>
+<body>
+<div class="wrap">
+    <header>
+        <div>
+            <div class="title" id="toolTitle">单文件工具统一模板 v2.2</div>
+            <div class="subtitle" id="toolSubtitle">
+                粘贴优先 · 一键复制/下载 · 调试面板 · 默认不联网 · 可选 AI（对接 key-manager）<br />
+                快捷入口：<code>key-manager.html</code>（集中设置 key / base_url / 默认模型）
+            </div>
+            <div class="meta" id="toolMetaLine"></div>
+        </div>
+
+        <div class="controls">
+            <div class="field" style="min-width: 160px;">
+                <label for="themeSelect">主题</label>
+                <select id="themeSelect">
+                    <option value="auto">跟随系统</option>
+                    <option value="light">浅色</option>
+                    <option value="dark">深色</option>
+                </select>
+            </div>
+
+            <button class="btn secondary" id="btnLoadSample" type="button">加载示例</button>
+            <button class="btn secondary" id="btnClear" type="button">清空</button>
+            <button class="btn" id="btnRunLocal" type="button">运行（离线）</button>
+            <button class="btn secondary" id="btnRunAi" type="button" style="display:none;">运行 AI</button>
+            <button class="btn secondary" id="btnCopyOut" type="button">复制输出</button>
+            <button class="btn secondary" id="btnDownload" type="button">下载</button>
+            <span class="pill" id="statusPill">空闲</span>
+        </div>
+    </header>
+
+    <div class="grid">
+        <section class="card">
+            <h2>新手说明：你只需要改 3 处</h2>
+            <details open>
+                <summary>展开查看（建议第一次先看）</summary>
+                <div class="hint" style="margin-top:10px;">
+                    * 第 1 处：修改 <code>TOOL_META</code>（工具名/版本/能力开关）。<br />
+                    * 第 2 处：实现 <code>toolTransform(inputText, ctx)</code>（离线核心逻辑）。<br />
+                    * 第 3 处（可选）：实现 <code>buildAiMessages(inputText)</code>（AI 版本的 messages）。<br /><br />
+                    默认策略（已内置 P5 红线）：<br />
+                    * 默认不联网；需要 AI 时必须用户勾选“允许联网”。<br />
+                    * 域名白名单 + 一次性授权确认（避免把 key 发到陌生域名）。<br />
+                    * 敏感模式默认开启：URL 不存原文；调试报告强脱敏。<br />
+                </div>
+            </details>
+        </section>
+
+        <section class="card">
+            <h2>输入 / 输出</h2>
+            <div class="two-col">
+                <div class="field dropzone" id="dropzone">
+                    <label for="inputArea">输入（粘贴）· 支持全局粘贴 <span class="kbd">Ctrl/⌘+V</span></label>
+                    <textarea id="inputArea" placeholder="把文本粘贴到这里…"></textarea>
+                    <div class="row">
+                        <input id="fileInput" type="file" style="max-width: 340px; display:none;" />
+                        <button class="btn secondary" id="btnOpenFile" type="button" style="display:none;">打开文件</button>
+                        <span class="hint" id="inputInfo"></span>
+                    </div>
+                    <div class="hint">
+                        * 粘贴优先：在页面任意位置粘贴文本，会尽量写入输入框并可自动运行（可在 TOOL_META 关闭）。<br />
+                        * 拖拽文件：把文件拖到此区域（需启用 file_input）。
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label for="outputArea">输出</label>
+                    <textarea id="outputArea" placeholder="结果会显示在这里…" readonly></textarea>
+                    <div class="row">
+                        <input id="downloadName" type="text" placeholder="下载文件名（可选）" value="" style="max-width: 360px;" />
+                        <select id="downloadType" style="max-width: 220px;">
+                            <option value="text/plain">text/plain</option>
+                            <option value="application/json">application/json</option>
+                            <option value="text/markdown">text/markdown</option>
+                            <option value="text/html">text/html</option>
+                            <option value="text/csv">text/csv</option>
+                        </select>
+                    </div>
+                    <div class="hint">* 复制/下载都是无后端输出。</div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card" id="aiCard" style="display:none;">
+            <h2>AI 设置（可选）</h2>
+            <div id="aiMount"></div>
+        </section>
+
+        <section class="card">
+            <h2>选项（内置：限制/持久化/联网红线）</h2>
+            <div class="two-col">
+                <div class="field">
+                    <label>处理上限</label>
+                    <div class="row">
+                        <span class="pill">最大字符 <span class="kbd" id="maxCharsText"></span></span>
+                        <span class="pill">最大文件 MB <span class="kbd" id="maxFileMbText"></span></span>
+                        <span class="pill" id="sensitivePill">敏感模式：开</span>
+                    </div>
+                    <div class="hint">
+                        * 超限会给出可行动提示。<br />
+                        * 敏感模式开启时：URL 不存原文；调试报告强脱敏。
+                    </div>
+                </div>
+
+                <div class="field">
+                    <label>能力开关状态</label>
+                    <div class="row">
+                        <span class="pill" id="pillPasteFirst">粘贴优先：-</span>
+                        <span class="pill" id="pillFile">文件：-</span>
+                        <span class="pill" id="pillDownload">下载：-</span>
+                        <span class="pill" id="pillUrlState">URL 状态：-</span>
+                        <span class="pill" id="pillLocalDraft">本地草稿：-</span>
+                        <span class="pill" id="pillAi">AI：-</span>
+                    </div>
+                    <div class="hint">
+                        * URL 状态默认关闭，且敏感模式下只允许存“元信息”。<br />
+                        * 联网默认关闭（AI 内部需要用户勾选“允许联网”才会发请求）。
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="card">
+            <h2>调试与诊断（强烈建议保留，不要删）</h2>
+            <details>
+                <summary>打开调试面板</summary>
+                <div class="row" style="margin-top:10px;">
+                    <button class="btn secondary" id="btnExportDebug" type="button">导出调试报告</button>
+                    <button class="btn secondary" id="btnCopyDebug" type="button">复制调试报告</button>
+                    <button class="btn secondary" id="btnClearDraft" type="button">清除本地草稿</button>
+                    <button class="btn secondary" id="btnCorsProbe" type="button">CORS 探测（不带密钥）</button>
+                </div>
+                <div class="hint" style="margin-top:8px;">
+                    * 调试报告会脱敏并截断，避免泄露 key 和输入全文。<br />
+                    * CORS 探测用于诊断环境限制（不带 key）。
+                </div>
+                <div class="two-col" style="margin-top:10px;">
+                    <div class="log" id="debugLog">尚无调试信息。</div>
+                    <div class="log" id="eventLog">暂无事件。</div>
+                </div>
+            </details>
+        </section>
+
+        <section class="card">
+            <h2>Prompt Log（复盘模板）</h2>
+            <div class="row">
+                <button class="btn secondary" id="btnCopyPromptLog" type="button">复制 Prompt Log 模板</button>
+            </div>
+            <div class="log" id="promptLogBox" style="margin-top:10px;"></div>
+        </section>
+
+        <section class="card">
+            <h2>部署提示</h2>
+            <div class="hint">
+                * 保存为 <code>.html</code>，直接放 GitHub Pages / 任意静态托管即可。<br />
+                * 若需要 AI：先打开 <code>key-manager.html</code> 设置密钥，再回到工具页面启用联网。<br />
+                * 如果你要被 <code>tools-index.html</code> 自动索引，请保留本页内的 <code>tool_meta</code>（见页面底部）。
+            </div>
+        </section>
+    </div>
+
+    <!-- P4: tool_meta (for tools-index.html) -->
+    <script type="application/json" id="tool_meta">
+{
+  "tool_id": "template-v2-2",
+  "tool_name": "单文件工具统一模板 v2.2",
+  "tool_version": "2.2.0",
+  "description": "统一模板：离线工具 + 可选 AI（对接 key-manager）+ P5 红线加固 + tool_meta/prompt_log",
+  "created_at": "2025-12-29",
+  "capabilities": {
+    "paste_first": true,
+    "file_input": true,
+    "download_output": true,
+    "url_state": false,
+    "local_draft": false,
+    "networking": false,
+    "ai": false
+  },
+  "tags": ["single_file", "template", "hardening", "key_manager", "ai_optional"]
+}
+    </script>
+</div>
+
+<script>
+/***********************
+ * Theme
+ ***********************/
+const UI_THEME_KEY = "tool_theme_mode_v1";
+const themeSelect = document.getElementById("themeSelect");
+function applyTheme(mode){
+    if (mode === "light") document.documentElement.dataset.theme = "light";
+    else if (mode === "dark") document.documentElement.dataset.theme = "dark";
+    else delete document.documentElement.dataset.theme;
+}
+function loadTheme(){
+    const mode = localStorage.getItem(UI_THEME_KEY) || "auto";
+    themeSelect.value = mode;
+    applyTheme(mode);
+}
+function saveTheme(mode){
+    localStorage.setItem(UI_THEME_KEY, mode);
+    applyTheme(mode);
+}
+themeSelect.addEventListener("change", () => saveTheme(themeSelect.value));
+loadTheme();
+
+/***********************
+ * === EDIT AREA 1/3: TOOL_META (runtime config) ===
+ ***********************/
+const TOOL_META = {
+    tool_name: "单文件工具统一模板 v2.2",
+    tool_version: "2.2.0",
+    description: "离线优先 + 可选 AI（对接 key-manager）+ 红线加固",
+    capabilities: {
+        paste_first: true,
+        rich_clipboard_inspect: true,
+        file_input: true,
+        download_output: true,
+        url_state: false,
+        local_draft: false,
+        // NOTE: networking 这里仅表示“工具允许存在联网能力”
+        // 实际联网还必须由 AI 设置里用户勾选“允许联网”
+        networking: false,
+        ai: false
+    },
+    limits: {
+        max_chars: 300000,
+        max_file_mb: 20
+    },
+    url_state: { mode: "hash", key: "s" },
+    local_draft: { key: "tool_draft_v2_2" }
+};
+
+/***********************
+ * P5: SECURITY POLICY (built-in)
+ ***********************/
+const SECURITY = {
+    // 建议默认开启：更符合你“可控/隐私”底线
+    sensitive_mode: true,
+
+    // 调试报告脱敏
+    debug_redaction: {
+        mode: "strict",       // "strict" | "balanced"
+        max_preview_chars: 120 // strict 建议 0~200
+    },
+
+    // 联网红线（AI 请求会用到）
+    network_policy: {
+        // 允许访问的域名白名单（你可以按需要增删）
+        allowlist_domains: [
+            "api.siliconflow.cn",
+            "openrouter.ai",
+            "api.deepseek.com",
+            "localhost"
+        ],
+        require_domain_consent: true,
+        consent_storage_key: "tool_network_domain_consent_v1"
+    }
+};
+
+function getHostname(url) {
+    try { return new URL(String(url || "").trim()).hostname; }
+    catch { return ""; }
+}
+function isDomainAllowed(hostname) {
+    if (!hostname) return false;
+    const list = SECURITY.network_policy.allowlist_domains || [];
+    return list.includes(hostname);
+}
+function ensureDomainConsentOrThrow(hostname) {
+    if (!SECURITY.network_policy.require_domain_consent) return true;
+
+    const key = SECURITY.network_policy.consent_storage_key;
+    const raw = localStorage.getItem(key) || "{}";
+    let obj = {};
+    try { obj = JSON.parse(raw); } catch { obj = {}; }
+
+    if (obj[hostname] === true) return true;
+
+    const ok = confirm(
+        `你即将把请求（可能包含密钥）发送到域名：${hostname}\n\n` +
+        `确认要允许本工具访问这个域名吗？\n` +
+        `如果不是你信任的平台，请点取消。`
+    );
+    if (!ok) throw new Error("环境错误：用户取消了联网域名授权");
+
+    obj[hostname] = true;
+    localStorage.setItem(key, JSON.stringify(obj));
+    return true;
+}
+
+/***********************
+ * DOM
+ ***********************/
+const $ = (sel) => document.querySelector(sel);
+const toolTitle = $("#toolTitle");
+const toolSubtitle = $("#toolSubtitle");
+const toolMetaLine = $("#toolMetaLine");
+const statusPill = $("#statusPill");
+
+const inputArea = $("#inputArea");
+const outputArea = $("#outputArea");
+const inputInfo = $("#inputInfo");
+const dropzone = $("#dropzone");
+
+const btnLoadSample = $("#btnLoadSample");
+const btnClear = $("#btnClear");
+const btnRunLocal = $("#btnRunLocal");
+const btnRunAi = $("#btnRunAi");
+const btnCopyOut = $("#btnCopyOut");
+const btnDownload = $("#btnDownload");
+
+const fileInput = $("#fileInput");
+const btnOpenFile = $("#btnOpenFile");
+const downloadName = $("#downloadName");
+const downloadType = $("#downloadType");
+
+const maxCharsText = $("#maxCharsText");
+const maxFileMbText = $("#maxFileMbText");
+const sensitivePill = $("#sensitivePill");
+
+const pillPasteFirst = $("#pillPasteFirst");
+const pillFile = $("#pillFile");
+const pillDownload = $("#pillDownload");
+const pillUrlState = $("#pillUrlState");
+const pillLocalDraft = $("#pillLocalDraft");
+const pillAi = $("#pillAi");
+
+const debugLog = $("#debugLog");
+const eventLog = $("#eventLog");
+const btnExportDebug = $("#btnExportDebug");
+const btnCopyDebug = $("#btnCopyDebug");
+const btnClearDraft = $("#btnClearDraft");
+const btnCorsProbe = $("#btnCorsProbe");
+
+const aiCard = $("#aiCard");
+const aiMount = $("#aiMount");
+const btnCopyPromptLog = $("#btnCopyPromptLog");
+const promptLogBox = $("#promptLogBox");
+
+/***********************
+ * Utilities
+ ***********************/
+const eventBuffer = [];
+function safeStringify(obj){ try { return JSON.stringify(obj); } catch { return "[无法序列化]"; } }
+function truncate(str, n = 2000){
+    const s = String(str || "");
+    if (s.length <= n) return s;
+    return s.slice(0, n) + `\n…[已截断 ${s.length - n} 字符]`;
+}
+function logEvent(level, msg, data = null){
+    const at = new Date().toISOString();
+    const line = `[${at}] [${level}] ${msg}` + (data ? ` | ${safeStringify(data)}` : "");
+    eventBuffer.push(line);
+    while (eventBuffer.length > 160) eventBuffer.shift();
+    eventLog.textContent = eventBuffer.slice(-80).join("\n");
+}
+function setStatus(kind, text){
+    statusPill.textContent = text;
+    statusPill.className = "pill";
+    if (kind === "good") statusPill.classList.add("good");
+    if (kind === "bad") statusPill.classList.add("bad");
+    if (kind === "warn") statusPill.classList.add("warn");
+}
+function bytesToMb(bytes){ return (bytes / (1024 * 1024)).toFixed(2); }
+
+function classifyError(err){
+    const msg = String(err?.message || err || "");
+    const lower = msg.toLowerCase();
+    if (lower.includes("用户输入错误") || lower.includes("invalid") || lower.includes("parse") || lower.includes("empty") || lower.includes("无效") || lower.includes("为空") || lower.includes("超限")) {
+        return { kind: "用户输入错误", msg };
+    }
+    if (lower.includes("环境错误") || lower.includes("cors") || lower.includes("failed to fetch") || lower.includes("network") || lower.includes("offline") || lower.includes("timeout") || lower.includes("混合内容")) {
+        return { kind: "环境错误", msg };
+    }
+    if (lower.includes("平台错误") || lower.includes("http 4") || lower.includes("http 5") || lower.includes("unauthorized") || lower.includes("forbidden")) {
+        return { kind: "平台错误", msg };
+    }
+    return { kind: "内部错误", msg };
+}
+function actionableMessage(kind, msg){
+    if (kind === "用户输入错误") {
+        return `用户输入错误：\n- 发生了什么：${msg}\n- 怎么修复：检查输入格式/确保不为空/减少规模。\n- 替代方案：先用小样本跑通。`;
+    }
+    if (kind === "环境错误") {
+        return `环境错误：\n- 发生了什么：${msg}\n- 怎么修复：检查网络/CORS/混合内容（https 页面访问 http）。\n- 替代方案：改用离线流程或支持 CORS 的域名。`;
+    }
+    if (kind === "平台错误") {
+        return `平台错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 key 是否有效/是否限流/模型 ID 是否存在。\n- 替代方案：换 provider/换模型或稍后再试。`;
+    }
+    return `内部错误：\n- 发生了什么：${msg}\n- 怎么修复：打开调试面板导出报告，查看最后事件。\n- 替代方案：简化输入/关闭可选能力。`;
+}
+
+function getMaxChars(){ return TOOL_META.limits.max_chars; }
+function getMaxFileMb(){ return TOOL_META.limits.max_file_mb; }
+
+/***********************
+ * Persistence (safe defaults)
+ ***********************/
+function setUrlState(stateStr){
+    const mode = TOOL_META.url_state.mode;
+    const key = TOOL_META.url_state.key;
+    const encoded = encodeURIComponent(stateStr);
+    if (mode === "query") {
+        const url = new URL(location.href);
+        url.searchParams.set(key, encoded);
+        history.replaceState(null, "", url.toString());
+    } else {
+        const url = new URL(location.href);
+        const params = new URLSearchParams(url.hash.replace(/^#/, ""));
+        params.set(key, encoded);
+        url.hash = params.toString();
+        history.replaceState(null, "", url.toString());
+    }
+}
+function saveLocalDraft(text){
+    localStorage.setItem(TOOL_META.local_draft.key, text);
+}
+function loadLocalDraft(){
+    return localStorage.getItem(TOOL_META.local_draft.key) || "";
+}
+function clearLocalDraft(){
+    localStorage.removeItem(TOOL_META.local_draft.key);
+}
+
+/***********************
+ * Clipboard / file helpers
+ ***********************/
+function inspectPasteEvent(e){
+    const dt = e.clipboardData;
+    if (!dt) return { ok:false, note:"无 clipboardData" };
+    const types = Array.from(dt.types || []);
+    const files = Array.from(dt.files || []);
+    return { ok:true, types, files: files.map(f => ({ name:f.name, size:f.size, type:f.type })) };
+}
+
+async function readFileAsText(file){
+    const sizeMb = file.size / (1024 * 1024);
+    if (sizeMb > getMaxFileMb()) {
+        throw new Error(`用户输入错误：文件过大：${sizeMb.toFixed(2)} MB > 最大 ${getMaxFileMb()} MB`);
+    }
+    return await file.text();
+}
+
+/***********************
+ * Download
+ ***********************/
+function downloadText(filename, mime, text){
+    const blob = new Blob([text], { type: mime || "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = filename || "output.txt";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+    URL.revokeObjectURL(url);
+}
+
+/***********************
+ * CORS probe (no key)
+ ***********************/
+async function corsProbe(url, timeoutMs = 8000){
+    const now = new Date().toISOString();
+    const s = String(url || "").trim();
+    if (!s) return { ok:false, kind:"用户输入错误", result:"空 URL", details:{ now, url:s } };
+
+    let u;
+    try { u = new URL(s); }
+    catch(e){ return { ok:false, kind:"用户输入错误", result:"URL 无效", details:{ now, url:s, error:String(e) } }; }
+
+    if (location.protocol === "https:" && u.protocol === "http:") {
+        return { ok:false, kind:"环境错误", result:"混合内容（https 页面不能访问 http）", details:{ now, url:s } };
+    }
+    if (navigator.onLine === false) {
+        return { ok:false, kind:"环境错误", result:"离线", details:{ now, url:s } };
+    }
+
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try{
+        const resp = await fetch(s, { method:"GET", mode:"cors", cache:"no-store", signal: controller.signal });
+        return { ok:true, kind:"OK", result:"能拿到响应（CORS 可能可用）", details:{ now, url:s, status: resp.status, statusText: resp.statusText } };
+    }catch(e){
+        const msg = String(e);
+        const aborted = msg.toLowerCase().includes("abort");
+        return { ok:false, kind:"环境错误", result: aborted ? "超时" : "可能被 CORS/网络拦截", details:{ now, url:s, error: msg } };
+    }finally{
+        clearTimeout(timer);
+    }
+}
+
+/***********************
+ * === EDIT AREA 2/3: Offline core logic ===
+ ***********************/
+async function toolTransform(inputText, ctx){
+    // 默认演示：JSON 美化；不是 JSON 则原样返回
+    const trimmed = String(inputText || "").trim();
+    if (!trimmed) return "";
+    try{
+        const obj = JSON.parse(trimmed);
+        return JSON.stringify(obj, null, 2);
+    }catch{
+        return inputText;
+    }
+}
+
+/***********************
+ * === EDIT AREA 3/3 (optional): AI messages builder ===
+ * return: [{role:"system",content:"..."},{role:"user",content:"..."}]
+ ***********************/
+function buildAiMessages(inputText){
+    return [
+        { role: "system", content: "你是一个严谨的助手。要求：不编造事实；语气克制；输出清晰结构。只输出结果正文。" },
+        { role: "user", content: String(inputText || "") }
+    ];
+}
+
+/***********************
+ * Pipeline: local
+ ***********************/
+async function runLocal(source="手动运行"){
+    try{
+        setStatus("warn", "处理中…");
+        logEvent("info", "runLocal start", { source });
+
+        const inputText = String(inputArea.value || "");
+        inputInfo.textContent = `${inputText.length.toLocaleString()} 字符`;
+
+        if (inputText.length > getMaxChars()) {
+            throw new Error(`用户输入错误：输入超限：${inputText.length} 字符 > 最大 ${getMaxChars()} 字符`);
+        }
+
+        if (TOOL_META.capabilities.local_draft) {
+            saveLocalDraft(inputText);
+        }
+
+        // URL state: sensitive_mode 下只存元信息
+        if (TOOL_META.capabilities.url_state) {
+            const state = SECURITY.sensitive_mode
+                ? JSON.stringify({ v: TOOL_META.tool_version, len: inputText.length })
+                : JSON.stringify({ v: TOOL_META.tool_version, len: inputText.length, sample: inputText.slice(0, 40) });
+            setUrlState(state);
+        }
+
+        const ctx = { meta: TOOL_META, logEvent, nowIso: () => new Date().toISOString() };
+        const out = await toolTransform(inputText, ctx);
+
+        outputArea.value = String(out ?? "");
+        setStatus("good", "完成");
+        logEvent("info", "runLocal done", { output_len: outputArea.value.length });
+        setTimeout(() => setStatus("warn", "空闲"), 600);
+    }catch(err){
+        const { kind, msg } = classifyError(err);
+        outputArea.value = actionableMessage(kind, msg);
+        setStatus("bad", "出错");
+        logEvent("error", "runLocal error", { kind, msg });
+    }
+}
+
+/***********************
+ * Debug report (P5 redaction)
+ ***********************/
+function buildDebugReport(){
+    const maxN = (SECURITY.debug_redaction.mode === "strict")
+        ? SECURITY.debug_redaction.max_preview_chars
+        : 600;
+
+    const inputLen = String(inputArea.value || "").length;
+    const outputLen = String(outputArea.value || "").length;
+
+    const samples = SECURITY.sensitive_mode
+        ? {
+            input_head: maxN > 0 ? "" : "",
+            output_head: maxN > 0 ? truncate(outputArea.value, maxN) : ""
+        }
+        : {
+            input_head: maxN > 0 ? truncate(inputArea.value, maxN) : "",
+            output_head: maxN > 0 ? truncate(outputArea.value, maxN) : ""
+        };
+
+    return {
+        tool: {
+            name: TOOL_META.tool_name,
+            version: TOOL_META.tool_version,
+            capabilities: TOOL_META.capabilities,
+            limits: TOOL_META.limits
+        },
+        security: {
+            sensitive_mode: SECURITY.sensitive_mode,
+            debug_redaction: SECURITY.debug_redaction,
+            allowlist_domains: SECURITY.network_policy.allowlist_domains
+        },
+        env: {
+            time: new Date().toISOString(),
+            userAgent: navigator.userAgent,
+            online: navigator.onLine,
+            href: location.href,
+            protocol: location.protocol
+        },
+        state: { input_len: inputLen, output_len: outputLen },
+        samples,
+        events_tail: eventBuffer.slice(-80)
+    };
+}
+
+async function copyText(text){
+    try { await navigator.clipboard.writeText(text); return { ok:true }; }
+    catch(e){ return { ok:false, error: String(e) }; }
+}
+
+/***********************
+ * Prompt log template (P4)
+ ***********************/
+function promptLogTemplate(){
+    return [
+        "# Prompt Log",
+        `tool_id: (fill from tool_meta.tool_id)`,
+        `tool_name: ${TOOL_META.tool_name}`,
+        `tool_version: ${TOOL_META.tool_version}`,
+        "",
+        "## 需求（一句话）",
+        "-",
+        "",
+        "## I/O",
+        "- input:",
+        "- output:",
+        "",
+        "## 关键决策（为什么这么做）",
+        "- no build step 的原因：",
+        "- 依赖策略（为什么选/不选某库）：",
+        "- 持久化策略（URL/localStorage/none）：",
+        "- 联网策略（默认 off？哪些域名？）：",
+        "",
+        "## 边界与降级",
+        "- CORS 不通时：",
+        "- 无 key 时：",
+        "- 大输入/大文件时：",
+        "",
+        "## 已知限制",
+        "-",
+        "",
+        "## 下次 Remix 方向（至少 3 个）",
+        "- 变体 1：",
+        "- 变体 2：",
+        "- 变体 3：",
+        "",
+        "## 链接",
+        "- source:",
+        "- transcript / gist:"
+    ].join("\n");
+}
+
+/***********************
+ * AI Module (optional, built-in)
+ * - reads keys from localStorage[keyName]
+ * - reads overrides from key-manager: km_provider_overrides_v1
+ * - networking requires explicit user toggle
+ * - P5: allowlist + domain consent before sending key
+ ***********************/
+const AI_MODULE = (() => {
+    const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
+
+    const AI_PROVIDERS = {
+        "siliconflow": {
+            name: "硅基流动 (SiliconFlow)",
+            keyName: "siliconflow_key",
+            baseUrl: "https://api.siliconflow.cn/v1",
+            models: [
+                { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B（Fast）" }
+            ]
+        },
+        "openrouter": {
+            name: "OpenRouter",
+            keyName: "openrouter_key",
+            baseUrl: "https://openrouter.ai/api/v1",
+            models: [
+                { id: "openai/gpt-5.2-chat", name: "GPT-5.2 Chat" }
+            ]
+        },
+        "deepseek": {
+            name: "DeepSeek Official",
+            keyName: "deepseek_key",
+            baseUrl: "https://api.deepseek.com",
+            models: [
+                { id: "deepseek-chat", name: "DeepSeek V3" }
+            ]
+        },
+        "custom": {
+            name: "自定义 / 本地（Ollama）",
+            keyName: "custom_key",
+            baseUrl: "http://localhost:11434/v1",
+            models: []
+        }
+    };
+
+    function safeJsonParse(str){
+        try { return { ok:true, value: JSON.parse(str) }; }
+        catch(e){ return { ok:false, error: String(e) }; }
+    }
+    function getOverrides(){
+        const raw = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
+        if (!raw) return {};
+        const parsed = safeJsonParse(raw);
+        if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") return {};
+        return parsed.value;
+    }
+    function normalizeBaseUrl(baseUrl){
+        const s = String(baseUrl || "").trim();
+        return s.replace(/\/+$/, "");
+    }
+    function joinUrl(baseUrl, path){
+        const b = normalizeBaseUrl(baseUrl);
+        const p = String(path || "").trim().replace(/^\/+/, "");
+        return `${b}/${p}`;
+    }
+    function getProvider(providerId){ return AI_PROVIDERS[providerId]; }
+
+    function getMergedProviderConfig(providerId){
+        const p = getProvider(providerId);
+        if (!p) throw new Error(`用户输入错误：未知 provider_id: ${providerId}`);
+
+        const overrides = getOverrides();
+        const o = overrides[providerId] || {};
+
+        const customModels = Array.isArray(o.custom_models) ? o.custom_models : [];
+        const models = [
+            ...(Array.isArray(p.models) ? p.models : []),
+            ...customModels
+                .filter(m => m && typeof m === "object" && m.id)
+                .map(m => ({ id: String(m.id), name: m.name ? String(m.name) : String(m.id), _custom: true }))
+        ];
+
+        const baseUrl = o.base_url_override ? String(o.base_url_override) : p.baseUrl;
+        const modelId = o.model_id_override ? String(o.model_id_override) : (models[0]?.id || "");
+
+        return { provider_id: providerId, name: p.name, key_name: p.keyName, base_url: baseUrl, models, model_id: modelId };
+    }
+
+    function getKeyStatus(providerId){
+        const p = getProvider(providerId);
+        if (!p) return { ok:false, has_key:false, key_name:"" };
+        const keyName = p.keyName;
+        const key = localStorage.getItem(keyName);
+        return { ok:true, has_key: Boolean(key), key_name: keyName };
+    }
+
+    async function call_llm_unified({ provider_id, base_url, api_key, model_id, messages, temperature=0.2, max_tokens=800, timeout_ms=30000 }){
+        if (!base_url) { const e = new Error("用户输入错误：base_url 为空"); e._kind="用户输入错误"; throw e; }
+        if (!model_id) { const e = new Error("用户输入错误：model_id 为空"); e._kind="用户输入错误"; throw e; }
+        if (!Array.isArray(messages) || messages.length === 0) { const e = new Error("用户输入错误：messages 为空"); e._kind="用户输入错误"; throw e; }
+        if (!api_key) { const e = new Error("平台错误：缺少 API Key（请先在 key-manager.html 设置）"); e._kind="平台错误"; throw e; }
+
+        // P5: allowlist + consent before sending key
+        const hostname = getHostname(base_url);
+        if (!isDomainAllowed(hostname)) { const e = new Error(`环境错误：域名不在允许列表：${hostname}`); e._kind="环境错误"; throw e; }
+        ensureDomainConsentOrThrow(hostname);
+
+        const url = joinUrl(base_url, "/chat/completions");
+        const headers = { "Authorization": `Bearer ${api_key}`, "Content-Type": "application/json" };
+        const body = { model: model_id, messages, temperature, max_tokens };
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeout_ms);
+        try{
+            const resp = await fetch(url, { method:"POST", mode:"cors", headers, body: JSON.stringify(body), signal: controller.signal });
+            const text = await resp.text();
+            const parsed = safeJsonParse(text);
+            const json = parsed.ok ? parsed.value : null;
+
+            if (!resp.ok) {
+                const e = new Error(`平台错误：HTTP ${resp.status} ${resp.statusText}\n${text.slice(0, 800)}`);
+                e._kind = "平台错误";
+                throw e;
+            }
+
+            const outText = json?.choices?.[0]?.message?.content ?? "";
+            if (!outText) {
+                const e = new Error("平台错误：响应中未找到可用文本（choices[0].message.content 为空）");
+                e._kind = "平台错误";
+                throw e;
+            }
+
+            return { text: String(outText), raw: json };
+        } catch(e){
+            const msg = String(e?.message || e || "");
+            if (e && e._kind) throw e;
+            if (msg.toLowerCase().includes("abort")) { const err = new Error("环境错误：请求超时/被取消"); err._kind="环境错误"; throw err; }
+            if (msg.toLowerCase().includes("failed to fetch") || msg.toLowerCase().includes("cors") || msg.toLowerCase().includes("network")) {
+                const err = new Error("环境错误：" + msg); err._kind="环境错误"; throw err;
+            }
+            const err = new Error("内部错误：" + msg); err._kind="内部错误"; throw err;
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    function render_ai_settings_html(){
+        const providerOptions = Object.keys(AI_PROVIDERS)
+            .map(pid => `<option value="${pid}">${AI_PROVIDERS[pid].name}</option>`)
+            .join("");
+
+        return `
+            <details open>
+                <summary>AI 设置（可选）</summary>
+                <div class="hint" style="margin-top:10px;">
+                    * 必须先在 <code>key-manager.html</code> 设置密钥；本页只显示 ✅/❌。<br />
+                    * 默认不联网：需要勾选“允许联网”才会真正发起请求。<br />
+                    * P5 红线：域名白名单 + 授权确认（避免把 key 发到陌生域名）。
+                </div>
+
+                <div class="row" style="margin-top:10px;">
+                    <span class="pill warn">
+                        <input id="aiNetworkingToggle" type="checkbox" style="transform: translateY(1px);" />
+                        <span>允许联网（默认关闭）</span>
+                    </span>
+                    <span class="pill" id="aiKeyStatusPill">密钥状态：未检查</span>
+                </div>
+
+                <div class="two-col" style="margin-top:10px;">
+                    <div class="field">
+                        <label for="aiProviderSelect">平台（Provider）</label>
+                        <select id="aiProviderSelect">${providerOptions}</select>
+
+                        <div style="height:10px;"></div>
+
+                        <label for="aiBaseUrlInput">Base URL（真值）</label>
+                        <input id="aiBaseUrlInput" type="text" />
+                        <div class="hint">会读取 key-manager 的覆盖配置（km_provider_overrides_v1）。</div>
+                    </div>
+
+                    <div class="field">
+                        <label for="aiModelPresetSelect">模型预设（快捷）</label>
+                        <select id="aiModelPresetSelect"></select>
+
+                        <div style="height:10px;"></div>
+
+                        <label for="aiModelIdInput">模型 ID（真值）</label>
+                        <input id="aiModelIdInput" type="text" />
+                        <div class="hint">调用 API 永远以此输入框为准。</div>
+                    </div>
+                </div>
+
+                <details style="margin-top:10px;">
+                    <summary>高级参数</summary>
+                    <div class="two-col" style="margin-top:10px;">
+                        <div class="field">
+                            <label for="aiTemperature">temperature</label>
+                            <input id="aiTemperature" type="text" value="0.2" />
+                        </div>
+                        <div class="field">
+                            <label for="aiMaxTokens">max_tokens</label>
+                            <input id="aiMaxTokens" type="text" value="800" />
+                        </div>
+                        <div class="field">
+                            <label for="aiTimeoutMs">timeout_ms</label>
+                            <input id="aiTimeoutMs" type="text" value="30000" />
+                        </div>
+                    </div>
+                </details>
+
+                <div class="row" style="margin-top:10px;">
+                    <button class="btn secondary" id="aiSyncBtn" type="button">从 Key Manager 同步预设</button>
+                    <button class="btn secondary" id="aiCorsProbeBtn" type="button">CORS 探测（不带密钥）</button>
+                </div>
+
+                <div class="log" id="aiLog" style="margin-top:10px;">AI 模块就绪。</div>
+            </details>
+        `;
+    }
+
+    function mount_ai_settings({ mount_el, default_provider_id = "siliconflow", on_state_change = null }){
+        mount_el.innerHTML = render_ai_settings_html();
+        const $m = (id) => mount_el.querySelector(id);
+
+        const aiNetworkingToggle = $m("#aiNetworkingToggle");
+        const aiProviderSelect = $m("#aiProviderSelect");
+        const aiBaseUrlInput = $m("#aiBaseUrlInput");
+        const aiModelPresetSelect = $m("#aiModelPresetSelect");
+        const aiModelIdInput = $m("#aiModelIdInput");
+        const aiKeyStatusPill = $m("#aiKeyStatusPill");
+        const aiTemperature = $m("#aiTemperature");
+        const aiMaxTokens = $m("#aiMaxTokens");
+        const aiTimeoutMs = $m("#aiTimeoutMs");
+        const aiLog = $m("#aiLog");
+        const aiSyncBtn = $m("#aiSyncBtn");
+        const aiCorsProbeBtn = $m("#aiCorsProbeBtn");
+
+        const state = {
+            networking_enabled: false,
+            provider_id: default_provider_id,
+            base_url: "",
+            model_id: "",
+            temperature: 0.2,
+            max_tokens: 800,
+            timeout_ms: 30000
+        };
+
+        function setKeyStatusPill(providerId){
+            const ks = getKeyStatus(providerId);
+            if (!ks.ok) { aiKeyStatusPill.className="pill bad"; aiKeyStatusPill.textContent="密钥状态：未知"; return; }
+            if (ks.has_key) { aiKeyStatusPill.className="pill good"; aiKeyStatusPill.textContent=`密钥状态：✅ 已设置（${ks.key_name}）`; }
+            else { aiKeyStatusPill.className="pill bad"; aiKeyStatusPill.textContent=`密钥状态：❌ 未设置（${ks.key_name}）`; }
+        }
+
+        function rebuildModelPresetOptions(providerId, preferModelId=""){
+            const cfg = getMergedProviderConfig(providerId);
+            const models = cfg.models || [];
+            const options = [
+                ...models.map(m => `<option value="${String(m.id)}">${String(m.name || m.id)}${m._custom ? "（自定义）" : ""}</option>`),
+                `<option value="__custom__">手动输入模型 ID</option>`
+            ].join("");
+            aiModelPresetSelect.innerHTML = options;
+
+            const effectiveModelId = preferModelId || cfg.model_id || "";
+            const hasPreset = models.some(m => String(m.id) === String(effectiveModelId));
+            aiModelPresetSelect.value = hasPreset ? String(effectiveModelId) : "__custom__";
+        }
+
+        function emit(){ on_state_change && on_state_change(get_state()); }
+
+        function syncFromKeyManager(providerId){
+            const cfg = getMergedProviderConfig(providerId);
+            state.base_url = String(cfg.base_url || "");
+            state.model_id = String(cfg.model_id || "");
+            aiBaseUrlInput.value = state.base_url;
+            aiModelIdInput.value = state.model_id;
+            rebuildModelPresetOptions(providerId, state.model_id);
+            setKeyStatusPill(providerId);
+
+            aiLog.textContent =
+                `已同步（不含密钥）：\n` +
+                `平台: ${cfg.name}\n` +
+                `Base URL: ${state.base_url}\n` +
+                `Model ID: ${state.model_id}\n` +
+                `提示：密钥需在 key-manager.html 设置，本页只显示 ✅/❌。`;
+            emit();
+        }
+
+        aiProviderSelect.value = default_provider_id;
+        syncFromKeyManager(default_provider_id);
+
+        aiNetworkingToggle.addEventListener("change", () => {
+            state.networking_enabled = Boolean(aiNetworkingToggle.checked);
+            aiLog.textContent = state.networking_enabled ? "已允许联网：运行 AI 将发起网络请求。" : "已关闭联网：不会发起 AI 请求。";
+            emit();
+        });
+
+        aiProviderSelect.addEventListener("change", () => {
+            state.provider_id = aiProviderSelect.value;
+            syncFromKeyManager(state.provider_id);
+        });
+
+        aiBaseUrlInput.addEventListener("change", () => {
+            state.base_url = String(aiBaseUrlInput.value || "").trim();
+            emit();
+        });
+
+        aiModelPresetSelect.addEventListener("change", () => {
+            const chosen = aiModelPresetSelect.value;
+            if (chosen === "__custom__") { aiModelIdInput.focus(); aiModelIdInput.select(); return; }
+            aiModelIdInput.value = chosen;
+            state.model_id = chosen;
+            emit();
+        });
+
+        aiModelIdInput.addEventListener("change", () => {
+            state.model_id = String(aiModelIdInput.value || "").trim();
+            emit();
+        });
+
+        aiTemperature.addEventListener("change", () => {
+            const v = Number(aiTemperature.value);
+            state.temperature = Number.isFinite(v) ? v : 0.2;
+            emit();
+        });
+
+        aiMaxTokens.addEventListener("change", () => {
+            const v = Number(aiMaxTokens.value);
+            state.max_tokens = Number.isFinite(v) ? Math.max(1, Math.floor(v)) : 800;
+            emit();
+        });
+
+        aiTimeoutMs.addEventListener("change", () => {
+            const v = Number(aiTimeoutMs.value);
+            state.timeout_ms = Number.isFinite(v) ? Math.max(1000, Math.floor(v)) : 30000;
+            emit();
+        });
+
+        aiSyncBtn.addEventListener("click", () => syncFromKeyManager(state.provider_id));
+        aiCorsProbeBtn.addEventListener("click", async () => {
+            aiLog.textContent = "CORS 探测中（不带密钥）…";
+            const res = await corsProbe(String(aiBaseUrlInput.value || "").trim(), 8000);
+            aiLog.textContent = JSON.stringify(res, null, 2);
+        });
+
+        function get_state(){
+            return { ...state, key_status: getKeyStatus(state.provider_id) };
+        }
+
+        async function call_ai({ messages }){
+            const s = get_state();
+            if (!s.networking_enabled) { const e = new Error("环境错误：当前未允许联网（请勾选“允许联网”）"); e._kind="环境错误"; throw e; }
+
+            const p = getProvider(s.provider_id);
+            const apiKey = localStorage.getItem(p.keyName) || "";
+            return await call_llm_unified({
+                provider_id: s.provider_id,
+                base_url: s.base_url,
+                api_key: apiKey,
+                model_id: s.model_id,
+                messages,
+                temperature: s.temperature,
+                max_tokens: s.max_tokens,
+                timeout_ms: s.timeout_ms
+            });
+        }
+
+        function get_actionable_error(err){
+            const kind = err?._kind || classifyError(err).kind;
+            const msg = String(err?.message || err || "");
+            return actionableMessage(kind, msg);
+        }
+
+        return { get_state, call_ai, get_actionable_error, sync: () => syncFromKeyManager(state.provider_id) };
+    }
+
+    return { mount_ai_settings };
+})();
+
+/***********************
+ * UI init
+ ***********************/
+function renderCapabilityPills(){
+    pillPasteFirst.textContent = `粘贴优先：${TOOL_META.capabilities.paste_first ? "开" : "关"}`;
+    pillFile.textContent = `文件：${TOOL_META.capabilities.file_input ? "开" : "关"}`;
+    pillDownload.textContent = `下载：${TOOL_META.capabilities.download_output ? "开" : "关"}`;
+    pillUrlState.textContent = `URL 状态：${TOOL_META.capabilities.url_state ? "开" : "关"}`;
+    pillLocalDraft.textContent = `本地草稿：${TOOL_META.capabilities.local_draft ? "开" : "关"}`;
+    pillAi.textContent = `AI：${TOOL_META.capabilities.ai ? "开" : "关"}`;
+    sensitivePill.textContent = `敏感模式：${SECURITY.sensitive_mode ? "开" : "关"}`;
+}
+
+function initUi(){
+    toolTitle.textContent = TOOL_META.tool_name;
+    toolSubtitle.textContent = TOOL_META.description;
+    toolMetaLine.textContent =
+        `版本=${TOOL_META.tool_version} · 单文件=是 · 构建步骤=无 · ` +
+        `能力=` + Object.entries(TOOL_META.capabilities).filter(([,v]) => v).map(([k]) => k).join(", ");
+
+    maxCharsText.textContent = String(TOOL_META.limits.max_chars);
+    maxFileMbText.textContent = String(TOOL_META.limits.max_file_mb);
+
+    renderCapabilityPills();
+
+    if (TOOL_META.capabilities.file_input) {
+        fileInput.style.display = "";
+        btnOpenFile.style.display = "";
+    }
+
+    if (TOOL_META.capabilities.local_draft) {
+        const draft = loadLocalDraft();
+        if (draft) {
+            inputArea.value = draft;
+            logEvent("info", "已加载本地草稿", { len: draft.length });
+        }
+    }
+
+    // AI optional
+    if (TOOL_META.capabilities.ai) {
+        aiCard.style.display = "";
+        btnRunAi.style.display = "";
+    } else {
+        aiCard.style.display = "none";
+        btnRunAi.style.display = "none";
+    }
+
+    promptLogBox.textContent = promptLogTemplate();
+
+    setStatus("warn", "空闲");
+    inputInfo.textContent = `${String(inputArea.value || "").length.toLocaleString()} 字符`;
+    debugLog.textContent = "准备就绪。";
+}
+
+/***********************
+ * Events: paste-first / drag drop / buttons
+ ***********************/
+window.addEventListener("paste", (e) => {
+    if (!TOOL_META.capabilities.paste_first) return;
+
+    if (TOOL_META.capabilities.rich_clipboard_inspect) {
+        const info = inspectPasteEvent(e);
+        if (info.ok) logEvent("info", "粘贴事件", { types: info.types, files: info.files });
+    }
+
+    const active = document.activeElement;
+    const isTyping = active && (active.tagName === "TEXTAREA" || active.tagName === "INPUT");
+    if (!isTyping) {
+        const dt = e.clipboardData;
+        if (dt) {
+            const text = dt.getData("text/plain");
+            if (text) {
+                inputArea.value = text;
+                inputInfo.textContent = `${text.length.toLocaleString()} 字符`;
+                logEvent("info", "已将粘贴内容写入输入框", { len: text.length });
+                runLocal("粘贴触发");
+                e.preventDefault();
+            }
+        }
+    }
+});
+
+dropzone.addEventListener("dragover", (e) => {
+    if (!TOOL_META.capabilities.file_input) return;
+    e.preventDefault();
+    dropzone.classList.add("dragover");
+});
+dropzone.addEventListener("dragleave", () => dropzone.classList.remove("dragover"));
+dropzone.addEventListener("drop", async (e) => {
+    if (!TOOL_META.capabilities.file_input) return;
+    e.preventDefault();
+    dropzone.classList.remove("dragover");
+
+    const files = Array.from(e.dataTransfer.files || []);
+    if (!files.length) return;
+
+    try{
+        const f = files[0];
+        logEvent("info", "拖拽文件", { name:f.name, size:f.size, type:f.type, size_mb: bytesToMb(f.size) });
+        const text = await readFileAsText(f);
+        inputArea.value = text;
+        inputInfo.textContent = `${text.length.toLocaleString()} 字符 · 来源文件 ${f.name}`;
+        await runLocal("拖拽文件");
+    }catch(err){
+        const { kind, msg } = classifyError(err);
+        outputArea.value = actionableMessage(kind, msg);
+        setStatus("bad", "出错");
+        logEvent("error", "拖拽文件失败", { kind, msg });
+    }
+});
+
+btnOpenFile.addEventListener("click", () => fileInput.click());
+fileInput.addEventListener("change", async () => {
+    const file = fileInput.files && fileInput.files[0];
+    if (!file) return;
+    try{
+        logEvent("info", "打开文件", { name:file.name, size:file.size, type:file.type, size_mb: bytesToMb(file.size) });
+        const text = await readFileAsText(file);
+        inputArea.value = text;
+        inputInfo.textContent = `${text.length.toLocaleString()} 字符 · 来源文件 ${file.name}`;
+        await runLocal("打开文件");
+    }catch(err){
+        const { kind, msg } = classifyError(err);
+        outputArea.value = actionableMessage(kind, msg);
+        setStatus("bad", "出错");
+        logEvent("error", "打开文件失败", { kind, msg });
+    }finally{
+        fileInput.value = "";
+    }
+});
+
+inputArea.addEventListener("input", () => {
+    const len = String(inputArea.value || "").length;
+    inputInfo.textContent = `${len.toLocaleString()} 字符`;
+    if (TOOL_META.capabilities.local_draft) {
+        try { saveLocalDraft(inputArea.value); } catch {}
+    }
+});
+
+btnRunLocal.addEventListener("click", () => runLocal("手动运行"));
+
+btnLoadSample.addEventListener("click", () => {
+    const sample = JSON.stringify({ hello: "world", ts: new Date().toISOString(), note: "示例：JSON 会被美化" }, null, 2);
+    inputArea.value = sample;
+    inputInfo.textContent = `${sample.length.toLocaleString()} 字符 · 示例`;
+    logEvent("info", "加载示例");
+    runLocal("加载示例");
+});
+
+btnClear.addEventListener("click", () => {
+    inputArea.value = "";
+    outputArea.value = "";
+    inputInfo.textContent = "0 字符";
+    setStatus("warn", "空闲");
+    logEvent("info", "已清空");
+});
+
+btnCopyOut.addEventListener("click", async () => {
+    try{
+        const text = String(outputArea.value || "");
+        if (!text) { setStatus("warn", "无输出"); return; }
+        await navigator.clipboard.writeText(text);
+        setStatus("good", "已复制");
+        logEvent("info", "复制输出", { len: text.length });
+        setTimeout(() => setStatus("warn", "空闲"), 600);
+    }catch(err){
+        setStatus("bad", "复制失败");
+        logEvent("error", "复制失败", { err: String(err) });
+        outputArea.focus();
+        outputArea.select();
+    }
+});
+
+btnDownload.addEventListener("click", () => {
+    if (!TOOL_META.capabilities.download_output) return;
+    const text = String(outputArea.value || "");
+    if (!text) { setStatus("warn", "无输出"); return; }
+    const name = String(downloadName.value || "").trim() || "output.txt";
+    const mime = downloadType.value || "text/plain";
+    downloadText(name, mime, text);
+    setStatus("good", "已下载");
+    logEvent("info", "下载输出", { name, mime, len: text.length });
+    setTimeout(() => setStatus("warn", "空闲"), 600);
+});
+
+btnExportDebug.addEventListener("click", () => {
+    const report = buildDebugReport();
+    const text = JSON.stringify(report, null, 2);
+    debugLog.textContent = text;
+    downloadText("debug-report.json", "application/json", text);
+    logEvent("info", "导出调试报告");
+});
+
+btnCopyDebug.addEventListener("click", async () => {
+    const report = buildDebugReport();
+    const text = JSON.stringify(report, null, 2);
+    debugLog.textContent = text;
+    const res = await copyText(text);
+    if (res.ok) { setStatus("good", "已复制报告"); setTimeout(() => setStatus("warn", "空闲"), 600); }
+    else { setStatus("bad", "复制失败"); }
+    logEvent(res.ok ? "info" : "error", "复制调试报告", res.ok ? null : { error: res.error });
+});
+
+btnClearDraft.addEventListener("click", () => {
+    clearLocalDraft();
+    debugLog.textContent = "已清除本地草稿。";
+    logEvent("info", "清除本地草稿");
+});
+
+btnCorsProbe.addEventListener("click", async () => {
+    // Probe uses a safe default; you can change by editing here
+    const probeUrl = "https://example.com";
+    debugLog.textContent = "CORS 探测中（不带密钥）…\nurl=" + probeUrl;
+    const res = await corsProbe(probeUrl, 8000);
+    debugLog.textContent = JSON.stringify(res, null, 2);
+    logEvent(res.ok ? "info" : "warn", "CORS 探测完成", { result: res.result, kind: res.kind });
+});
+
+btnCopyPromptLog.addEventListener("click", async () => {
+    const res = await copyText(promptLogBox.textContent);
+    debugLog.textContent = res.ok ? "已复制 Prompt Log 模板。" : ("复制失败：" + res.error);
+    logEvent(res.ok ? "info" : "error", "复制 Prompt Log", res.ok ? null : { error: res.error });
+});
+
+/***********************
+ * AI wiring (optional)
+ ***********************/
+let ai = null;
+function initAiIfEnabled(){
+    if (!TOOL_META.capabilities.ai) return;
+    ai = AI_MODULE.mount_ai_settings({
+        mount_el: aiMount,
+        default_provider_id: "siliconflow",
+        on_state_change: (s) => {
+            // do not log secrets; only log derived status
+            logEvent("info", "AI 状态变化（脱敏）", {
+                networking_enabled: s.networking_enabled,
+                provider_id: s.provider_id,
+                base_url: s.base_url,
+                model_id: s.model_id,
+                key_status: s.key_status
+            });
+        }
+    });
+}
+
+btnRunAi.addEventListener("click", async () => {
+    try{
+        if (!ai) {
+            outputArea.value = "用户输入错误：\n- 发生了什么：当前工具未启用 AI（TOOL_META.capabilities.ai=false）\n- 怎么修复：把 ai 改为 true 并刷新页面。";
+            setStatus("bad", "AI 未启用");
+            return;
+        }
+
+        setStatus("warn", "AI 处理中…");
+        const input = String(inputArea.value || "").trim();
+        if (!input) {
+            outputArea.value = "用户输入错误：\n- 发生了什么：输入为空\n- 怎么修复：粘贴内容后再运行。";
+            setStatus("bad", "出错");
+            return;
+        }
+
+        const s = ai.get_state();
+        if (!s.networking_enabled) {
+            outputArea.value =
+                "环境错误：\n- 发生了什么：当前未允许联网\n- 怎么修复：在“AI 设置”里勾选“允许联网（默认关闭）”\n- 替代方案：你也可以先用“运行（离线）”完成非 AI 处理。";
+            setStatus("bad", "未联网");
+            return;
+        }
+        if (!s.key_status?.has_key) {
+            outputArea.value =
+                "平台错误：\n- 发生了什么：未设置密钥\n- 怎么修复：打开 key-manager.html → 对应平台点击“设置/更新密钥”\n- 然后回到本页再次运行。";
+            setStatus("bad", "缺少密钥");
+            return;
+        }
+
+        const messages = buildAiMessages(input);
+        const res = await ai.call_ai({ messages });
+        outputArea.value = res.text;
+
+        setStatus("good", "AI 完成");
+        setTimeout(() => setStatus("warn", "空闲"), 600);
+    }catch(err){
+        const msg = ai ? ai.get_actionable_error(err) : actionableMessage(classifyError(err).kind, String(err));
+        outputArea.value = msg;
+        setStatus("bad", "AI 出错");
+        logEvent("error", "AI 出错", { msg: String(err?.message || err || "") });
+    }
+});
+
+/***********************
+ * Init
+ ***********************/
+(function init(){
+    initUi();
+    initAiIfEnabled();
+    logEvent("info", "初始化完成", { tool: TOOL_META.tool_name, version: TOOL_META.tool_version });
+})();
+</script>
+</body>
+</html>

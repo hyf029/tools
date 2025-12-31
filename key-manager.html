@@ -1,0 +1,1434 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Key Manager v2.1（集中管理 API Key）</title>
+    <style>
+        /* Theme system:
+           - default: follow system via prefers-color-scheme
+           - override: html[data-theme="light"|"dark"]
+        */
+        :root {
+            --bg: #f6f7fb;
+            --bg2: #ffffff;
+            --panel: rgba(255, 255, 255, 0.86);
+            --panel2: rgba(255, 255, 255, 0.72);
+            --text: #0f172a;
+            --muted: #475569;
+            --border: rgba(15, 23, 42, 0.14);
+            --accent: #2563eb;
+            --good: #059669;
+            --bad: #e11d48;
+            --warn: #d97706;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, "Apple Color Emoji", "Segoe UI Emoji";
+            --shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f19;
+                --bg2: #0b1020;
+                --panel: rgba(17, 24, 39, 0.86);
+                --panel2: rgba(15, 23, 42, 0.72);
+                --text: #e5e7eb;
+                --muted: #9ca3af;
+                --border: rgba(255, 255, 255, 0.14);
+                --accent: #60a5fa;
+                --good: #34d399;
+                --bad: #fb7185;
+                --warn: #fbbf24;
+                --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+            }
+        }
+
+        html[data-theme="light"] {
+            --bg: #f6f7fb;
+            --bg2: #ffffff;
+            --panel: rgba(255, 255, 255, 0.86);
+            --panel2: rgba(255, 255, 255, 0.72);
+            --text: #0f172a;
+            --muted: #475569;
+            --border: rgba(15, 23, 42, 0.14);
+            --accent: #2563eb;
+            --good: #059669;
+            --bad: #e11d48;
+            --warn: #d97706;
+            --shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
+        }
+
+        html[data-theme="dark"] {
+            --bg: #0b0f19;
+            --bg2: #0b1020;
+            --panel: rgba(17, 24, 39, 0.86);
+            --panel2: rgba(15, 23, 42, 0.72);
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.14);
+            --accent: #60a5fa;
+            --good: #34d399;
+            --bad: #fb7185;
+            --warn: #fbbf24;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            font-family: var(--sans);
+            color: var(--text);
+            background:
+                radial-gradient(900px 600px at 20% 10%, color-mix(in srgb, var(--accent) 18%, transparent), transparent 60%),
+                radial-gradient(900px 600px at 85% 0%, color-mix(in srgb, var(--good) 14%, transparent), transparent 55%),
+                var(--bg);
+        }
+
+        a {
+            color: var(--accent);
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 18px 14px 60px;
+        }
+
+        header {
+            display: flex;
+            gap: 14px;
+            align-items: flex-start;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            padding: 14px 14px;
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            position: sticky;
+            top: 10px;
+            backdrop-filter: blur(10px);
+            box-shadow: var(--shadow);
+            z-index: 10;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 900;
+            letter-spacing: 0.2px;
+        }
+
+        .subtitle {
+            color: var(--muted);
+            font-size: 13px;
+            line-height: 1.35;
+            margin-top: 6px;
+        }
+
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            justify-content: flex-end;
+            align-items: flex-end;
+        }
+
+        .row {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        label {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        select,
+        input[type="text"],
+        textarea {
+            background: color-mix(in srgb, var(--bg2) 86%, transparent);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 10px;
+            outline: none;
+        }
+
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            font-family: var(--mono);
+            font-size: 12px;
+        }
+
+        .btn {
+            background: color-mix(in srgb, var(--accent) 14%, transparent);
+            color: var(--text);
+            border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+            border-radius: 12px;
+            padding: 9px 11px;
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 13px;
+        }
+
+        .btn:hover {
+            background: color-mix(in srgb, var(--accent) 20%, transparent);
+        }
+
+        .btn.secondary {
+            background: color-mix(in srgb, var(--text) 6%, transparent);
+            border-color: var(--border);
+            font-weight: 700;
+        }
+
+        .btn.danger {
+            background: color-mix(in srgb, var(--bad) 12%, transparent);
+            border-color: color-mix(in srgb, var(--bad) 30%, transparent);
+        }
+
+        .btn.danger:hover {
+            background: color-mix(in srgb, var(--bad) 18%, transparent);
+        }
+
+        .pill {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            padding: 4px 9px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--muted);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+        }
+
+        .pill.good {
+            border-color: color-mix(in srgb, var(--good) 34%, transparent);
+            color: var(--good);
+            background: color-mix(in srgb, var(--good) 10%, transparent);
+        }
+
+        .pill.bad {
+            border-color: color-mix(in srgb, var(--bad) 34%, transparent);
+            color: var(--bad);
+            background: color-mix(in srgb, var(--bad) 10%, transparent);
+        }
+
+        .pill.warn {
+            border-color: color-mix(in srgb, var(--warn) 34%, transparent);
+            color: var(--warn);
+            background: color-mix(in srgb, var(--warn) 10%, transparent);
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(12, 1fr);
+            gap: 12px;
+            margin-top: 14px;
+        }
+
+        .card {
+            grid-column: span 12;
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 14px;
+            box-shadow: var(--shadow);
+        }
+
+        .card h2 {
+            margin: 0 0 10px;
+            font-size: 15px;
+        }
+
+        .hint {
+            color: var(--muted);
+            font-size: 12px;
+            line-height: 1.45;
+        }
+
+        .provider-card {
+            background: linear-gradient(180deg, color-mix(in srgb, var(--panel) 92%, transparent), var(--panel2));
+        }
+
+        .provider-header {
+            display: flex;
+            gap: 10px;
+            align-items: baseline;
+            justify-content: space-between;
+            flex-wrap: wrap;
+        }
+
+        .provider-name {
+            font-weight: 900;
+            font-size: 15px;
+        }
+
+        .provider-meta {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .two-col {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        @media (max-width: 860px) {
+            .two-col {
+                grid-template-columns: 1fr;
+            }
+
+            header {
+                position: static;
+            }
+        }
+
+        .field {
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        details {
+            border: 1px dashed color-mix(in srgb, var(--border) 90%, transparent);
+            border-radius: 14px;
+            padding: 10px 12px;
+            background: color-mix(in srgb, var(--bg2) 55%, transparent);
+        }
+
+        summary {
+            cursor: pointer;
+            font-weight: 900;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            border-radius: 14px;
+            overflow: hidden;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+        }
+
+        th,
+        td {
+            padding: 10px 10px;
+            border-bottom: 1px solid color-mix(in srgb, var(--border) 70%, transparent);
+            font-size: 13px;
+            text-align: left;
+            vertical-align: top;
+        }
+
+        th {
+            color: var(--muted);
+            font-weight: 900;
+            background: color-mix(in srgb, var(--text) 4%, transparent);
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        code {
+            font-family: var(--mono);
+            font-size: 12px;
+            background: color-mix(in srgb, var(--text) 6%, transparent);
+            border: 1px solid color-mix(in srgb, var(--border) 85%, transparent);
+            border-radius: 10px;
+            padding: 2px 6px;
+        }
+
+        .log {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: color-mix(in srgb, var(--text) 92%, transparent);
+            background: color-mix(in srgb, var(--bg2) 55%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 10px;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        dialog {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: var(--bg2);
+            color: var(--text);
+            width: min(580px, calc(100vw - 24px));
+            padding: 0;
+            box-shadow: var(--shadow);
+        }
+
+        dialog::backdrop {
+            background: rgba(0, 0, 0, 0.35);
+        }
+
+        .dlg-header {
+            padding: 12px 14px;
+            border-bottom: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .dlg-body {
+            padding: 14px;
+        }
+
+        .dlg-footer {
+            padding: 12px 14px;
+            border-top: 1px solid color-mix(in srgb, var(--border) 80%, transparent);
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+        }
+
+        .kbd {
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 2px 6px;
+            border-radius: 10px;
+            border: 1px solid color-mix(in srgb, var(--border) 90%, transparent);
+            background: color-mix(in srgb, var(--text) 5%, transparent);
+            color: color-mix(in srgb, var(--text) 90%, transparent);
+        }
+
+        .mini {
+            font-size: 12px;
+            color: var(--muted);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="left">
+                <div class="title">Key Manager v2.1 <span class="pill">协议 <span class="kbd"
+                            id="protocolVersionText">v1</span></span></div>
+                <div class="subtitle">
+                    这个页面专门用来“集中管理”你的 API Key、Base URL、默认模型等。<br />
+                    旧工具兼容关键点：仍可用 <code>localStorage.getItem(keyName)</code> 读取同名 key。
+                </div>
+            </div>
+
+            <div class="controls">
+                <div class="row">
+                    <div class="field" style="min-width: 200px;">
+                        <label for="themeSelect">主题</label>
+                        <select id="themeSelect">
+                            <option value="auto">跟随系统</option>
+                            <option value="light">浅色</option>
+                            <option value="dark">深色</option>
+                        </select>
+                    </div>
+
+                    <div class="field" style="min-width: 220px;">
+                        <label for="storageModeSelect">密钥存储位置</label>
+                        <select id="storageModeSelect">
+                            <option value="local">localStorage（默认，最省事）</option>
+                            <option value="session">sessionStorage（更安全，关浏览器会清）</option>
+                            <option value="memory">仅本页内存（刷新就没）</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="row" id="compatRow" style="display:none;">
+                    <span class="pill warn">
+                        <input id="compatWriteLocalCheckbox" type="checkbox" style="transform: translateY(1px);" />
+                        <span>兼容旧工具：同时写入 localStorage</span>
+                    </span>
+                </div>
+
+                <div class="row">
+                    <button class="btn secondary" id="exportConfigBtn" type="button">导出配置（不含密钥）</button>
+                    <button class="btn secondary" id="importConfigBtn" type="button">导入配置（不含密钥）</button>
+                    <button class="btn danger" id="clearAllBtn" type="button">清除全部密钥</button>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid">
+            <section class="card">
+                <h2>快速上手（建议先看这段）</h2>
+                <details open>
+                    <summary>我该怎么用？（3 步）</summary>
+                    <div class="hint" style="margin-top:10px;">
+                        * 第 1 步：在下方某个 Provider 卡片里点 <b>“设置/更新密钥”</b>，粘贴 key，保存。<br />
+                        * 第 2 步：你的工具页面里只要按约定读取：<code>localStorage.getItem("openrouter_key")</code>（示例）即可拿到 key。<br />
+                        * 第 3 步：如果你换电脑：先导出配置（不含密钥）→ 新电脑导入配置 → 再重新粘贴密钥。<br /><br />
+                        小提醒：如果你把“密钥存储位置”选成 session/memory，旧工具可能读不到 key（除非勾选“兼容旧工具：同时写入 localStorage”）。
+                    </div>
+                </details>
+
+                <div class="two-col" style="margin-top:12px;">
+                    <div>
+                        <div class="hint">
+                            * 导入/导出只包含：Base URL 覆盖、默认模型、你添加的自定义模型、页面偏好（主题/存储模式）。<br />
+                            * 不包含任何密钥，避免误分享导致泄露。
+                        </div>
+                    </div>
+                    <div>
+                        <div class="log" id="globalStatusLog">Loading...</div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card provider-card">
+                <h2>Providers（在这里管理每个平台）</h2>
+                <div class="hint">每个平台可单独设置：Base URL、默认模型、可选自定义模型、密钥状态、CORS 体检。</div>
+                <div id="providersContainer" style="margin-top: 12px;"></div>
+            </section>
+
+            <section class="card">
+                <h2>兼容性体检（旧工具是否还能用）</h2>
+                <div class="hint">
+                    旧工具通常只读：<code>localStorage[keyName]</code>。下表让你一眼判断是否 “✅ 可用 / ❌ 缺失”。
+                </div>
+                <div style="margin-top: 10px;">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th style="width: 140px;">provider_id</th>
+                                <th>keyName（localStorage 键名）</th>
+                                <th style="width: 110px;">local</th>
+                                <th style="width: 110px;">session</th>
+                                <th style="width: 230px;">旧工具可用？</th>
+                            </tr>
+                        </thead>
+                        <tbody id="compatTableBody"></tbody>
+                    </table>
+                </div>
+            </section>
+
+            <section class="card">
+                <h2>风险提示（简短但重要）</h2>
+                <details>
+                    <summary>展开查看</summary>
+                    <div class="hint" style="margin-top: 10px;">
+                        * localStorage/sessionStorage 中的 key 可被<b>同源脚本读取</b>。因此 Key Manager 页面应尽量减少第三方脚本依赖。<br />
+                        * 对“需要 key 的 AI 工具”，建议依赖最小化、版本固定；默认不联网，用户显式开启才发请求。<br />
+                        * 不要把敏感内容写入 URL（URL 可分享、可被历史记录保存）。
+                    </div>
+                </details>
+            </section>
+        </div>
+    </div>
+
+    <!-- Import Dialog -->
+    <dialog id="importDialog">
+        <div class="dlg-header">
+            <div style="font-weight:900;">导入配置（不含密钥）</div>
+            <button class="btn secondary" id="closeImportDialogBtn" type="button">关闭</button>
+        </div>
+        <div class="dlg-body">
+            <div class="hint">
+                支持两种方式：上传 JSON 文件或粘贴 JSON。<br />
+                说明：密钥不会被导入（也不应该被导入）。
+            </div>
+
+            <div class="two-col" style="margin-top: 12px;">
+                <div class="field">
+                    <label for="importFileInput">方式 1：选择 JSON 文件</label>
+                    <input id="importFileInput" type="file" accept="application/json" />
+                </div>
+                <div class="field">
+                    <label for="importTextArea">方式 2：粘贴 JSON</label>
+                    <textarea id="importTextArea"></textarea>
+                </div>
+            </div>
+
+            <div class="log" id="importPreviewLog" style="margin-top: 12px;">等待输入...</div>
+        </div>
+        <div class="dlg-footer">
+            <button class="btn secondary" id="importDryRunBtn" type="button">先预览（Dry Run）</button>
+            <button class="btn" id="importApplyBtn" type="button">确认导入</button>
+        </div>
+    </dialog>
+
+    <!-- Set Key Dialog -->
+    <dialog id="setKeyDialog">
+        <div class="dlg-header">
+            <div style="font-weight:900;">设置 / 更新密钥</div>
+            <button class="btn secondary" id="closeSetKeyDialogBtn" type="button">关闭</button>
+        </div>
+        <div class="dlg-body">
+            <div class="hint" id="setKeyDialogHint">Provider: ...</div>
+            <div class="field" style="margin-top: 12px;">
+                <label for="keyInput">粘贴 API Key（不会在页面显示明文）</label>
+                <input id="keyInput" type="text" autocomplete="off" placeholder="粘贴 key 后点“保存”" />
+                <div class="hint">保存后会立刻清空输入框。页面不会展示密钥内容。</div>
+            </div>
+            <div class="log" id="setKeyDialogLog" style="margin-top: 12px;">准备就绪。</div>
+        </div>
+        <div class="dlg-footer">
+            <button class="btn secondary" id="setKeyDialogCancelBtn" type="button">取消</button>
+            <button class="btn" id="setKeyDialogSaveBtn" type="button">保存</button>
+        </div>
+    </dialog>
+
+    <script>
+        /***********************
+         * Provider Registry (keep compatible with your existing structure)
+         ***********************/
+        const AI_PROVIDERS = {
+            "siliconflow": {
+                name: "硅基流动 (SiliconFlow)",
+                keyName: "siliconflow_key",
+                baseUrl: "https://api.siliconflow.cn/v1",
+                models: [
+                    { id: "Qwen/Qwen3-VL-235B-A22B-Thinking", name: "Qwen 3 VL（Thinking）" },
+                    { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2（Thinking）" },
+                    { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B（Fast）" },
+                    { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+                    { id: "Pro/zai-org/GLM-4.7", name: "GLM-4.7" },
+                    { id: "Qwen/Qwen3-VL-32B-Thinking", name: "Qwen 3 VL 32B（Thinking）" }
+                ]
+            },
+            "openrouter": {
+                name: "OpenRouter",
+                keyName: "openrouter_key",
+                baseUrl: "https://openrouter.ai/api/v1",
+                models: [
+                    { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
+                    { id: "openai/gpt-5.2-chat", name: "GPT-5.2 Chat" },
+                    { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" },
+                    { id: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5" },
+                    { id: "nano banana pro", name: "Nano Banana Pro" }
+                ]
+            },
+            "deepseek": {
+                name: "DeepSeek Official",
+                keyName: "deepseek_key",
+                baseUrl: "https://api.deepseek.com",
+                models: [
+                    { id: "deepseek-chat", name: "DeepSeek V3" },
+                    { id: "deepseek-reasoner", name: "DeepSeek R1" }
+                ]
+            },
+            "custom": {
+                name: "自定义 / 本地（Ollama）",
+                keyName: "custom_key",
+                baseUrl: "http://localhost:11434/v1",
+                models: []
+            }
+        };
+
+        /***********************
+         * Protocol Storage Keys (no keys)
+         ***********************/
+        const KM_PROTOCOL_VERSION = "1";
+        const KM_PROTOCOL_VERSION_KEY = "km_protocol_version";
+        const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
+        const KM_PREFS_KEY = "km_prefs_v1";
+        const UI_THEME_KEY = "km_theme_mode_v1";
+
+        /***********************
+         * Runtime State (memory keys)
+         ***********************/
+        const memoryKeysByProviderId = {};
+
+        /***********************
+         * DOM
+         ***********************/
+        const storageModeSelect = document.getElementById("storageModeSelect");
+        const compatRow = document.getElementById("compatRow");
+        const compatWriteLocalCheckbox = document.getElementById("compatWriteLocalCheckbox");
+        const globalStatusLog = document.getElementById("globalStatusLog");
+        const providersContainer = document.getElementById("providersContainer");
+        const compatTableBody = document.getElementById("compatTableBody");
+        const protocolVersionText = document.getElementById("protocolVersionText");
+
+        const themeSelect = document.getElementById("themeSelect");
+
+        const exportConfigBtn = document.getElementById("exportConfigBtn");
+        const importConfigBtn = document.getElementById("importConfigBtn");
+        const clearAllBtn = document.getElementById("clearAllBtn");
+
+        const importDialog = document.getElementById("importDialog");
+        const closeImportDialogBtn = document.getElementById("closeImportDialogBtn");
+        const importFileInput = document.getElementById("importFileInput");
+        const importTextArea = document.getElementById("importTextArea");
+        const importPreviewLog = document.getElementById("importPreviewLog");
+        const importDryRunBtn = document.getElementById("importDryRunBtn");
+        const importApplyBtn = document.getElementById("importApplyBtn");
+
+        const setKeyDialog = document.getElementById("setKeyDialog");
+        const closeSetKeyDialogBtn = document.getElementById("closeSetKeyDialogBtn");
+        const setKeyDialogCancelBtn = document.getElementById("setKeyDialogCancelBtn");
+        const setKeyDialogSaveBtn = document.getElementById("setKeyDialogSaveBtn");
+        const setKeyDialogHint = document.getElementById("setKeyDialogHint");
+        const setKeyDialogLog = document.getElementById("setKeyDialogLog");
+        const keyInput = document.getElementById("keyInput");
+
+        let pendingSetKeyProviderId = null;
+
+        /***********************
+         * Helpers
+         ***********************/
+        function safeJsonParse(str) {
+            try { return { ok: true, value: JSON.parse(str) }; }
+            catch (e) { return { ok: false, error: String(e) }; }
+        }
+        function escapeHtml(str) {
+            return String(str)
+                .replaceAll("&", "&amp;").replaceAll("<", "&lt;").replaceAll(">", "&gt;")
+                .replaceAll('"', "&quot;").replaceAll("'", "&#039;");
+        }
+        function getProviderIds() { return Object.keys(AI_PROVIDERS); }
+        function getProvider(providerId) { return AI_PROVIDERS[providerId]; }
+        function providerKeyName(provider) { return provider.keyName || provider.key_name || ""; }
+        function providerBaseUrlDefault(provider) { return provider.baseUrl || provider.base_url || ""; }
+
+        function ensureProtocolVersionWritten() {
+            localStorage.setItem(KM_PROTOCOL_VERSION_KEY, KM_PROTOCOL_VERSION);
+            protocolVersionText.textContent = "v" + KM_PROTOCOL_VERSION;
+        }
+
+        function getPrefs() {
+            const raw = localStorage.getItem(KM_PREFS_KEY);
+            if (!raw) {
+                return {
+                    storage_mode: "local",
+                    also_write_localstorage_for_compat: true,
+                    default_provider_id: getProviderIds()[0] || ""
+                };
+            }
+            const parsed = safeJsonParse(raw);
+            if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") {
+                return {
+                    storage_mode: "local",
+                    also_write_localstorage_for_compat: true,
+                    default_provider_id: getProviderIds()[0] || ""
+                };
+            }
+            return {
+                storage_mode: parsed.value.storage_mode || "local",
+                also_write_localstorage_for_compat: (typeof parsed.value.also_write_localstorage_for_compat === "boolean")
+                    ? parsed.value.also_write_localstorage_for_compat
+                    : true,
+                default_provider_id: parsed.value.default_provider_id || (getProviderIds()[0] || "")
+            };
+        }
+        function setPrefs(nextPrefs) {
+            localStorage.setItem(KM_PREFS_KEY, JSON.stringify(nextPrefs, null, 2));
+        }
+        function getOverrides() {
+            const raw = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
+            if (!raw) return {};
+            const parsed = safeJsonParse(raw);
+            if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") return {};
+            return parsed.value;
+        }
+        function setOverrides(nextOverrides) {
+            localStorage.setItem(KM_PROVIDER_OVERRIDES_KEY, JSON.stringify(nextOverrides, null, 2));
+        }
+
+        function getStorageMode() { return storageModeSelect.value; }
+        function shouldAlsoWriteLocalCompat() { return compatWriteLocalCheckbox.checked; }
+
+        function getKeyFromLocal(keyName) { return localStorage.getItem(keyName); }
+        function getKeyFromSession(keyName) { return sessionStorage.getItem(keyName); }
+        function setKeyToLocal(keyName, keyValue) { localStorage.setItem(keyName, keyValue); }
+        function setKeyToSession(keyName, keyValue) { sessionStorage.setItem(keyName, keyValue); }
+        function removeKeyFromLocal(keyName) { localStorage.removeItem(keyName); }
+        function removeKeyFromSession(keyName) { sessionStorage.removeItem(keyName); }
+
+        function setEffectiveKey(providerId, keyName, keyValue) {
+            const mode = getStorageMode();
+            if (mode === "local") {
+                setKeyToLocal(keyName, keyValue);
+                return { wrote: ["localStorage"], notes: [] };
+            }
+            if (mode === "session") {
+                setKeyToSession(keyName, keyValue);
+                const wrote = ["sessionStorage"];
+                const notes = [];
+                if (shouldAlsoWriteLocalCompat()) {
+                    setKeyToLocal(keyName, keyValue);
+                    wrote.push("localStorage（兼容）");
+                } else {
+                    notes.push("已关闭兼容双写：旧工具可能读不到 key。");
+                }
+                return { wrote, notes };
+            }
+            memoryKeysByProviderId[providerId] = keyValue;
+            const wrote = ["memory"];
+            const notes = [];
+            if (shouldAlsoWriteLocalCompat()) {
+                setKeyToLocal(keyName, keyValue);
+                wrote.push("localStorage（兼容）");
+            } else {
+                notes.push("已关闭兼容双写：旧工具可能读不到 key。");
+            }
+            return { wrote, notes };
+        }
+        function clearEffectiveKey(providerId, keyName) {
+            removeKeyFromLocal(keyName);
+            removeKeyFromSession(keyName);
+            delete memoryKeysByProviderId[providerId];
+        }
+        function hasMemoryKey(providerId) { return Boolean(memoryKeysByProviderId[providerId]); }
+        function redactKeyForLog(keyValue) {
+            if (!keyValue) return "";
+            return `长度=${String(keyValue).length}`;
+        }
+
+        function renderCompatRowVisibility() {
+            const mode = getStorageMode();
+            compatRow.style.display = (mode === "local") ? "none" : "";
+        }
+
+        function pillHtml(ok) {
+            return ok ? `<span class="pill good">✅</span>` : `<span class="pill bad">❌</span>`;
+        }
+
+        /***********************
+         * Theme
+         ***********************/
+        function applyTheme(mode) {
+            if (mode === "light") document.documentElement.dataset.theme = "light";
+            else if (mode === "dark") document.documentElement.dataset.theme = "dark";
+            else delete document.documentElement.dataset.theme; // auto
+        }
+        function loadTheme() {
+            const mode = localStorage.getItem(UI_THEME_KEY) || "auto";
+            themeSelect.value = mode;
+            applyTheme(mode);
+        }
+        function saveTheme(mode) {
+            localStorage.setItem(UI_THEME_KEY, mode);
+            applyTheme(mode);
+        }
+
+        /***********************
+         * CORS Probe (no keys)
+         ***********************/
+        async function corsProbe(baseUrl, timeoutMs = 8000) {
+            const now = new Date().toISOString();
+            if (!baseUrl || typeof baseUrl !== "string" || !baseUrl.trim()) {
+                return { ok: false, kind: "用户输入错误", result: "空 URL", details: { now, baseUrl } };
+            }
+            let u;
+            try { u = new URL(baseUrl.trim()); }
+            catch (e) { return { ok: false, kind: "用户输入错误", result: "URL 无效", details: { now, baseUrl, error: String(e) } }; }
+
+            if (location.protocol === "https:" && u.protocol === "http:") {
+                return {
+                    ok: false,
+                    kind: "环境错误",
+                    result: "混合内容（https 页面不能访问 http）",
+                    details: { now, baseUrl, message: "请改用 https 的 base_url，或用 http 打开本页进行本地测试。" }
+                };
+            }
+            if (navigator.onLine === false) {
+                return { ok: false, kind: "环境错误", result: "离线", details: { now, baseUrl, message: "navigator.onLine=false" } };
+            }
+
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), timeoutMs);
+            try {
+                const resp = await fetch(baseUrl.trim(), { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
+                return {
+                    ok: true,
+                    kind: "OK",
+                    result: "CORS 可能已允许（能拿到响应）",
+                    details: { now, baseUrl, status: resp.status, statusText: resp.statusText }
+                };
+            } catch (e) {
+                const msg = String(e);
+                const aborted = msg.toLowerCase().includes("abort");
+                return {
+                    ok: false,
+                    kind: "环境错误",
+                    result: aborted ? "超时" : "可能被 CORS/网络拦截",
+                    details: { now, baseUrl, error: msg, hint: "可能是 CORS 拒绝、DNS 问题、网络限制或服务不可达。" }
+                };
+            } finally {
+                clearTimeout(timer);
+            }
+        }
+
+        /***********************
+         * Import / Export (no keys)
+         ***********************/
+        function buildExportPayload() {
+            const prefs = getPrefs();
+            const overrides = getOverrides();
+            return {
+                km_protocol_version: KM_PROTOCOL_VERSION,
+                exported_at: new Date().toISOString(),
+                prefs,
+                provider_overrides: overrides
+            };
+        }
+        function downloadJson(filename, obj) {
+            const json = JSON.stringify(obj, null, 2);
+            const blob = new Blob([json], { type: "application/json" });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement("a");
+            a.href = url; a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            URL.revokeObjectURL(url);
+        }
+        async function readFileAsText(file) {
+            return new Promise((resolve, reject) => {
+                const r = new FileReader();
+                r.onload = () => resolve(String(r.result || ""));
+                r.onerror = () => reject(r.error || new Error("FileReader error"));
+                r.readAsText(file);
+            });
+        }
+        function validateImportPayload(obj) {
+            if (!obj || typeof obj !== "object") return { ok: false, error: "导入内容不是 JSON 对象。" };
+            const provider_overrides = obj.provider_overrides;
+            const prefs = obj.prefs;
+            if (provider_overrides !== undefined && (typeof provider_overrides !== "object" || provider_overrides === null)) {
+                return { ok: false, error: "provider_overrides 必须是对象。" };
+            }
+            if (prefs !== undefined && (typeof prefs !== "object" || prefs === null)) {
+                return { ok: false, error: "prefs 必须是对象。" };
+            }
+            return { ok: true, normalized: { prefs: prefs || null, provider_overrides: provider_overrides || null } };
+        }
+
+        /***********************
+         * Rendering
+         ***********************/
+        function getEffectiveBaseUrl(providerId, provider, overrides) {
+            const o = overrides[providerId] || {};
+            return (o.base_url_override && String(o.base_url_override).trim())
+                ? String(o.base_url_override).trim()
+                : providerBaseUrlDefault(provider);
+        }
+        function getEffectiveModelId(providerId, provider, overrides) {
+            const o = overrides[providerId] || {};
+            if (o.model_id_override && String(o.model_id_override).trim()) return String(o.model_id_override).trim();
+            const presets = Array.isArray(provider.models) ? provider.models : [];
+            return presets.length ? presets[0].id : "";
+        }
+        function getCustomModels(providerId, overrides) {
+            const o = overrides[providerId] || {};
+            const arr = Array.isArray(o.custom_models) ? o.custom_models : [];
+            return arr
+                .filter(x => x && typeof x === "object" && x.id)
+                .map(x => ({ id: String(x.id), name: x.name ? String(x.name) : String(x.id) }));
+        }
+
+        function renderGlobalStatus() {
+            const prefs = getPrefs();
+            const overrides = getOverrides();
+            globalStatusLog.textContent =
+                `协议版本: v${KM_PROTOCOL_VERSION}\n` +
+                `主题: ${themeSelect.value}\n` +
+                `密钥存储位置: ${prefs.storage_mode}\n` +
+                `兼容旧工具（双写 localStorage）: ${prefs.also_write_localstorage_for_compat}\n` +
+                `Provider 数量: ${getProviderIds().length}\n` +
+                `配置覆盖（overrides）数量: ${Object.keys(overrides).length}\n` +
+                `时间: ${new Date().toLocaleString()}\n` +
+                `说明: 导入/导出不包含任何密钥。\n`;
+        }
+
+        function renderCompatTable() {
+            const rows = getProviderIds().map(pid => {
+                const p = getProvider(pid);
+                const keyName = providerKeyName(p);
+                const hasLocal = Boolean(getKeyFromLocal(keyName));
+                const hasSession = Boolean(getKeyFromSession(keyName));
+                const effectiveForOld = hasLocal;
+
+                const effectiveHtml = effectiveForOld
+                    ? `<span class="pill good">✅ 可用</span>`
+                    : `<span class="pill bad">❌ 缺失</span>
+               <button class="btn secondary" data-action="write-compat" data-provider-id="${escapeHtml(pid)}" style="margin-left:8px; padding:7px 9px; font-size:12px;">一键写入兼容 key</button>`;
+
+                return `
+            <tr>
+                <td><code>${escapeHtml(pid)}</code></td>
+                <td><code>${escapeHtml(keyName)}</code></td>
+                <td>${pillHtml(hasLocal)}</td>
+                <td>${pillHtml(hasSession)}</td>
+                <td>${effectiveHtml}</td>
+            </tr>
+        `;
+            }).join("");
+            compatTableBody.innerHTML = rows;
+
+            compatTableBody.querySelectorAll('button[data-action="write-compat"]').forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const pid = btn.getAttribute("data-provider-id");
+                    const provider = getProvider(pid);
+                    const keyName = providerKeyName(provider);
+
+                    const sessionKey = getKeyFromSession(keyName);
+                    const memoryKey = memoryKeysByProviderId[pid];
+
+                    if (sessionKey) { setKeyToLocal(keyName, sessionKey); refreshAll(); return; }
+                    if (memoryKey) { setKeyToLocal(keyName, memoryKey); refreshAll(); return; }
+
+                    alert("在 sessionStorage 或 memory 中没有可写入的 key。请先设置/更新密钥。");
+                });
+            });
+        }
+
+        function openSetKeyDialog(providerId) {
+            pendingSetKeyProviderId = providerId;
+            const provider = getProvider(providerId);
+            const keyName = providerKeyName(provider);
+            setKeyDialogHint.textContent = `平台：${provider.name || providerId} · keyName=${keyName} · 存储模式=${getStorageMode()}`;
+            setKeyDialogLog.textContent = "准备就绪：粘贴 key 后点“保存”。";
+            keyInput.value = "";
+            setKeyDialog.showModal();
+            setTimeout(() => keyInput.focus(), 50);
+        }
+        function closeSetKeyDialog() {
+            pendingSetKeyProviderId = null;
+            keyInput.value = "";
+            setKeyDialog.close();
+        }
+
+        function renderProviders() {
+            const overrides = getOverrides();
+
+            const cardsHtml = getProviderIds().map(pid => {
+                const provider = getProvider(pid);
+                const keyName = providerKeyName(provider);
+                const defaultBaseUrl = providerBaseUrlDefault(provider);
+                const effectiveBaseUrl = getEffectiveBaseUrl(pid, provider, overrides);
+
+                const hasLocal = Boolean(getKeyFromLocal(keyName));
+                const hasSession = Boolean(getKeyFromSession(keyName));
+                const hasMemory = hasMemoryKey(pid);
+
+                const customModels = getCustomModels(pid, overrides);
+                const presetModels = Array.isArray(provider.models) ? provider.models : [];
+                const modelChoices = [
+                    ...presetModels.map(m => ({ id: m.id, name: m.name || m.id, kind: "preset" })),
+                    ...customModels.map(m => ({ id: m.id, name: m.name || m.id, kind: "custom" })),
+                    { id: "__custom__", name: "手动输入模型 ID", kind: "special" }
+                ];
+
+                const effectiveModelId = getEffectiveModelId(pid, provider, overrides);
+
+                const modelOptionsHtml = modelChoices.map(m => {
+                    const label = m.kind === "custom" ? `${m.name}（自定义）` : m.name;
+                    const selected = (m.id !== "__custom__" && m.id === effectiveModelId) ? "selected" : "";
+                    return `<option value="${escapeHtml(m.id)}" ${selected}>${escapeHtml(label)}</option>`;
+                }).join("");
+
+                const baseUrlHint = (effectiveBaseUrl !== defaultBaseUrl)
+                    ? `<span class="pill warn">已覆盖</span>`
+                    : `<span class="pill">默认</span>`;
+
+                return `
+            <div class="card provider-card" style="margin-top:12px;">
+                <div class="provider-header">
+                    <div>
+                        <div class="provider-name">${escapeHtml(provider.name || pid)}</div>
+                        <div class="provider-meta">
+                            provider_id=<code>${escapeHtml(pid)}</code>
+                            · keyName=<code>${escapeHtml(keyName)}</code>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <span class="pill">local ${hasLocal ? "✅" : "❌"}</span>
+                        <span class="pill">session ${hasSession ? "✅" : "❌"}</span>
+                        <span class="pill">memory ${hasMemory ? "✅" : "❌"}</span>
+                    </div>
+                </div>
+
+                <div class="two-col">
+                    <div>
+                        <div class="field">
+                            <label>Base URL（预设 + 可覆盖） ${baseUrlHint}</label>
+                            <input type="text"
+                                   data-field="base-url"
+                                   data-provider-id="${escapeHtml(pid)}"
+                                   value="${escapeHtml(effectiveBaseUrl)}"
+                                   placeholder="${escapeHtml(defaultBaseUrl)}" />
+                            <div class="hint">更改后会保存到 <code>${KM_PROVIDER_OVERRIDES_KEY}</code>（不含密钥）。</div>
+                        </div>
+
+                        <div class="row" style="margin-top:10px;">
+                            <button class="btn" data-action="set-key" data-provider-id="${escapeHtml(pid)}" type="button">设置/更新密钥</button>
+                            <button class="btn secondary" data-action="clear-key" data-provider-id="${escapeHtml(pid)}" type="button">清除密钥</button>
+                            <button class="btn secondary" data-action="reset-provider" data-provider-id="${escapeHtml(pid)}" type="button">重置本平台配置</button>
+                        </div>
+
+                        <div class="hint" style="margin-top:10px;">
+                            旧工具读取方式：<code>localStorage["${escapeHtml(keyName)}"]</code>。<br />
+                            若你选了 session/memory 并关闭“兼容旧工具”，旧工具可能读不到 key。
+                        </div>
+                    </div>
+
+                    <div>
+                        <div class="field">
+                            <label>模型选择（预设 + 可覆盖）</label>
+                            <select data-field="model-preset" data-provider-id="${escapeHtml(pid)}">
+                                ${modelOptionsHtml}
+                            </select>
+
+                            <div style="height:10px;"></div>
+
+                            <label>模型 ID（真值输入框，工具调用以此为准）</label>
+                            <input type="text"
+                                   data-field="model-id"
+                                   data-provider-id="${escapeHtml(pid)}"
+                                   value="${escapeHtml(effectiveModelId)}"
+                                   placeholder="例如：deepseek-chat" />
+                            <div class="hint">原则：下拉框只是快捷填充，最终以此文本框为准。</div>
+                        </div>
+
+                        <details style="margin-top:10px;">
+                            <summary>自定义模型（把常用模型加入下拉框）</summary>
+                            <div class="hint" style="margin-top:8px;">
+                                添加后会进入上面的模型下拉框（仅配置，不含密钥）。
+                            </div>
+                            <div class="row" style="margin-top:10px;">
+                                <input type="text" data-field="custom-model-id" data-provider-id="${escapeHtml(pid)}" placeholder="模型 ID（必填）" />
+                                <input type="text" data-field="custom-model-name" data-provider-id="${escapeHtml(pid)}" placeholder="显示名称（可选）" />
+                                <button class="btn secondary" data-action="add-custom-model" data-provider-id="${escapeHtml(pid)}" type="button">添加</button>
+                            </div>
+                            <div class="mini" style="margin-top:10px;">
+                                当前自定义模型：${customModels.length ? customModels.map(m => `<code>${escapeHtml(m.id)}</code>`).join(" ") : "暂无"}
+                            </div>
+                        </details>
+
+                        <details style="margin-top:10px;">
+                            <summary>连通性体检（CORS 探测，不带密钥）</summary>
+                            <div class="hint" style="margin-top:8px;">
+                                说明：只要能拿到响应（即使 401/404），通常表示 CORS “可能可用”。
+                            </div>
+                            <div class="row" style="margin-top:10px;">
+                                <button class="btn secondary" data-action="cors-probe" data-provider-id="${escapeHtml(pid)}" type="button">开始探测</button>
+                            </div>
+                            <div class="log" data-field="cors-log" data-provider-id="${escapeHtml(pid)}" style="margin-top:10px;">尚未探测。</div>
+                        </details>
+                    </div>
+                </div>
+            </div>
+        `;
+            }).join("");
+
+            providersContainer.innerHTML = cardsHtml;
+
+            providersContainer.querySelectorAll('[data-action="set-key"]').forEach(btn => {
+                btn.addEventListener("click", () => openSetKeyDialog(btn.getAttribute("data-provider-id")));
+            });
+            providersContainer.querySelectorAll('[data-action="clear-key"]').forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const pid = btn.getAttribute("data-provider-id");
+                    const provider = getProvider(pid);
+                    clearEffectiveKey(pid, providerKeyName(provider));
+                    refreshAll();
+                });
+            });
+            providersContainer.querySelectorAll('[data-action="reset-provider"]').forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const pid = btn.getAttribute("data-provider-id");
+                    const overrides = getOverrides();
+                    delete overrides[pid];
+                    setOverrides(overrides);
+                    refreshAll();
+                });
+            });
+
+            providersContainer.querySelectorAll('input[data-field="base-url"]').forEach(input => {
+                input.addEventListener("change", () => {
+                    const pid = input.getAttribute("data-provider-id");
+                    const value = String(input.value || "").trim();
+                    const overrides = getOverrides();
+                    overrides[pid] = overrides[pid] || {};
+                    overrides[pid].base_url_override = value;
+                    setOverrides(overrides);
+                    refreshAll();
+                });
+            });
+
+            providersContainer.querySelectorAll('select[data-field="model-preset"]').forEach(sel => {
+                sel.addEventListener("change", () => {
+                    const pid = sel.getAttribute("data-provider-id");
+                    const chosen = sel.value;
+                    const modelIdInput = providersContainer.querySelector(`input[data-field="model-id"][data-provider-id="${CSS.escape(pid)}"]`);
+                    if (!modelIdInput) return;
+
+                    if (chosen === "__custom__") {
+                        modelIdInput.focus();
+                        modelIdInput.select();
+                        return;
+                    }
+                    modelIdInput.value = chosen;
+
+                    const overrides = getOverrides();
+                    overrides[pid] = overrides[pid] || {};
+                    overrides[pid].model_id_override = chosen;
+                    setOverrides(overrides);
+                    refreshAll();
+                });
+            });
+
+            providersContainer.querySelectorAll('input[data-field="model-id"]').forEach(input => {
+                input.addEventListener("change", () => {
+                    const pid = input.getAttribute("data-provider-id");
+                    const value = String(input.value || "").trim();
+                    const overrides = getOverrides();
+                    overrides[pid] = overrides[pid] || {};
+                    overrides[pid].model_id_override = value;
+                    setOverrides(overrides);
+                    refreshAll();
+                });
+            });
+
+            providersContainer.querySelectorAll('[data-action="add-custom-model"]').forEach(btn => {
+                btn.addEventListener("click", () => {
+                    const pid = btn.getAttribute("data-provider-id");
+                    const idInput = providersContainer.querySelector(`input[data-field="custom-model-id"][data-provider-id="${CSS.escape(pid)}"]`);
+                    const nameInput = providersContainer.querySelector(`input[data-field="custom-model-name"][data-provider-id="${CSS.escape(pid)}"]`);
+
+                    const idVal = String(idInput?.value || "").trim();
+                    const nameVal = String(nameInput?.value || "").trim();
+
+                    if (!idVal) { alert("模型 ID 是必填项。"); return; }
+
+                    const overrides = getOverrides();
+                    overrides[pid] = overrides[pid] || {};
+                    overrides[pid].custom_models = Array.isArray(overrides[pid].custom_models) ? overrides[pid].custom_models : [];
+
+                    const exists = overrides[pid].custom_models.some(m => m && m.id === idVal);
+                    if (!exists) overrides[pid].custom_models.push({ id: idVal, name: nameVal || idVal });
+
+                    setOverrides(overrides);
+                    if (idInput) idInput.value = "";
+                    if (nameInput) nameInput.value = "";
+                    refreshAll();
+                });
+            });
+
+            providersContainer.querySelectorAll('[data-action="cors-probe"]').forEach(btn => {
+                btn.addEventListener("click", async () => {
+                    const pid = btn.getAttribute("data-provider-id");
+                    const provider = getProvider(pid);
+                    const overrides = getOverrides();
+                    const baseUrl = getEffectiveBaseUrl(pid, provider, overrides);
+                    const logEl = providersContainer.querySelector(`[data-field="cors-log"][data-provider-id="${CSS.escape(pid)}"]`);
+                    if (!logEl) return;
+
+                    logEl.textContent = "探测中...";
+                    const result = await corsProbe(baseUrl, 8000);
+
+                    const advice = [];
+                    if (result.details?.message) advice.push(result.details.message);
+                    if (result.result.includes("CORS")) advice.push("如果 CORS 不通：工具侧应提供离线导入/粘贴替代方案。");
+
+                    logEl.textContent =
+                        `结论: ${result.result}\n` +
+                        `类型: ${result.kind}\n` +
+                        `base_url: ${baseUrl}\n` +
+                        `详情: ${JSON.stringify(result.details, null, 2)}\n` +
+                        (advice.length ? `建议: ${advice.join(" ")}` : "");
+                });
+            });
+        }
+
+        /***********************
+         * Import/Export UI
+         ***********************/
+        async function handleExport() {
+            const payload = buildExportPayload();
+            const filename = `key-manager-config-v${KM_PROTOCOL_VERSION}-${new Date().toISOString().slice(0, 19).replaceAll(":", "")}.json`;
+            downloadJson(filename, payload);
+        }
+        function openImportDialog() {
+            importPreviewLog.textContent = "等待输入...";
+            importTextArea.value = "";
+            importFileInput.value = "";
+            importDialog.showModal();
+        }
+        function closeImportDialog() { importDialog.close(); }
+
+        async function getImportCandidateText() {
+            const file = importFileInput.files && importFileInput.files[0];
+            if (file) return await readFileAsText(file);
+            return String(importTextArea.value || "").trim();
+        }
+        async function dryRunImport() {
+            const text = await getImportCandidateText();
+            if (!text) { importPreviewLog.textContent = "没有输入。"; return { ok: false }; }
+
+            const parsed = safeJsonParse(text);
+            if (!parsed.ok) { importPreviewLog.textContent = "JSON 解析失败：\n" + parsed.error; return { ok: false }; }
+
+            const validation = validateImportPayload(parsed.value);
+            if (!validation.ok) { importPreviewLog.textContent = "校验失败：\n" + validation.error; return { ok: false }; }
+
+            importPreviewLog.textContent =
+                "预览 OK（Dry Run）\n\n即将写入：\n" +
+                JSON.stringify(validation.normalized, null, 2) + "\n\n" +
+                "说明：不会导入任何密钥。";
+            return { ok: true, normalized: validation.normalized };
+        }
+        async function applyImport() {
+            const dry = await dryRunImport();
+            if (!dry.ok) return;
+
+            const { prefs, provider_overrides } = dry.normalized;
+
+            if (prefs) {
+                const current = getPrefs();
+                const next = {
+                    storage_mode: (prefs.storage_mode === "local" || prefs.storage_mode === "session" || prefs.storage_mode === "memory")
+                        ? prefs.storage_mode
+                        : current.storage_mode,
+                    also_write_localstorage_for_compat: (typeof prefs.also_write_localstorage_for_compat === "boolean")
+                        ? prefs.also_write_localstorage_for_compat
+                        : current.also_write_localstorage_for_compat,
+                    default_provider_id: (typeof prefs.default_provider_id === "string")
+                        ? prefs.default_provider_id
+                        : current.default_provider_id
+                };
+                setPrefs(next);
+            }
+
+            if (provider_overrides) {
+                const existing = getOverrides();
+                const merged = { ...existing, ...provider_overrides };
+                setOverrides(merged);
+            }
+
+            closeImportDialog();
+            loadPrefsIntoUi();
+            refreshAll();
+        }
+
+        function confirmAndClearAllKeys() {
+            const ok = confirm("这会清除所有平台的密钥（localStorage + sessionStorage + memory）。确定继续吗？");
+            if (!ok) return;
+
+            for (const pid of getProviderIds()) {
+                const p = getProvider(pid);
+                const keyName = providerKeyName(p);
+                removeKeyFromLocal(keyName);
+                removeKeyFromSession(keyName);
+                delete memoryKeysByProviderId[pid];
+            }
+            refreshAll();
+        }
+
+        /***********************
+         * Prefs <-> UI
+         ***********************/
+        function loadPrefsIntoUi() {
+            const prefs = getPrefs();
+            storageModeSelect.value = prefs.storage_mode;
+            compatWriteLocalCheckbox.checked = Boolean(prefs.also_write_localstorage_for_compat);
+            renderCompatRowVisibility();
+        }
+        function persistPrefsFromUi() {
+            const current = getPrefs();
+            const next = {
+                ...current,
+                storage_mode: getStorageMode(),
+                also_write_localstorage_for_compat: Boolean(compatWriteLocalCheckbox.checked)
+            };
+            setPrefs(next);
+        }
+
+        /***********************
+         * Refresh
+         ***********************/
+        function refreshAll() {
+            ensureProtocolVersionWritten();
+            persistPrefsFromUi();
+            renderGlobalStatus();
+            renderProviders();
+            renderCompatTable();
+        }
+
+        /***********************
+         * Bindings
+         ***********************/
+        themeSelect.addEventListener("change", () => saveTheme(themeSelect.value));
+
+        storageModeSelect.addEventListener("change", () => {
+            renderCompatRowVisibility();
+            persistPrefsFromUi();
+            refreshAll();
+        });
+        compatWriteLocalCheckbox.addEventListener("change", () => {
+            persistPrefsFromUi();
+            refreshAll();
+        });
+
+        exportConfigBtn.addEventListener("click", handleExport);
+        importConfigBtn.addEventListener("click", openImportDialog);
+        clearAllBtn.addEventListener("click", confirmAndClearAllKeys);
+
+        closeImportDialogBtn.addEventListener("click", closeImportDialog);
+        importDryRunBtn.addEventListener("click", dryRunImport);
+        importApplyBtn.addEventListener("click", applyImport);
+
+        closeSetKeyDialogBtn.addEventListener("click", closeSetKeyDialog);
+        setKeyDialogCancelBtn.addEventListener("click", closeSetKeyDialog);
+
+        setKeyDialogSaveBtn.addEventListener("click", () => {
+            const pid = pendingSetKeyProviderId;
+            if (!pid) return;
+
+            const provider = getProvider(pid);
+            const keyName = providerKeyName(provider);
+            const keyValue = String(keyInput.value || "").trim();
+
+            if (!keyValue) { setKeyDialogLog.textContent = "密钥为空，请粘贴有效 key。"; return; }
+
+            const writeRes = setEffectiveKey(pid, keyName, keyValue);
+
+            keyInput.value = "";
+            setKeyDialogLog.textContent =
+                `已保存：(${writeRes.wrote.join(", ")})\n` +
+                `存储键名：${keyName}\n` +
+                `密钥（脱敏）：${redactKeyForLog(keyValue)}\n` +
+                (writeRes.notes.length ? `备注：${writeRes.notes.join(" ")}` : "");
+
+            setTimeout(() => { closeSetKeyDialog(); refreshAll(); }, 350);
+        });
+
+        importFileInput.addEventListener("change", async () => {
+            try {
+                const file = importFileInput.files && importFileInput.files[0];
+                if (!file) return;
+                const text = await readFileAsText(file);
+                importTextArea.value = text;
+                await dryRunImport();
+            } catch (e) {
+                importPreviewLog.textContent = "读取文件失败：\n" + String(e);
+            }
+        });
+
+        /***********************
+         * Init
+         ***********************/
+        function init() {
+            ensureProtocolVersionWritten();
+            loadTheme();
+            loadPrefsIntoUi();
+            renderCompatRowVisibility();
+            refreshAll();
+        }
+        init();
+    </script>
+</body>
+
+</html>

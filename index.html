@@ -1,0 +1,565 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>我的工具箱</title>
+    <style>
+        :root {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --primary: #2563eb;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a;
+                --surface: #1e293b;
+                --primary: #3b82f6;
+                --text-main: #f1f5f9;
+                --text-sub: #94a3b8;
+                --border: #334155;
+            }
+        }
+
+        html[data-theme="light"] {
+            --bg: #f8fafc;
+            --surface: #ffffff;
+            --primary: #2563eb;
+            --text-main: #0f172a;
+            --text-sub: #64748b;
+            --border: #e2e8f0;
+        }
+
+        html[data-theme="dark"] {
+            --bg: #0f172a;
+            --surface: #1e293b;
+            --primary: #3b82f6;
+            --text-main: #f1f5f9;
+            --text-sub: #94a3b8;
+            --border: #334155;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text-main);
+            min-height: 100vh;
+            padding: 24px;
+        }
+
+        .container {
+            max-width: 1000px;
+            margin: 0 auto;
+        }
+
+        /* 头部 */
+        header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px solid var(--border);
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 2rem;
+        }
+
+        .logo h1 {
+            font-size: 1.5rem;
+            font-weight: 700;
+        }
+
+        .logo p {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn-icon {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-sub);
+            text-decoration: none;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-icon:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        /* 控制栏：搜索 + 分类 */
+        .controls {
+            display: flex;
+            gap: 16px;
+            margin-bottom: 24px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 200px;
+            position: relative;
+        }
+
+        .search-box input {
+            width: 100%;
+            padding: 12px 16px 12px 42px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            font-size: 0.95rem;
+            color: var(--text-main);
+            outline: none;
+        }
+
+        .search-box input:focus {
+            border-color: var(--primary);
+        }
+
+        .search-box input::placeholder {
+            color: var(--text-sub);
+        }
+
+        .search-icon {
+            position: absolute;
+            left: 14px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 1rem;
+            opacity: 0.5;
+        }
+
+        /* 分类 Tabs */
+        .category-tabs {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .tab {
+            padding: 8px 16px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            cursor: pointer;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .tab:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .tab.active {
+            background: var(--text-main);
+            color: var(--bg);
+            border-color: var(--text-main);
+        }
+
+        /* 工具网格 */
+        .tools-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 16px;
+        }
+
+        /* 工具卡片 */
+        .tool-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 20px;
+            text-decoration: none;
+            color: inherit;
+            transition: all 0.2s;
+            display: flex;
+            flex-direction: column;
+            min-height: 160px;
+        }
+
+        .tool-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.12);
+            border-color: var(--primary);
+        }
+
+        .tool-card.system {
+            border-style: dashed;
+        }
+
+        .tool-card.system:hover {
+            border-style: solid;
+        }
+
+        .card-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            margin-bottom: 12px;
+        }
+
+        .tool-icon {
+            font-size: 1.8rem;
+            background: var(--bg);
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+        }
+
+        .category-tag {
+            font-size: 0.7rem;
+            padding: 4px 10px;
+            background: var(--bg);
+            border-radius: 12px;
+            color: var(--text-sub);
+            font-weight: 500;
+        }
+
+        .category-tag.system {
+            background: #fef2f2;
+            color: #991b1b;
+        }
+
+        html[data-theme="dark"] .category-tag.system {
+            background: #450a0a;
+            color: #fca5a5;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            .category-tag.system {
+                background: #450a0a;
+                color: #fca5a5;
+            }
+        }
+
+        .tool-name {
+            font-weight: 700;
+            font-size: 1.05rem;
+            margin-bottom: 8px;
+        }
+
+        .tool-desc {
+            font-size: 0.85rem;
+            color: var(--text-sub);
+            line-height: 1.5;
+            flex: 1;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+
+        .tool-tags {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            margin-top: 12px;
+        }
+
+        .tag {
+            font-size: 0.7rem;
+            padding: 3px 8px;
+            background: var(--bg);
+            border-radius: 6px;
+            color: var(--text-sub);
+        }
+
+        /* 空状态 */
+        .empty-state {
+            text-align: center;
+            color: var(--text-sub);
+            padding: 60px 20px;
+            display: none;
+        }
+
+        .empty-state.show {
+            display: block;
+        }
+
+        /* 主题选择器 */
+        .theme-select {
+            padding: 6px 10px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            color: var(--text-main);
+            font-size: 0.85rem;
+            cursor: pointer;
+            outline: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🛠️</span>
+                <div>
+                    <h1>我的工具箱</h1>
+                    <p>单文件 HTML 工具集合</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <a href="key-manager.html" class="btn-icon">🔑 密钥管理</a>
+                <select class="theme-select" id="themeSelect" onchange="setTheme(this.value)">
+                    <option value="auto">🌓 跟随系统</option>
+                    <option value="light">☀️ 浅色</option>
+                    <option value="dark">🌙 深色</option>
+                </select>
+            </div>
+        </header>
+
+        <div class="controls">
+            <div class="search-box">
+                <span class="search-icon">🔍</span>
+                <input type="text" id="searchInput" placeholder="搜索工具..." oninput="renderTools()">
+            </div>
+            <div class="category-tabs" id="categoryTabs"></div>
+        </div>
+
+        <div class="tools-grid" id="toolsGrid"></div>
+        <div class="empty-state" id="emptyState">😕 没有找到匹配的工具</div>
+    </div>
+
+    <script>
+        /**
+         * ========================================
+         * 🔧 工具配置（在这里添加/删除工具）
+         * ========================================
+         * 添加新工具：复制一个对象，修改各字段即可
+         * 使用 tool-registrar.html 可以 AI 辅助生成配置
+         */
+        const TOOLS_CONFIG = [
+            // ===== 系统工具 =====
+            {
+                id: "key-manager",
+                name: "全局密钥管理器",
+                desc: "配置 OpenAI、Claude、DeepSeek 等 API Key，所有工具通用。",
+                icon: "🔐",
+                file: "key-manager.html",
+                category: "System",
+                tags: ["配置", "安全"]
+            },
+            {
+                id: "tool-registrar",
+                name: "工具注册助手",
+                desc: "利用 AI 自动生成标准化的工具配置代码，复制到首页即可添加新工具。",
+                icon: "📇",
+                file: "tool-registrar.html",
+                category: "System",
+                tags: ["配置", "AI生成"]
+            },
+
+            // ===== AI 工具 =====
+            {
+                id: "meta-system-architect",
+                name: "深度解码器",
+                desc: "洞悉底层逻辑，暴力拆解一切。深度萃取并重铸为代码、产品与知识体系。",
+                icon: "⚛️",
+                file: "jiagou.html",
+                category: "AI",
+                tags: ["架构", "转译"]
+            },
+            {
+                id: "prompt-architect",
+                name: "提示词架构师",
+                desc: "基于三层思维模型（诊断/设计/迭代）的深度提示词优化系统。",
+                icon: "🧬",
+                file: "prompt-architect.html",
+                category: "AI",
+                tags: ["prompt", "优化"]
+            },
+            {
+                id: "voice-ai",
+                name: "AI 语音助手",
+                desc: "Whisper 语音转文字 + 多模型智能对话（DeepSeek/Claude）。",
+                icon: "🎙️",
+                file: "voice.html",
+                category: "AI",
+                tags: ["语音", "对话"]
+            },
+            {
+                id: "ai-rewriter",
+                name: "AI 改写器",
+                desc: "文本改写、润色、翻译，支持多种 AI 模型。",
+                icon: "✍️",
+                file: "ai-rewriter.html",
+                category: "AI",
+                tags: ["文本", "改写"]
+            },
+            {
+                id: "fractal-engine",
+                name: "分形认知引擎",
+                desc: "将复杂概念递归拆解为自相似结构的深度学习工具。",
+                icon: "💠",
+                file: "fractal_engine_v5.2.html",
+                category: "AI",
+                tags: ["学习", "认知"]
+            },
+
+            // ===== 媒体工具 =====
+            {
+                id: "youtube-subs",
+                name: "YouTube 字幕提取",
+                desc: "双线路提取视频字幕，AI 整理生成中文笔记。",
+                icon: "📺",
+                file: "youtube-subs.html",
+                category: "Media",
+                tags: ["字幕", "视频"]
+            },
+
+            // ===== 实用工具 =====
+            {
+                id: "svg-tool",
+                name: "SVG 修复与打包",
+                desc: "自动修复 XML 语法错误，批量预览并打包为 ZIP。",
+                icon: "📊",
+                file: "svg-tool.html",
+                category: "Utility",
+                tags: ["SVG", "打包"]
+            },
+            {
+                id: "mirage-detector",
+                name: "商业幻觉检测器",
+                desc: "快速评估创业想法的可行性和风险。",
+                icon: "🎯",
+                file: "mirage.html",
+                category: "Utility",
+                tags: ["创业", "分析"]
+            }
+        ];
+
+        // ========================================
+        // 以下是渲染逻辑（一般无需修改）
+        // ========================================
+
+        let activeCategory = 'All';
+        const grid = document.getElementById('toolsGrid');
+        const tabsContainer = document.getElementById('categoryTabs');
+        const emptyState = document.getElementById('emptyState');
+
+        // 初始化分类 Tabs
+        function initTabs() {
+            const categories = ['All', ...new Set(TOOLS_CONFIG.map(t => t.category))];
+            tabsContainer.innerHTML = categories.map(cat => `
+        <div class="tab ${cat === 'All' ? 'active' : ''}" onclick="setCategory('${cat}')">
+            ${cat === 'All' ? '全部' : cat}
+        </div>
+    `).join('');
+        }
+
+        // 切换分类
+        function setCategory(cat) {
+            activeCategory = cat;
+            document.querySelectorAll('.tab').forEach(t => {
+                const tabCat = t.innerText.trim();
+                t.classList.toggle('active', tabCat === cat || (cat === 'All' && tabCat === '全部'));
+            });
+            renderTools();
+        }
+
+        // 渲染工具列表
+        function renderTools() {
+            const query = document.getElementById('searchInput').value.toLowerCase();
+
+            const filtered = TOOLS_CONFIG.filter(tool => {
+                const matchesSearch = tool.name.toLowerCase().includes(query) ||
+                    tool.desc.toLowerCase().includes(query) ||
+                    tool.tags.some(t => t.toLowerCase().includes(query));
+                const matchesCat = activeCategory === 'All' || tool.category === activeCategory;
+                return matchesSearch && matchesCat;
+            });
+
+            if (filtered.length === 0) {
+                grid.innerHTML = '';
+                emptyState.classList.add('show');
+                return;
+            }
+
+            emptyState.classList.remove('show');
+
+            grid.innerHTML = filtered.map(tool => `
+        <a href="${tool.file}" class="tool-card ${tool.category === 'System' ? 'system' : ''}">
+            <div class="card-header">
+                <span class="tool-icon">${tool.icon}</span>
+                <span class="category-tag ${tool.category === 'System' ? 'system' : ''}">${tool.category}</span>
+            </div>
+            <div class="tool-name">${tool.name}</div>
+            <div class="tool-desc">${tool.desc}</div>
+            <div class="tool-tags">
+                ${tool.tags.map(tag => `<span class="tag">${tag}</span>`).join('')}
+            </div>
+        </a>
+    `).join('');
+        }
+
+        // 主题管理
+        function loadTheme() {
+            const saved = localStorage.getItem('toolbox_theme') || 'auto';
+            document.getElementById('themeSelect').value = saved;
+            applyTheme(saved);
+        }
+
+        function setTheme(mode) {
+            localStorage.setItem('toolbox_theme', mode);
+            applyTheme(mode);
+        }
+
+        function applyTheme(mode) {
+            if (mode === 'auto') {
+                delete document.documentElement.dataset.theme;
+            } else {
+                document.documentElement.dataset.theme = mode;
+            }
+        }
+
+        // 启动
+        loadTheme();
+        initTabs();
+        renderTools();
+
+        // 暴露给全局
+        window.setCategory = setCategory;
+    </script>
+</body>
+
+</html>
