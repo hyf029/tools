@@ -2992,12 +2992,21 @@ ${hasProductPath ? '- 产品设计（路径 C）' : ''}
 [{"name":"示例","type":"tool","description":"描述","features":["功能1","功能2","功能3"],"techStack":"Python"}]`;
 
                     let fullResponse = '';
-                    await aiModule.call_ai({
+                    const result = await aiModule.call_ai({
                         messages: [{ role: 'user', content: recommendPrompt }],
                         onChunk: (chunk, full) => {
                             fullResponse = full;
                         }
                     });
+
+                    // 如果流式响应没有内容，尝试从结果中获取
+                    if (!fullResponse && result) {
+                        fullResponse = typeof result === 'string' ? result : (result.content || result.text || JSON.stringify(result));
+                    }
+
+                    if (!fullResponse) {
+                        throw new Error('AI 未返回任何内容');
+                    }
 
                     console.log('AI 推荐原始响应:', fullResponse);
 
@@ -3054,11 +3063,25 @@ ${hasProductPath ? '- 产品设计（路径 C）' : ''}
                     if (recommendations && Array.isArray(recommendations) && recommendations.length > 0) {
                         renderRecommendationCards(recommendations);
                     } else {
-                        throw new Error('无法解析 AI 推荐结果');
+                        console.error('AI 推荐解析失败，原始响应:', fullResponse);
+                        throw new Error('无法解析 AI 推荐结果，请查看控制台获取详情');
                     }
                 } catch (e) {
                     console.error('AI 推荐生成失败:', e);
-                    $('aiRecommendationsContainer').innerHTML = `<div class="pill bad">推荐生成失败，请直接在下方自定义填写</div>`;
+                    const errorMsg = e.message || '未知错误';
+                    const isNetworkError = errorMsg.includes('network') || errorMsg.includes('fetch') || errorMsg.includes('API');
+                    $('aiRecommendationsContainer').innerHTML = `
+                        <div style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(239, 68, 68, 0.05);">
+                            <div class="pill bad" style="margin-bottom: 8px;">推荐生成失败</div>
+                            <div style="font-size: 12px; opacity: 0.7; margin-bottom: 10px;">
+                                ${isNetworkError ? '⚠️ 网络或 API 配置问题' : '⚠️ AI 返回格式解析失败'}
+                            </div>
+                            <div style="display: flex; gap: 8px;">
+                                <button class="btn secondary" style="padding: 6px 12px; font-size: 12px;" onclick="generateAIRecommendations()">🔄 重试</button>
+                                <button class="btn secondary" style="padding: 6px 12px; font-size: 12px;" onclick="document.getElementById('customToolSection').style.display='block';document.getElementById('customProductSection') && (document.getElementById('customProductSection').style.display='block');">✏️ 手动填写</button>
+                            </div>
+                        </div>
+                    `;
                 }
             }
 
