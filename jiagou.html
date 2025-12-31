@@ -2960,13 +2960,43 @@ ${paths.includes('D') || paths.includes('E') ? `
                     return;
                 }
 
+                // 检查解构报告是否存在
+                if (!STATE.decodeReport || STATE.decodeReport.length < 100) {
+                    console.warn('AI 推荐跳过：解构报告为空或太短', STATE.decodeReport?.length || 0);
+                    $('aiRecommendationsSection').style.display = 'none';
+                    return;
+                }
+
                 $('aiRecommendationsSection').style.display = 'block';
                 $('aiRecommendationsContainer').innerHTML = '<div class="loading-spinner"></div> AI 正在分析可行的开发方向...';
                 $('aiRecommendationsGrid').style.display = 'none';
 
                 const state = aiModule.get_state();
+
+                // 完整的 AI 配置状态检查
+                const diagnostics = [];
                 if (!state.networking_enabled) {
-                    $('aiRecommendationsContainer').innerHTML = '<div class="pill bad">请先允许联网以获取 AI 推荐</div>';
+                    diagnostics.push('❌ 未勾选「允许联网」');
+                }
+                if (!state.model_id) {
+                    diagnostics.push('❌ 未选择 AI 模型');
+                }
+                if (state.key_status !== 'ok') {
+                    diagnostics.push('❌ API Key 未配置或无效');
+                }
+
+                if (diagnostics.length > 0) {
+                    $('aiRecommendationsContainer').innerHTML = `
+                        <div style="padding: 12px; border: 1px solid var(--border); border-radius: 8px; background: rgba(251, 191, 36, 0.1);">
+                            <div class="pill" style="background: #f59e0b; margin-bottom: 8px;">⚠️ AI 配置不完整</div>
+                            <div style="font-size: 13px; margin-bottom: 10px;">
+                                ${diagnostics.join('<br>')}
+                            </div>
+                            <div style="font-size: 12px; opacity: 0.7;">
+                                请在页面顶部「AI 设置」区域完成配置，或直接在下方手动填写。
+                            </div>
+                        </div>
+                    `;
                     return;
                 }
 
