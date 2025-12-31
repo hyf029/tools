@@ -395,6 +395,16 @@
 
         .stage-item.completed {
             color: var(--good);
+            cursor: pointer;
+        }
+
+        .stage-item.completed:hover {
+            background: color-mix(in srgb, var(--good) 10%, transparent);
+            transform: translateX(2px);
+        }
+
+        .stage-item.completed .stage-number {
+            background: color-mix(in srgb, var(--good) 20%, transparent);
         }
 
         .stage-item.locked {
@@ -2659,11 +2669,30 @@ ${paths.includes('D') || paths.includes('E') ? `
                 updateStageNav();
                 saveState();
 
-                // 阶段3特殊处理：渲染约束表单并生成 AI 推荐
+                // 阶段3特殊处理：渲染约束表单
                 if (stage === 3) {
                     renderConstraintsForm();
-                    generateAIRecommendations();
+                    // 只有当 AI 推荐区域为空或显示失败时才重新生成
+                    const container = $('aiRecommendationsContainer');
+                    const grid = $('aiRecommendationsGrid');
+                    const hasRecommendations = grid && grid.children.length > 0;
+                    if (!hasRecommendations) {
+                        generateAIRecommendations();
+                    }
                 }
+            }
+
+            // 初始化阶段导航点击事件
+            function initStageNav() {
+                $$('.stage-item').forEach(item => {
+                    item.addEventListener('click', () => {
+                        const stage = parseInt(item.dataset.stage);
+                        // 只能跳转到已完成的阶段（当前阶段之前的）
+                        if (stage < STATE.currentStage) {
+                            goToStage(stage);
+                        }
+                    });
+                });
             }
 
             // ==================== File Upload ====================
@@ -4075,6 +4104,7 @@ ${revisionText}
                 });
 
                 initFileUpload();
+                initStageNav();  // 初始化阶段导航点击
                 initStage1();
                 initStage2();
                 initStage3();
