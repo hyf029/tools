@@ -244,7 +244,12 @@
             <div class="col">
                 <div class="col-label">
                     <span>📄 英文原文</span>
-                    <span style="font-size:0.8rem; font-weight:normal; color:var(--text-sub)" id="wordCount"></span>
+                    <div style="display:flex; gap:10px; align-items:center;">
+                        <span style="font-size:0.8rem; font-weight:normal; color:var(--text-sub)" id="wordCount"></span>
+                        <button class="btn-copy" onclick="copyEnglish()"
+                            style="padding:4px 8px; font-size:0.8rem; background:#e5e7eb; color:#374151; border:none; border-radius:4px; cursor:pointer;">📋
+                            复制</button>
+                    </div>
                 </div>
                 <textarea id="englishOutput" readonly placeholder="提取结果将显示在这里..."></textarea>
             </div>
@@ -368,6 +373,17 @@
                 els.cnOut.innerHTML = `<div style='color:red; padding:20px;'>翻译出错: ${e.message}</div>`;
             } finally {
                 setLoading(false, "translate");
+            }
+        }
+
+        async function copyEnglish() {
+            const text = els.enOut.value;
+            if (!text) return showStatus("❌ 暂无内容可复制", "error");
+            try {
+                await navigator.clipboard.writeText(text);
+                showStatus("✅ 已复制到剪贴板", "success");
+            } catch (err) {
+                showStatus("❌ 复制失败: " + err, "error");
             }
         }
 
