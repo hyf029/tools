@@ -78,6 +78,38 @@
             margin-bottom: 0.25em;
         }
 
+        /* 修复移动端代码块溢出 */
+        .markdown-body pre {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            /* 关键修复 */
+            margin: 1em 0;
+        }
+
+        .markdown-body code {
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            background-color: #f1f5f9;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #db2777;
+        }
+
+        .markdown-body pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+
+        .markdown-body img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 8px;
+        }
+
         .custom-scrollbar::-webkit-scrollbar {
             width: 4px;
         }
