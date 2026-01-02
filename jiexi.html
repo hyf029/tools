@@ -808,268 +808,396 @@
                 copyToClipboard(md, `${agent.title} 已复制到剪贴板`);
             }
 
-            // 单项下载 PDF
-            function downloadSinglePDF(agentId) {
-                const agent = AGENTS.find(a => a.id === agentId);
-                if (!resultsStore[agentId]) return alert("该项无数据");
-                const el = document.getElementById(`content-${agentId}`);
-                const opt = {
-                    margin: 10,
-                    filename: `${agent.title.replace(/[^\w\u4e00-\u9fa5]/g, '')}_${new Date().toISOString().slice(0, 10)}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-                html2pdf().set(opt).from(el).save();
+            // 打印 (Virtual Print) 通用函数
+            function printContent(title, htmlContent) {
+                // 创建隐藏 iframe
+                const iframe = document.createElement('iframe');
+                iframe.style.position = 'fixed';
+                iframe.style.right = '0';
+                iframe.style.bottom = '0';
+                iframe.style.width = '0';
+                iframe.style.height = '0';
+                iframe.style.border = '0';
+                document.body.appendChild(iframe);
+
+                const doc = iframe.contentWindow.document;
+                doc.open();
+                doc.write(`
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>${title}</title>
+                        <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @media print {
+            @page {
+                margin: 20mm;
+                size: A4;
             }
 
-            // 批量复制 MD
-            function copyAllMD() {
-                if (Object.keys(resultsStore).length === 0) return alert("无数据");
-                let md = "# 全维深度解析报告\n\n";
-                AGENTS.forEach(a => {
-                    if (resultsStore[a.id]) {
-                        md += `## ${a.icon} ${a.title}\n\n${resultsStore[a.id]}\n\n---\n\n`;
-                    }
-                });
-                copyToClipboard(md, "全部结果已复制到剪贴板");
+            body {
+                -webkit-print-color-adjust: exact;
+                print-color-adjust: exact;
             }
+        }
 
-            // 批量下载 PDF
-            function downloadAllPDF() {
-                if (Object.keys(resultsStore).length === 0) return alert("无数据");
+        body {
+            font-family: ui-sans-serif, system-ui, -apple-system, sans-serif;
+        }
 
-                // 创建临时容器
-                const container = document.createElement('div');
-                container.style.padding = '20px';
-                container.style.fontFamily = 'sans-serif';
-                container.innerHTML = `<h1 style="font-size:24px;margin-bottom:20px;color:#1e293b;">全维深度解析报告</h1>`;
+        .markdown-body {
+            font-size: 14px;
+            line-height: 1.6;
+            color: #334155;
+        }
 
-                AGENTS.forEach(a => {
-                    if (resultsStore[a.id]) {
-                        container.innerHTML += `
-                            <div style="margin-bottom:30px;page-break-inside:avoid;">
-                                <h2 style="font-size:16px;color:#334155;border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:12px;">
-                                    ${a.icon} ${a.title}
-                                </h2>
-                                <div style="font-size:13px;line-height:1.7;color:#475569;">${marked.parse(resultsStore[a.id])}</div>
-                            </div>`;
-                    }
-                });
+        .markdown-body h1 {
+            font-size: 2em;
+            font-weight: 800;
+            color: #0f172a;
+            margin: 1.5em 0 0.8em;
+        }
 
-                const opt = {
-                    margin: 10,
-                    filename: `全维解析报告_${new Date().toISOString().slice(0, 10)}.pdf`,
-                    image: { type: 'jpeg', quality: 0.98 },
-                    html2canvas: { scale: 2 },
-                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                };
-                html2pdf().set(opt).from(container).save();
-            }
+        .markdown-body h2 {
+            font-size: 1.4em;
+            font-weight: 700;
+            color: #1e293b;
+            margin: 1.2em 0 0.6em;
+            border-bottom: 1px solid #e2e8f0;
+            padding-bottom: 0.3em;
+        }
 
-            // 旧版导出（保留兼容）
-            function exportReport() {
-                if (Object.keys(resultsStore).length === 0) return alert("无数据");
-                let md = "# 全维深度解析报告 (v6.0)\n\n";
-                AGENTS.forEach(a => {
-                    if (resultsStore[a.id]) {
-                        md += `## ${a.icon} ${a.title}\n\n${resultsStore[a.id]}\n\n---\n\n`;
-                    }
-                });
-                const blob = new Blob([md], { type: 'text/markdown' });
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url; a.download = `Insight_Report_v6_${new Date().toISOString().slice(0, 10)}.md`;
-                a.click();
-            }
+        .markdown-body h3 {
+            font-size: 1.1em;
+            font-weight: 700;
+            color: #334155;
+            margin: 1em 0 0.5em;
+        }
 
-            // 沉浸阅读模式逻辑
-            function openReader(agentId) {
-                const agent = AGENTS.find(a => a.id === agentId);
-                if (!resultsStore[agentId]) return alert("该项无数据");
+        .markdown-body p {
+            margin-bottom: 1em;
+            text-align: justify;
+        }
 
-                const modal = document.getElementById('reading-modal');
-                const container = document.getElementById('reader-content');
+        .markdown-body ul,
+        .markdown-body ol {
+            padding-left: 1.5em;
+            margin-bottom: 1em;
+            list-style-type: disc;
+        }
 
-                // 渲染内容
-                container.innerHTML = `
+        .markdown-body li {
+            margin-bottom: 0.25em;
+        }
+
+        .markdown-body pre {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1em 0;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        .markdown-body code {
+            background-color: #f1f5f9;
+            color: #db2777;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-family: monospace;
+            font-size: 0.9em;
+        }
+
+        .markdown-body blockquote {
+            border-left: 4px solid #6366f1;
+            background: #f8fafc;
+            padding: 0.5em 1em;
+            margin: 1em 0;
+            color: #475569;
+            font-style: italic;
+        }
+
+        .markdown-body strong {
+            color: #1e40af;
+            font-weight: 700;
+        }
+    </style>
+    </head>
+
+    <body class="p-10">
+        <div class="mb-8 border-b border-slate-200 pb-4">
+            <h1 class="text-3xl font-extrabold text-slate-900">${title}</h1>
+            <p class="text-sm text-slate-500 mt-2">Generated by 全维深度解析器 (Jiexi v6.0)</p>
+        </div>
+        <div class="markdown-body">
+            ${htmlContent}
+        </div>
+        <script>
+                            window.onload = () => {
+                                // 给予一点时间让 Tailwind 解析样式
+                                setTimeout(() => {
+                                    window.print();
+                                    // 打印对话框关闭后并不一定能立即移除 iframe，暂且保留或长延时清理
+                                }, 800);
+                            }
+                        <\/script>
+                    </body>
+                    </html>
+                `);
+                    doc.close();
+
+                    // 清理 iframe (1分钟后)
+                    setTimeout(() => document.body.removeChild(iframe), 60000);
+                }
+
+                // 单项下载 PDF (使用原生打印)
+                function downloadSinglePDF(agentId) {
+                    const agent = AGENTS.find(a => a.id === agentId);
+                    if (!resultsStore[agentId]) return alert("该项无数据");
+                    const html = marked.parse(resultsStore[agentId]);
+                    const title = `${agent.icon} ${agent.title}`;
+                    printContent(title, html);
+                }
+
+                // 批量复制 MD
+                function copyAllMD() {
+                    if (Object.keys(resultsStore).length === 0) return alert("无数据");
+                    let md = "# 全维深度解析报告\n\n";
+                    AGENTS.forEach(a => {
+                        if (resultsStore[a.id]) {
+                            md += `## ${a.icon} ${a.title}\n\n${resultsStore[a.id]}\n\n---\n\n`;
+                        }
+                    });
+                    copyToClipboard(md, "全部结果已复制到剪贴板");
+                }
+
+                // 批量下载 PDF (使用原生打印)
+                function downloadAllPDF() {
+                    if (Object.keys(resultsStore).length === 0) return alert("无数据");
+
+                    let combinedHtml = "";
+                    AGENTS.forEach(a => {
+                        if (resultsStore[a.id]) {
+                            combinedHtml += `
+                            <div style="margin-bottom: 40px; page-break-inside: avoid;">
+                                <h2>${a.icon} ${a.title}</h2>
+                                <div class="text-xs text-slate-400 mb-4">Stage ${a.stage}</div>
+                                ${marked.parse(resultsStore[a.id])}
+                            </div>
+                            <hr style="margin: 30px 0; border-color: #e2e8f0; border-style: dashed;">
+                        `;
+                        }
+                    });
+
+                    printContent(`全维解析报告_${new Date().toISOString().slice(0, 10)}`, combinedHtml);
+                }
+
+                // 旧版导出（保留兼容）
+                function exportReport() {
+                    if (Object.keys(resultsStore).length === 0) return alert("无数据");
+                    let md = "# 全维深度解析报告 (v6.0)\n\n";
+                    AGENTS.forEach(a => {
+                        if (resultsStore[a.id]) {
+                            md += `## ${a.icon} ${a.title}\n\n${resultsStore[a.id]}\n\n---\n\n`;
+                        }
+                    });
+                    const blob = new Blob([md], { type: 'text/markdown' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url; a.download = `Insight_Report_v6_${new Date().toISOString().slice(0, 10)}.md`;
+                    a.click();
+                }
+
+                // 沉浸阅读模式逻辑
+                function openReader(agentId) {
+                    const agent = AGENTS.find(a => a.id === agentId);
+                    if (!resultsStore[agentId]) return alert("该项无数据");
+
+                    const modal = document.getElementById('reading-modal');
+                    const container = document.getElementById('reader-content');
+
+                    // 渲染内容
+                    container.innerHTML = `
                     <h1>${agent.icon} ${agent.title}</h1>
                     <div class="text-slate-500 text-sm mb-8 font-mono">Stage ${agent.stage}: ${STAGE_TITLES[agent.stage].name}</div>
                     ${marked.parse(resultsStore[agentId])}
                 `;
 
-                // 显示 Modal
-                modal.classList.remove('hidden');
-                document.body.style.overflow = 'hidden'; // 锁定背景滚动
-            }
-
-            function closeReader() {
-                const modal = document.getElementById('reading-modal');
-                modal.classList.add('hidden');
-                document.body.style.overflow = ''; // 恢复背景滚动
-            }
-
-            // === 文件处理逻辑 ===
-            async function handleFileUpload(file) {
-                if (!file) return;
-
-                const btn = document.querySelector('button[onclick*="file-upload"]');
-                const originalText = btn.innerHTML;
-                btn.innerHTML = `<span class="loader" style="width:12px;height:12px;border-width:2px;"></span> 解析中...`;
-                btn.disabled = true;
-
-                try {
-                    let text = "";
-                    if (file.type === "application/pdf") {
-                        text = await parsePDF(file);
-                    } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
-                        text = await parseDOCX(file);
-                    } else if (file.type === "text/plain") {
-                        text = await file.text();
-                    } else {
-                        throw new Error("不支持的文件格式 (仅支持 PDF, DOCX, TXT)");
-                    }
-
-                    if (!text.trim()) throw new Error("无法从文件中提取文本");
-
-                    // 填入输入框
-                    const textarea = document.getElementById('input-text');
-                    const separator = textarea.value.trim() ? "\n\n--- [Uploaded File Content] ---\n\n" : "";
-                    textarea.value += separator + text;
-
-                    // 闪烁提示
-                    textarea.classList.add('bg-indigo-50');
-                    setTimeout(() => textarea.classList.remove('bg-indigo-50'), 500);
-
-                } catch (e) {
-                    console.error(e);
-                    alert("文件解析失败: " + e.message);
-                } finally {
-                    btn.innerHTML = originalText;
-                    btn.disabled = false;
-                    document.getElementById('file-upload').value = ''; // 重置 file input
+                    // 显示 Modal
+                    modal.classList.remove('hidden');
+                    document.body.style.overflow = 'hidden'; // 锁定背景滚动
                 }
-            }
 
-            async function parsePDF(file) {
-                const arrayBuffer = await file.arrayBuffer();
-                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
-                let fullText = "";
-
-                for (let i = 1; i <= pdf.numPages; i++) {
-                    const page = await pdf.getPage(i);
-                    const textContent = await page.getTextContent();
-                    const pageText = textContent.items.map(item => item.str).join(' ');
-                    fullText += pageText + "\n\n";
+                function closeReader() {
+                    const modal = document.getElementById('reading-modal');
+                    modal.classList.add('hidden');
+                    document.body.style.overflow = ''; // 恢复背景滚动
                 }
-                return fullText;
-            }
 
-            async function parseDOCX(file) {
-                const arrayBuffer = await file.arrayBuffer();
-                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
-                return result.value;
-            }
+                // === 文件处理逻辑 ===
+                async function handleFileUpload(file) {
+                    if (!file) return;
 
-            // 统一 Prompt 构建逻辑
-            function constructMessages(agent, rawText, store) {
-                let systemPrompt = agent.prompt;
+                    const btn = document.querySelector('button[onclick*="file-upload"]');
+                    const originalText = btn.innerHTML;
+                    btn.innerHTML = `<span class="loader" style="width:12px;height:12px;border-width:2px;"></span> 解析中...`;
+                    btn.disabled = true;
 
-                // 动态 Context 注入
-                if (agent.contextPrompt) {
-                    const missingDeps = (agent.dependency || []).filter(d => !store[d]);
+                    try {
+                        let text = "";
+                        if (file.type === "application/pdf") {
+                            text = await parsePDF(file);
+                        } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+                            text = await parseDOCX(file);
+                        } else if (file.type === "text/plain") {
+                            text = await file.text();
+                        } else {
+                            throw new Error("不支持的文件格式 (仅支持 PDF, DOCX, TXT)");
+                        }
 
-                    if (missingDeps.length === 0) {
-                        // 依赖全齐
-                        const contextInstruction = agent.contextPrompt(store);
-                        systemPrompt = `${agent.prompt}\n\n=== 上下文注入 (CONTEXT INJECTION) ===\n${contextInstruction}`;
-                    } else {
-                        // 依赖缺失
-                        systemPrompt += `\n\n(注意：上游分析缺失，请仅基于原始素材进行分析)`;
+                        if (!text.trim()) throw new Error("无法从文件中提取文本");
+
+                        // 填入输入框
+                        const textarea = document.getElementById('input-text');
+                        const separator = textarea.value.trim() ? "\n\n--- [Uploaded File Content] ---\n\n" : "";
+                        textarea.value += separator + text;
+
+                        // 闪烁提示
+                        textarea.classList.add('bg-indigo-50');
+                        setTimeout(() => textarea.classList.remove('bg-indigo-50'), 500);
+
+                    } catch (e) {
+                        console.error(e);
+                        alert("文件解析失败: " + e.message);
+                    } finally {
+                        btn.innerHTML = originalText;
+                        btn.disabled = false;
+                        document.getElementById('file-upload').value = ''; // 重置 file input
                     }
                 }
 
-                return [
-                    { role: "system", content: systemPrompt },
-                    { role: "user", content: `原始素材 (Raw Material):\n"""\n${rawText}\n"""` }
-                ];
-            }
+                async function parsePDF(file) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                    let fullText = "";
 
-            // 单点重试逻辑
-            async function retryAgent(agentId) {
-                const agent = AGENTS.find(a => a.id === agentId);
-                if (!agent) return;
-
-                // 检查依赖
-                const missingDeps = (agent.dependency || []).filter(depId => !resultsStore[depId]);
-                if (missingDeps.length > 0) {
-                    return alert(`前置依赖未就绪: ${missingDeps.join(', ')}。请先运行上游 Stage。`);
+                    for (let i = 1; i <= pdf.numPages; i++) {
+                        const page = await pdf.getPage(i);
+                        const textContent = await page.getTextContent();
+                        const pageText = textContent.items.map(item => item.str).join(' ');
+                        fullText += pageText + "\n\n";
+                    }
+                    return fullText;
                 }
 
-                const rawText = document.getElementById('input-text').value;
-                if (!rawText.trim()) return alert("请输入原始素材");
-
-                const statusEl = document.getElementById(`status-${agentId}`);
-                const contentEl = document.getElementById(`content-${agentId}`);
-
-                // UI Loading
-                statusEl.innerHTML = `<span class="loader" style="width:10px;height:10px;"></span> 重新思考中...`;
-                statusEl.className = "text-xs font-mono text-indigo-600 font-bold mb-2 animate-pulse";
-                contentEl.classList.add("opacity-50");
-
-                try {
-                    // 使用统一逻辑构建消息
-                    const messages = constructMessages(agent, rawText, resultsStore);
-
-                    // 调用 AI
-                    const output = await ai.call(messages);
-
-                    // 更新结果
-                    resultsStore[agentId] = output;
-                    updateContent(agentId, output);
-                    statusEl.innerHTML = `✅ 已重试 (${new Date().toLocaleTimeString()})`;
-                    statusEl.className = "text-[10px] font-mono text-green-600 mb-2";
-
-                } catch (e) {
-                    console.error(e);
-                    statusEl.innerHTML = `❌ 重试失败: ${e.message}`;
-                    statusEl.className = "text-[10px] font-mono text-red-500 mb-2";
-                } finally {
-                    contentEl.classList.remove("opacity-50");
+                async function parseDOCX(file) {
+                    const arrayBuffer = await file.arrayBuffer();
+                    const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                    return result.value;
                 }
-            }
 
-            // ESC 关闭监听
-            document.addEventListener('keydown', (e) => {
-                if (e.key === 'Escape') closeReader();
-            });
+                // 统一 Prompt 构建逻辑
+                function constructMessages(agent, rawText, store) {
+                    let systemPrompt = agent.prompt;
 
-            return { init, runPipeline, exportReport, copySingleMD, downloadSinglePDF, copyAllMD, downloadAllPDF, openReader, closeReader, handleFileUpload, retryAgent };
-        })();
+                    // 动态 Context 注入
+                    if (agent.contextPrompt) {
+                        const missingDeps = (agent.dependency || []).filter(d => !store[d]);
 
-        window.onload = app.init;
-    </script>
-    <!-- 沉浸阅读模态框 -->
-    <div id="reading-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/98">
-        <div class="w-full h-full max-w-3xl mx-auto flex flex-col relative">
-            <!-- 顶部工具栏 -->
-            <div class="flex justify-end p-4 md:p-6 absolute top-0 right-0 z-10">
-                <button onclick="app.closeReader()"
-                    class="text-slate-400 hover:text-slate-800 transition-colors p-2 rounded-full hover:bg-slate-100">
-                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
-                        </path>
-                    </svg>
-                </button>
-            </div>
-            <!-- 阅读容器 -->
-            <div class="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-12 py-16 md:py-24">
-                <div id="reader-content" class="prose-focus mx-auto">
-                    <!-- 内容动态注入 -->
+                        if (missingDeps.length === 0) {
+                            // 依赖全齐
+                            const contextInstruction = agent.contextPrompt(store);
+                            systemPrompt = `${agent.prompt}\n\n=== 上下文注入 (CONTEXT INJECTION) ===\n${contextInstruction}`;
+                        } else {
+                            // 依赖缺失
+                            systemPrompt += `\n\n(注意：上游分析缺失，请仅基于原始素材进行分析)`;
+                        }
+                    }
+
+                    return [
+                        { role: "system", content: systemPrompt },
+                        { role: "user", content: `原始素材 (Raw Material):\n"""\n${rawText}\n"""` }
+                    ];
+                }
+
+                // 单点重试逻辑
+                async function retryAgent(agentId) {
+                    const agent = AGENTS.find(a => a.id === agentId);
+                    if (!agent) return;
+
+                    // 检查依赖
+                    const missingDeps = (agent.dependency || []).filter(depId => !resultsStore[depId]);
+                    if (missingDeps.length > 0) {
+                        return alert(`前置依赖未就绪: ${missingDeps.join(', ')}。请先运行上游 Stage。`);
+                    }
+
+                    const rawText = document.getElementById('input-text').value;
+                    if (!rawText.trim()) return alert("请输入原始素材");
+
+                    const statusEl = document.getElementById(`status-${agentId}`);
+                    const contentEl = document.getElementById(`content-${agentId}`);
+
+                    // UI Loading
+                    statusEl.innerHTML = `<span class="loader" style="width:10px;height:10px;"></span> 重新思考中...`;
+                    statusEl.className = "text-xs font-mono text-indigo-600 font-bold mb-2 animate-pulse";
+                    contentEl.classList.add("opacity-50");
+
+                    try {
+                        // 使用统一逻辑构建消息
+                        const messages = constructMessages(agent, rawText, resultsStore);
+
+                        // 调用 AI
+                        const output = await ai.call(messages);
+
+                        // 更新结果
+                        resultsStore[agentId] = output;
+                        updateContent(agentId, output);
+                        statusEl.innerHTML = `✅ 已重试 (${new Date().toLocaleTimeString()})`;
+                        statusEl.className = "text-[10px] font-mono text-green-600 mb-2";
+
+                    } catch (e) {
+                        console.error(e);
+                        statusEl.innerHTML = `❌ 重试失败: ${e.message}`;
+                        statusEl.className = "text-[10px] font-mono text-red-500 mb-2";
+                    } finally {
+                        contentEl.classList.remove("opacity-50");
+                    }
+                }
+
+                // ESC 关闭监听
+                document.addEventListener('keydown', (e) => {
+                    if (e.key === 'Escape') closeReader();
+                });
+
+                return { init, runPipeline, exportReport, copySingleMD, downloadSinglePDF, copyAllMD, downloadAllPDF, openReader, closeReader, handleFileUpload, retryAgent };
+            })();
+
+            window.onload = app.init;
+        </script>
+        <!-- 沉浸阅读模态框 -->
+        <div id="reading-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/98">
+            <div class="w-full h-full max-w-3xl mx-auto flex flex-col relative">
+                <!-- 顶部工具栏 -->
+                <div class="flex justify-end p-4 md:p-6 absolute top-0 right-0 z-10">
+                    <button onclick="app.closeReader()"
+                        class="text-slate-400 hover:text-slate-800 transition-colors p-2 rounded-full hover:bg-slate-100">
+                        <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                                d="M6 18L18 6M6 6l12 12">
+                            </path>
+                        </svg>
+                    </button>
+                </div>
+                <!-- 阅读容器 -->
+                <div class="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-12 py-16 md:py-24">
+                    <div id="reader-content" class="prose-focus mx-auto">
+                        <!-- 内容动态注入 -->
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-</body>
+    </body>
 
 </html>
