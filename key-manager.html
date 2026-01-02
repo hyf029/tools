@@ -1078,7 +1078,15 @@
             if (prefs !== undefined && (typeof prefs !== "object" || prefs === null)) {
                 return { ok: false, error: "prefs 必须是对象。" };
             }
-            return { ok: true, normalized: { prefs: prefs || null, provider_overrides: provider_overrides || null } };
+            return {
+                ok: true,
+                normalized: {
+                    prefs: prefs || null,
+                    provider_overrides: provider_overrides || null,
+                    contains_encrypted_keys: Boolean(obj.contains_encrypted_keys),
+                    encrypted_keys_payload: obj.encrypted_keys_payload || null
+                }
+            };
         }
 
         /***********************
