@@ -5,6 +5,13 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>一风的数字兵器库</title>
+    <!-- PWA Support -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#2563eb">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="数字兵器库">
+    <link rel="apple-touch-icon" href="icon-192.png">
     <style>
         :root {
             --bg: #f8fafc;
@@ -325,6 +332,23 @@
             cursor: pointer;
             outline: none;
         }
+
+        /* 视图切换按钮 */
+        .view-toggle {
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .view-toggle {
+                display: flex;
+            }
+        }
+
+        .view-toggle.desktop-mode {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
     </style>
 </head>
 
@@ -343,6 +367,12 @@
                 </div>
             </div>
             <div class="header-actions">
+                <button class="btn-icon view-toggle" id="viewToggle" onclick="toggleViewMode()">
+                    💻 桌面版
+                </button>
+                <button class="btn-icon" id="installBtn" onclick="PWAInstall.prompt()" style="display:none;">
+                    📲 安装
+                </button>
                 <a href="key-manager.html" class="btn-icon">🔑 密钥管理</a>
                 <select class="theme-select" id="themeSelect" onchange="setTheme(this.value)">
                     <option value="auto">🌓 跟随系统</option>
@@ -590,6 +620,87 @@
 
         // 暴露给全局
         window.setCategory = setCategory;
+
+        // ==================== 视图模式切换 ====================
+        const ViewMode = {
+            VIEWPORT_MOBILE: 'width=device-width, initial-scale=1.0',
+            VIEWPORT_DESKTOP: 'width=1024',
+
+            init() {
+                const saved = sessionStorage.getItem('viewMode');
+                if (saved === 'desktop') this.setDesktop();
+                this.updateButton();
+            },
+
+            toggle() {
+                const current = sessionStorage.getItem('viewMode');
+                if (current === 'desktop') {
+                    this.setMobile();
+                } else {
+                    this.setDesktop();
+                }
+            },
+
+            setDesktop() {
+                document.querySelector('meta[name="viewport"]').content = this.VIEWPORT_DESKTOP;
+                sessionStorage.setItem('viewMode', 'desktop');
+                this.updateButton();
+            },
+
+            setMobile() {
+                document.querySelector('meta[name="viewport"]').content = this.VIEWPORT_MOBILE;
+                sessionStorage.removeItem('viewMode');
+                this.updateButton();
+            },
+
+            updateButton() {
+                const btn = document.getElementById('viewToggle');
+                if (!btn) return;
+                const isDesktop = sessionStorage.getItem('viewMode') === 'desktop';
+                btn.innerHTML = isDesktop ? '📱 移动版' : '💻 桌面版';
+                btn.classList.toggle('desktop-mode', isDesktop);
+            }
+        };
+
+        function toggleViewMode() { ViewMode.toggle(); }
+        ViewMode.init();
+
+        // ==================== PWA 安装 ====================
+        const PWAInstall = {
+            deferredPrompt: null,
+
+            init() {
+                // 仅在支持的环境下显示
+                if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+                    navigator.serviceWorker.register('sw.js').catch(() => { });
+
+                    window.addEventListener('beforeinstallprompt', (e) => {
+                        e.preventDefault();
+                        this.deferredPrompt = e;
+                        document.getElementById('installBtn').style.display = 'flex';
+                    });
+
+                    window.addEventListener('appinstalled', () => {
+                        document.getElementById('installBtn').style.display = 'none';
+                        this.deferredPrompt = null;
+                    });
+                }
+            },
+
+            prompt() {
+                if (!this.deferredPrompt) {
+                    // iOS Safari 不支持 beforeinstallprompt，显示手动指引
+                    alert('iOS 用户请点击浏览器底部的「分享」→「添加到主屏幕」');
+                    return;
+                }
+                this.deferredPrompt.prompt();
+                this.deferredPrompt.userChoice.then(() => {
+                    this.deferredPrompt = null;
+                });
+            }
+        };
+
+        PWAInstall.init();
     </script>
 </body>
 

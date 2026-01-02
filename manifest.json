@@ -1,0 +1,21 @@
+{
+    "name": "一风的数字兵器库",
+    "short_name": "数字兵器库",
+    "description": "极致轻量，降维打击。掌控数字世界的单兵终极武库。",
+    "start_url": "./index.html",
+    "display": "standalone",
+    "background_color": "#0f172a",
+    "theme_color": "#2563eb",
+    "icons": [
+        {
+            "src": "icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png"
+        }
+    ]
+}
