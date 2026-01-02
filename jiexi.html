@@ -8,6 +8,9 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
 
     <script type="application/json" id="tool_meta">
     {
@@ -261,8 +264,16 @@
         <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 transition-all hover:shadow-xl relative">
             <div class="flex justify-between items-baseline mb-2">
                 <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">原始素材 (Raw Context)</label>
-                <button onclick="document.getElementById('input-text').value=''"
-                    class="text-xs text-slate-400 hover:text-red-500">CLEAR</button>
+                <div class="flex gap-3">
+                    <input type="file" id="file-upload" class="hidden" accept=".pdf,.docx,.txt"
+                        onchange="app.handleFileUpload(this.files[0])">
+                    <button onclick="document.getElementById('file-upload').click()"
+                        class="text-xs text-indigo-600 hover:text-indigo-800 font-bold flex items-center gap-1 transition-colors">
+                        📂 导入文档 (PDF/Word)
+                    </button>
+                    <button onclick="document.getElementById('input-text').value=''"
+                        class="text-xs text-slate-400 hover:text-red-500 transition-colors">CLEAR</button>
+                </div>
             </div>
             <textarea id="input-text" rows="5"
                 class="w-full bg-slate-50 border border-slate-300 rounded-lg p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono transition-all resize-y"
@@ -416,58 +427,128 @@
             // 定义 DAG (有向无环图) 结构
             // dependency 指向的是上游 Agent ID
             const AGENTS = [
-                // --- STAGE 1: ROOTS (The Brain) ---
+                // ================================
+                // STAGE 1: ROOTS (定性与解构)
+                // ================================
                 {
                     id: 'strategy', stage: 1,
                     title: '战略洞察 (Strategy)', icon: '♟️', color: 'border-blue-500',
                     desc: "定义核心价值与方向",
-                    prompt: "你是一流的战略顾问。使用 MECE 和 SCQA 模型深度解构文本。输出 5 个高价值洞察：\n1.内核\n2.决策映射\n3.二阶效应。"
+                    // 满血版 Prompt：引入 MECE 和 SCQA
+                    prompt: `你是由麦肯锡前全球合伙人与红杉资本投资人组成的智囊团。
+请阅读用户提供的 [原始素材]，运用 **MECE原则** 和 **SCQA模型**，深度解构其背后的战略价值。
+
+请输出 5 个最高价值的战略洞察，每个洞察严格包含：
+1. **洞察内核**：一句反直觉的总结。
+2. **决策映射**：具体指导了哪一项商业决策？（扩张/收缩/自研/外包？）
+3. **二阶效应**：长期来看（3-5年）会产生什么连锁反应？
+
+[约束]：拒绝罗列摘要，必须输出经过加工的“洞察”。`
                 },
                 {
                     id: 'system', stage: 1,
                     title: '系统模型 (System)', icon: '🏗️', color: 'border-blue-500',
                     desc: "抽象底层 IPO 逻辑",
-                    prompt: "你是系统架构师。提取 IPO 模型：\n- Input(输入)\n- Process(黑盒逻辑)\n- Output(输出)\n- Feedback(增强回路)。"
+                    // 满血版 Prompt：引入 IPO 模型
+                    prompt: `你是拥有20年经验的系统架构师。请忽略情绪和修辞，提取 [原始素材] 底层的 **IPO 模型**。
+
+请构建系统模型：
+- **📦 输入 (Input)**：启动系统需要什么原材料？（资金/数据/认知？）
+- **⚙️ 黑盒逻辑 (Process)**：核心处理步骤是什么？请用伪代码或流程图逻辑描述。
+- **🎁 输出 (Output)**：产出什么标准化结果？
+- **🔄 增强回路 (Feedback)**：如何设计反馈机制，让系统产生飞轮效应？`
                 },
 
-                // --- STAGE 2: TRUNK (The Body) ---
+                // ================================
+                // STAGE 2: TRUNK (转化与应用)
+                // ================================
                 {
                     id: 'action', stage: 2, dependency: ['strategy'],
                     title: '执行落地 (Action)', icon: '🚀', color: 'border-green-500',
                     desc: "基于战略制定计划",
-                    contextPrompt: (res) => `参考上游 [Strategy Agent] 的战略洞察：\n"""\n${res.strategy}\n"""\n\n请**必须**基于上述战略方向，而非仅基于原文，制定 5 步执行计划(Action/Owner/KPI/Quick Win)。`
+                    // 优化点：静态 Prompt 定义角色，Context 负责注入指令
+                    prompt: `你是字节跳动风格的高级项目经理（PMO）。你的信条是“没有落地，战略就是幻觉”。
+你将接收一份 [战略洞察报告] 和 [原始素材]。
+
+任务：将“战略”降维为“动作”。
+输出：5步走的 **Action Plan**。每一步包含：
+1. **Action**：动词开头。
+2. **Owner**：具体责任角色。
+3. **KPI/交付物**：如何证明做完了？
+4. **Quick Win**：24小时内可见的速胜点。`,
+                    // 动态注入逻辑
+                    contextPrompt: (res) => `【重要指令】：请忽略原始素材中的次要信息，**必须**聚焦于实现以下战略方向：\n"""\n${res.strategy}\n"""\n\n请基于此战略制定执行计划。`
                 },
                 {
                     id: 'leverage', stage: 2, dependency: ['system'],
                     title: '杠杆支点 (Leverage)', icon: '🔧', color: 'border-green-500',
                     desc: "基于系统寻找瓶颈",
-                    contextPrompt: (res) => `参考上游 [System Agent] 的系统模型：\n"""\n${res.system}\n"""\n\n在这个系统架构中，找出：\n1.关键齿轮(优化10%带来50%提升)\n2.瓶颈(限制因素)\n3.多米诺骨牌。`
+                    prompt: `你是一名“杠杆率大师”。你相信“四两拨千斤”。
+你将接收一份 [系统架构图] 和 [原始素材]。
+
+任务：在这个系统中找出高回报点。
+输出：
+1. **⚙️ 关键齿轮**：优化10%带来50%提升的微小环节。
+2. **⏳ 关键瓶颈**：限制系统速度的单一因素。
+3. **🁡 多米诺骨牌**：推倒哪一块，可触发连锁成功？`,
+                    contextPrompt: (res) => `【重要指令】：请深入分析以下系统模型：\n"""\n${res.system}\n"""\n\n请指出这个具体模型的“七寸”在哪里？`
                 },
                 {
                     id: 'persona', stage: 2, dependency: ['strategy'],
                     title: '利益相关者 (Persona)', icon: '🎩', color: 'border-green-500',
                     desc: "基于战略评估反应",
-                    contextPrompt: (res) => `参考上游 [Strategy Agent] 的战略方向：\n"""\n${res.strategy}\n"""\n\n针对这个战略，分析以下角色的潜台词和恐惧：\n1.增长黑客\n2.CFO\n3.技术负责人。`
+                    prompt: `你是精通组织行为学的咨询顾问。
+你将接收一份 [战略方向] 和 [原始素材]。
+
+任务：模拟以下角色对该战略的真实心理反应（潜台词与恐惧）：
+1. **🦁 增长黑客**：只关心流量、CAC、LTV。他觉得这能变现吗？
+2. **🦉 CFO**：只关心ROI和风险。他担心预算失控吗？
+3. **🐢 技术负责人**：只关心可行性和技术债。他觉得这是伪需求吗？`,
+                    contextPrompt: (res) => `【重要指令】：假设公司决定全格执行以下战略：\n"""\n${res.strategy}\n"""\n\n请分析上述三位高管会如何 challenge（挑战）这个战略？`
                 },
 
-                // --- STAGE 3: BRANCHES (The Critique) ---
+                // ================================
+                // STAGE 3: BRANCHES (批判与反思)
+                // ================================
                 {
                     id: 'assumption', stage: 3, dependency: ['strategy', 'action'],
                     title: '红队测试 (Red Team)', icon: '🔍', color: 'border-purple-500',
                     desc: "攻击战略与执行",
-                    contextPrompt: (res) => `参考 [Strategy] 和 [Action]：\n"""\n战略：${res.strategy}\n计划：${res.action}\n"""\n\n作为红队，请无情攻击上述计划。找出 3 个致命隐性假设，并进行事前验尸。`
+                    prompt: `你是“红队测试”指挥官。你的任务不是赞同，而是**攻击**。
+你将看到完整的 [战略] 和 [执行计划]。
+
+任务：进行“事前验尸（Pre-mortem）”。
+输出：
+1. **致命隐性假设**：整个计划建立在什么（可能不存在的）前提上？
+2. **崩塌推演**：如果该假设错误，计划如何失败？
+3. **防御建议**：如何设计低成本实验验证假设？`,
+                    contextPrompt: (res) => `【攻击目标】：\n战略层：\n${res.strategy}\n\n执行层：\n${res.action}\n\n请找出上述方案逻辑链条中的断裂点。`
                 },
                 {
                     id: 'debate', stage: 3, dependency: ['strategy'],
                     title: '观点对标 (Debate)', icon: '⚖️', color: 'border-purple-500',
                     desc: "寻找对立面",
-                    contextPrompt: (res) => `针对 [Strategy] 提出的核心观点：\n"""\n${res.strategy}\n"""\n\n请引入竞争性观点：\n1.谁会反对？\n2.反对理由？\n3.合题(Synthesis)是什么？`
+                    prompt: `你是世界级辩论赛主席。
+任务：引入竞争性观点，打破信息茧房。
+
+输出：
+1. **正方 (原文战略)**：适用场景是什么？
+2. **反方 (竞争观点)**：谁会强烈反对该战略？理由是什么？（非稻草人攻击）。
+3. **合题 (Synthesis)**：在什么背景下A更好？什么背景下B更好？`,
+                    contextPrompt: (res) => `【辩题核心】：\n${res.strategy}\n\n请针对上述核心观点，寻找其逻辑对立面。`
                 },
                 {
                     id: 'contrarian', stage: 3, dependency: ['system', 'strategy'],
                     title: '逆向思维 (Contrarian)', icon: '⚡', color: 'border-purple-500',
                     desc: "寻找反共识",
-                    contextPrompt: (res) => `基于 [System] 和 [Strategy] 的共识：\n请像 Peter Thiel 一样思考，找出一个“反共识真理”：大多数人认同上述分析，但哪个被忽视的真理是相反的？`
+                    prompt: `你是 Peter Thiel 的 AI 分身。你寻找被忽视的真理。
+任务：基于 [系统] 和 [战略]，回答“在什么重要问题上，你与大多数人看法不同？”
+
+输出：
+1. **平庸的共识**：基于上述材料，大多数人会得出的结论是什么？
+2. **反共识真理**：哪个被忽视的视角才是真相？
+3. **价值验证**：为什么反共识才能带来超额回报？`,
+                    contextPrompt: (res) => `【分析对象】：\n系统模型：${res.system}\n战略方向：${res.strategy}\n\n请挖掘隐藏在上述显性信息背后的反直觉洞察。`
                 }
             ];
 
@@ -482,12 +563,52 @@
             };
 
             function init() {
+                // 配置 PDF.js Worker
+                if (window.pdfjsLib) {
+                    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+                }
+
                 ai = AI_MODULE.mount(document.getElementById("aiSettingsMount"));
                 // 初始化时显示空白提示
                 const grid = document.getElementById('results-grid');
                 grid.innerHTML = `<div class="col-span-full text-center text-slate-400 py-20">
                     <p class="text-lg">👆 输入文本后点击「启动链式推演」开始分析</p>
                 </div>`;
+
+                // 拖拽文件支持
+                const dropZone = document.getElementById('input-text');
+                ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, preventDefaults, false);
+                });
+
+                function preventDefaults(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                }
+
+                ['dragenter', 'dragover'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, highlight, false);
+                });
+
+                ['dragleave', 'drop'].forEach(eventName => {
+                    dropZone.addEventListener(eventName, unhighlight, false);
+                });
+
+                function highlight(e) {
+                    dropZone.classList.add('border-indigo-500', 'bg-indigo-50', 'ring-2', 'ring-indigo-200');
+                }
+
+                function unhighlight(e) {
+                    dropZone.classList.remove('border-indigo-500', 'bg-indigo-50', 'ring-2', 'ring-indigo-200');
+                }
+
+                dropZone.addEventListener('drop', handleDrop, false);
+
+                function handleDrop(e) {
+                    const dt = e.dataTransfer;
+                    const files = dt.files;
+                    if (files.length) handleFileUpload(files[0]);
+                }
             }
 
             // 清空 Grid
@@ -517,6 +638,8 @@
                     grid.insertAdjacentHTML('beforeend', `
                         <div class="bg-white rounded-lg shadow border-t-4 ${a.color} p-5 flex flex-col min-h-[12rem] h-auto md:h-96 hover:shadow-lg transition-all relative animate-fadeIn">
                             <div class="absolute top-2 right-2 flex gap-1">
+                                <button onclick="app.retryAgent('${a.id}')" title="重试生成" 
+                                    class="text-[10px] p-1.5 md:px-1.5 md:py-0.5 bg-orange-50 hover:bg-orange-100 text-orange-600 rounded cursor-pointer transition-colors font-bold">🔄</button>
                                 <button onclick="app.openReader('${a.id}')" title="沉浸阅读" 
                                     class="text-[10px] p-1.5 md:px-1.5 md:py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded cursor-pointer transition-colors font-bold">🔍</button>
                                 <button onclick="app.copySingleMD('${a.id}')" title="复制 MD" 
@@ -608,31 +731,8 @@
                     updateStatus(agent.id, 'run', 'ANALYZING...');
 
                     try {
-                        // 1. 构建 Prompt (上下文注入)
-                        let systemPrompt = agent.prompt;
-
-                        // 检查是否有依赖，如果有，尝试注入上下文
-                        if (agent.contextPrompt) {
-                            // 检查依赖项是否存在于 resultsStore
-                            const missingDeps = (agent.dependency || []).filter(d => !resultsStore[d]);
-
-                            if (missingDeps.length === 0) {
-                                // 依赖全齐，注入增强版 Prompt
-                                const contextInstruction = agent.contextPrompt(resultsStore);
-                                systemPrompt = `${agent.prompt}\n\n=== 上下文注入 (CONTEXT INJECTION) ===\n${contextInstruction}`;
-                            } else {
-                                // 依赖缺失（可能是上游失败了），降级处理
-                                console.warn(`Agent ${agent.id} missing deps: ${missingDeps}, falling back to raw mode.`);
-                                systemPrompt += `\n\n(注意：上游分析缺失，请仅基于原始素材进行分析)`;
-                            }
-                        }
-
-                        // 2. 调用 AI
-                        const messages = [
-                            { role: "system", content: systemPrompt },
-                            { role: "user", content: `原始素材 (Raw Material):\n"""\n${rawText}\n"""` }
-                        ];
-
+                        // 1. 构建 & 调用 (使用统一逻辑)
+                        const messages = constructMessages(agent, rawText, resultsStore);
                         const output = await ai.call(messages);
 
                         // 3. 存储结果 (供下游使用) & 渲染
@@ -777,12 +877,142 @@
                 document.body.style.overflow = ''; // 恢复背景滚动
             }
 
+            // === 文件处理逻辑 ===
+            async function handleFileUpload(file) {
+                if (!file) return;
+
+                const btn = document.querySelector('button[onclick*="file-upload"]');
+                const originalText = btn.innerHTML;
+                btn.innerHTML = `<span class="loader" style="width:12px;height:12px;border-width:2px;"></span> 解析中...`;
+                btn.disabled = true;
+
+                try {
+                    let text = "";
+                    if (file.type === "application/pdf") {
+                        text = await parsePDF(file);
+                    } else if (file.type === "application/vnd.openxmlformats-officedocument.wordprocessingml.document") {
+                        text = await parseDOCX(file);
+                    } else if (file.type === "text/plain") {
+                        text = await file.text();
+                    } else {
+                        throw new Error("不支持的文件格式 (仅支持 PDF, DOCX, TXT)");
+                    }
+
+                    if (!text.trim()) throw new Error("无法从文件中提取文本");
+
+                    // 填入输入框
+                    const textarea = document.getElementById('input-text');
+                    const separator = textarea.value.trim() ? "\n\n--- [Uploaded File Content] ---\n\n" : "";
+                    textarea.value += separator + text;
+
+                    // 闪烁提示
+                    textarea.classList.add('bg-indigo-50');
+                    setTimeout(() => textarea.classList.remove('bg-indigo-50'), 500);
+
+                } catch (e) {
+                    console.error(e);
+                    alert("文件解析失败: " + e.message);
+                } finally {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                    document.getElementById('file-upload').value = ''; // 重置 file input
+                }
+            }
+
+            async function parsePDF(file) {
+                const arrayBuffer = await file.arrayBuffer();
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                let fullText = "";
+
+                for (let i = 1; i <= pdf.numPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + "\n\n";
+                }
+                return fullText;
+            }
+
+            async function parseDOCX(file) {
+                const arrayBuffer = await file.arrayBuffer();
+                const result = await mammoth.extractRawText({ arrayBuffer: arrayBuffer });
+                return result.value;
+            }
+
+            // 统一 Prompt 构建逻辑
+            function constructMessages(agent, rawText, store) {
+                let systemPrompt = agent.prompt;
+
+                // 动态 Context 注入
+                if (agent.contextPrompt) {
+                    const missingDeps = (agent.dependency || []).filter(d => !store[d]);
+
+                    if (missingDeps.length === 0) {
+                        // 依赖全齐
+                        const contextInstruction = agent.contextPrompt(store);
+                        systemPrompt = `${agent.prompt}\n\n=== 上下文注入 (CONTEXT INJECTION) ===\n${contextInstruction}`;
+                    } else {
+                        // 依赖缺失
+                        systemPrompt += `\n\n(注意：上游分析缺失，请仅基于原始素材进行分析)`;
+                    }
+                }
+
+                return [
+                    { role: "system", content: systemPrompt },
+                    { role: "user", content: `原始素材 (Raw Material):\n"""\n${rawText}\n"""` }
+                ];
+            }
+
+            // 单点重试逻辑
+            async function retryAgent(agentId) {
+                const agent = AGENTS.find(a => a.id === agentId);
+                if (!agent) return;
+
+                // 检查依赖
+                const missingDeps = (agent.dependency || []).filter(depId => !resultsStore[depId]);
+                if (missingDeps.length > 0) {
+                    return alert(`前置依赖未就绪: ${missingDeps.join(', ')}。请先运行上游 Stage。`);
+                }
+
+                const rawText = document.getElementById('input-text').value;
+                if (!rawText.trim()) return alert("请输入原始素材");
+
+                const statusEl = document.getElementById(`status-${agentId}`);
+                const contentEl = document.getElementById(`content-${agentId}`);
+
+                // UI Loading
+                statusEl.innerHTML = `<span class="loader" style="width:10px;height:10px;"></span> 重新思考中...`;
+                statusEl.className = "text-xs font-mono text-indigo-600 font-bold mb-2 animate-pulse";
+                contentEl.classList.add("opacity-50");
+
+                try {
+                    // 使用统一逻辑构建消息
+                    const messages = constructMessages(agent, rawText, resultsStore);
+
+                    // 调用 AI
+                    const output = await ai.call(messages);
+
+                    // 更新结果
+                    resultsStore[agentId] = output;
+                    updateContent(agentId, output);
+                    statusEl.innerHTML = `✅ 已重试 (${new Date().toLocaleTimeString()})`;
+                    statusEl.className = "text-[10px] font-mono text-green-600 mb-2";
+
+                } catch (e) {
+                    console.error(e);
+                    statusEl.innerHTML = `❌ 重试失败: ${e.message}`;
+                    statusEl.className = "text-[10px] font-mono text-red-500 mb-2";
+                } finally {
+                    contentEl.classList.remove("opacity-50");
+                }
+            }
+
             // ESC 关闭监听
             document.addEventListener('keydown', (e) => {
                 if (e.key === 'Escape') closeReader();
             });
 
-            return { init, runPipeline, exportReport, copySingleMD, downloadSinglePDF, copyAllMD, downloadAllPDF, openReader, closeReader };
+            return { init, runPipeline, exportReport, copySingleMD, downloadSinglePDF, copyAllMD, downloadAllPDF, openReader, closeReader, handleFileUpload, retryAgent };
         })();
 
         window.onload = app.init;
