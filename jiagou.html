@@ -965,6 +965,17 @@
                 padding: 12px 10px 40px;
             }
 
+            /* Grid 子项允许收缩 - 防止内容撑宽页面 */
+            main {
+                min-width: 0;
+                overflow-x: hidden;
+            }
+
+            /* 输出面板宽度限制 */
+            .output-panel {
+                max-width: 100%;
+            }
+
             /* Header 紧凑化 */
             header {
                 position: relative;
