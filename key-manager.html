@@ -452,8 +452,13 @@
                 </div>
 
                 <div class="row">
-                    <button class="btn secondary" id="exportConfigBtn" type="button">导出配置（不含密钥）</button>
-                    <button class="btn secondary" id="importConfigBtn" type="button">导入配置（不含密钥）</button>
+                    <span class="pill nice" title="勾选后，必须设置密码，导出文件将包含 AES 加密后的密钥。" style="cursor: pointer;"
+                        onclick="document.getElementById('exportWithKeysCheckbox').click()">
+                        <input id="exportWithKeysCheckbox" type="checkbox" style="transform: translateY(1px);" />
+                        <span style="user-select: none;">包含密钥（加密导出）</span>
+                    </span>
+                    <button class="btn secondary" id="exportConfigBtn" type="button">导出配置</button>
+                    <button class="btn secondary" id="importConfigBtn" type="button">导入配置</button>
                     <button class="btn danger" id="clearAllBtn" type="button">清除全部密钥</button>
                 </div>
             </div>
@@ -578,6 +583,26 @@
         </div>
     </dialog>
 
+    <!-- Password Dialog (Generic for Encrypt/Decrypt) -->
+    <dialog id="passwordDialog">
+        <div class="dlg-header">
+            <div style="font-weight:900;" id="pwdDialogTitle">安全验证</div>
+            <button class="btn secondary" id="pwdDialogCloseBtn" type="button">取消</button>
+        </div>
+        <div class="dlg-body">
+            <div class="hint" id="pwdDialogHint">请输入密码</div>
+            <div class="field" style="margin-top: 12px;">
+                <label for="pwdInput">密码</label>
+                <input id="pwdInput" type="password" autocomplete="new-password" placeholder="请输入口令" />
+                <div class="hint" id="pwdDialogSubHint">口令将用于 AES 加密/解密，请妥善保管。</div>
+            </div>
+            <div class="log" id="pwdDialogLog" style="display:none; margin-top: 12px; color: var(--bad);"></div>
+        </div>
+        <div class="dlg-footer">
+            <button class="btn" id="pwdDialogConfirmBtn" type="button">确认</button>
+        </div>
+    </dialog>
+
     <script>
         /***********************
          * Provider Registry (keep compatible with your existing structure)
@@ -637,8 +662,100 @@
             "custom": {
                 name: "自定义 / 本地（Ollama）",
                 keyName: "custom_key",
-                baseUrl: "http://localhost:11434/v1",
                 models: []
+            }
+        };
+
+        /***********************
+         * CryptoUtils (Web Crypto API)
+         ***********************/
+        const CryptoUtils = {
+            // 生成随机盐
+            generateSalt: function () {
+                return window.crypto.getRandomValues(new Uint8Array(16));
+            },
+            // 生成随机 IV
+            generateIv: function () {
+                return window.crypto.getRandomValues(new Uint8Array(12));
+            },
+            // 从密码派生密钥 (PBKDF2)
+            deriveKey: async function (password, salt) {
+                const enc = new TextEncoder();
+                const keyMaterial = await window.crypto.subtle.importKey(
+                    "raw",
+                    enc.encode(password),
+                    { name: "PBKDF2" },
+                    false,
+                    ["deriveKey"]
+                );
+                return window.crypto.subtle.deriveKey(
+                    {
+                        name: "PBKDF2",
+                        salt: salt,
+                        iterations: 100000,
+                        hash: "SHA-256"
+                    },
+                    keyMaterial,
+                    { name: "AES-GCM", length: 256 },
+                    false,
+                    ["encrypt", "decrypt"]
+                );
+            },
+            // 加密
+            encrypt: async function (dataObj, password) {
+                try {
+                    const salt = this.generateSalt();
+                    const iv = this.generateIv();
+                    const key = await this.deriveKey(password, salt);
+                    const enc = new TextEncoder();
+                    const encodedData = enc.encode(JSON.stringify(dataObj));
+
+                    const encryptedContent = await window.crypto.subtle.encrypt(
+                        { name: "AES-GCM", iv: iv },
+                        key,
+                        encodedData
+                    );
+
+                    // ArrayBuffer to Base64
+                    const u8Salt = new Uint8Array(salt);
+                    const u8Iv = new Uint8Array(iv);
+                    const u8Content = new Uint8Array(encryptedContent);
+
+                    return {
+                        ok: true,
+                        // 拼接成一个 Base64 字符串：Salt(16) + IV(12) + Content
+                        payload: btoa(String.fromCharCode(...u8Salt, ...u8Iv, ...u8Content))
+                    };
+                } catch (e) {
+                    return { ok: false, error: String(e) };
+                }
+            },
+            // 解密
+            decrypt: async function (encryptedBase64, password) {
+                try {
+                    const str = atob(encryptedBase64);
+                    const u8Full = new Uint8Array(str.length);
+                    for (let i = 0; i < str.length; i++) u8Full[i] = str.charCodeAt(i);
+
+                    if (u8Full.length < 28) throw new Error("数据损坏或格式错误");
+
+                    const salt = u8Full.slice(0, 16);
+                    const iv = u8Full.slice(16, 28);
+                    const content = u8Full.slice(28);
+
+                    const key = await this.deriveKey(password, salt);
+
+                    const decryptedContent = await window.crypto.subtle.decrypt(
+                        { name: "AES-GCM", iv: iv },
+                        key,
+                        content
+                    );
+
+                    const dec = new TextDecoder();
+                    return { ok: true, data: JSON.parse(dec.decode(decryptedContent)) };
+                } catch (e) {
+                    return { ok: false, error: "解密失败：密码错误或数据损坏。" };
+                }
             }
         };
 
@@ -689,7 +806,19 @@
         const setKeyDialogLog = document.getElementById("setKeyDialogLog");
         const keyInput = document.getElementById("keyInput");
 
+        const pwdDialog = document.getElementById("passwordDialog");
+        const pwdDialogTitle = document.getElementById("pwdDialogTitle");
+        const pwdDialogHint = document.getElementById("pwdDialogHint");
+        const pwdDialogSubHint = document.getElementById("pwdDialogSubHint");
+        const pwdInput = document.getElementById("pwdInput");
+        const pwdDialogLog = document.getElementById("pwdDialogLog");
+        const pwdDialogConfirmBtn = document.getElementById("pwdDialogConfirmBtn");
+        const pwdDialogCloseBtn = document.getElementById("pwdDialogCloseBtn");
+
+        const exportWithKeysCheckbox = document.getElementById("exportWithKeysCheckbox");
+
         let pendingSetKeyProviderId = null;
+        let pendingPasswordResolve = null;
 
         /***********************
          * Helpers
@@ -880,15 +1009,45 @@
         /***********************
          * Import / Export (no keys)
          ***********************/
-        function buildExportPayload() {
+        async function buildExportPayload() {
             const prefs = getPrefs();
             const overrides = getOverrides();
-            return {
+            const base = {
                 km_protocol_version: KM_PROTOCOL_VERSION,
                 exported_at: new Date().toISOString(),
                 prefs,
                 provider_overrides: overrides
             };
+
+            // 如果要把密钥打包带走
+            if (exportWithKeysCheckbox.checked) {
+                // 1. 收集所有 keys
+                const keysDump = {};
+                for (const pid of getProviderIds()) {
+                    const p = getProvider(pid);
+                    const kName = providerKeyName(p);
+                    // 优先取内存/session，没有则取 local（尽量取最新、最全的）
+                    const val = memoryKeysByProviderId[pid] || getKeyFromSession(kName) || getKeyFromLocal(kName);
+                    if (val) keysDump[pid] = val;
+                }
+
+                // 2. 只有在确实有 key 的情况下才去加密，否则没意义
+                if (Object.keys(keysDump).length > 0) {
+                    const pwd = await requestPassword("设置导出密码", "请输入一个临时密码，用于加密这些密钥。导入时需要输入相同密码。");
+                    if (!pwd) return null; // 用户取消
+
+                    const encRes = await CryptoUtils.encrypt(keysDump, pwd);
+                    if (!encRes.ok) {
+                        alert("加密失败：" + encRes.error);
+                        return null;
+                    }
+
+                    base.encrypted_keys_payload = encRes.payload;
+                    base.contains_encrypted_keys = true;
+                }
+            }
+
+            return base;
         }
         function downloadJson(filename, obj) {
             const json = JSON.stringify(obj, null, 2);
@@ -956,7 +1115,7 @@
                 `Provider 数量: ${getProviderIds().length}\n` +
                 `配置覆盖（overrides）数量: ${Object.keys(overrides).length}\n` +
                 `时间: ${new Date().toLocaleString()}\n` +
-                `说明: 导入/导出不包含任何密钥。\n`;
+                `导出状态: ${exportWithKeysCheckbox.checked ? "加密导出 (含密钥)" : "普通导出 (无密钥)"}\n`;
         }
 
         function renderCompatTable() {
@@ -1015,6 +1174,27 @@
             pendingSetKeyProviderId = null;
             keyInput.value = "";
             setKeyDialog.close();
+        }
+
+        // --- Password Dialog Helpers ---
+        function requestPassword(title, hint) {
+            return new Promise((resolve) => {
+                pwdDialogTitle.textContent = title;
+                pwdDialogHint.textContent = hint;
+                pwdInput.value = "";
+                pwdDialogLog.style.display = "none";
+                pwdDialog.showModal();
+                setTimeout(() => pwdInput.focus(), 50);
+
+                pendingPasswordResolve = resolve;
+            });
+        }
+        function closePwdDialog(val) {
+            pwdDialog.close();
+            if (pendingPasswordResolve) {
+                pendingPasswordResolve(val);
+                pendingPasswordResolve = null;
+            }
         }
 
         function renderProviders() {
@@ -1264,8 +1444,11 @@
          * Import/Export UI
          ***********************/
         async function handleExport() {
-            const payload = buildExportPayload();
-            const filename = `key-manager-config-v${KM_PROTOCOL_VERSION}-${new Date().toISOString().slice(0, 19).replaceAll(":", "")}.json`;
+            const payload = await buildExportPayload();
+            if (!payload) return; // 用户取消或失败
+
+            const isEnc = !!payload.contains_encrypted_keys;
+            const filename = `key-manager-config-v${KM_PROTOCOL_VERSION}${isEnc ? "-ENCRYPTED" : ""}-${new Date().toISOString().slice(0, 19).replaceAll(":", "")}.json`;
             downloadJson(filename, payload);
         }
         function openImportDialog() {
@@ -1291,17 +1474,36 @@
             const validation = validateImportPayload(parsed.value);
             if (!validation.ok) { importPreviewLog.textContent = "校验失败：\n" + validation.error; return { ok: false }; }
 
+            // 检查是否有加密密钥
+            let decryptedKeys = null;
+            if (validation.normalized.contains_encrypted_keys && validation.normalized.encrypted_keys_payload) {
+                importPreviewLog.textContent = "检测到加密的密钥数据，正在等待解密...";
+                const pwd = await requestPassword("解密导入", "此文件包含加密的密钥，请输入密码进行解密。");
+                if (!pwd) {
+                    importPreviewLog.textContent = "用户取消了解密，仅导入配置，忽略密钥。";
+                } else {
+                    const decRes = await CryptoUtils.decrypt(validation.normalized.encrypted_keys_payload, pwd);
+                    if (!decRes.ok) {
+                        importPreviewLog.textContent = "解密失败：" + decRes.error + "\n请重试或放弃导入密钥。";
+                        return { ok: false };
+                    }
+                    decryptedKeys = decRes.data;
+                }
+            }
+
             importPreviewLog.textContent =
-                "预览 OK（Dry Run）\n\n即将写入：\n" +
-                JSON.stringify(validation.normalized, null, 2) + "\n\n" +
-                "说明：不会导入任何密钥。";
-            return { ok: true, normalized: validation.normalized };
+                "预览 OK（Dry Run）\n\n" +
+                (decryptedKeys ? `成功解密出 ${Object.keys(decryptedKeys).length} 个密钥！\n` : "无有效密钥被导入。\n") +
+                "即将写入配置：\n" +
+                JSON.stringify(validation.normalized.prefs, null, 2) + "\n...\n";
+            return { ok: true, normalized: validation.normalized, keys: decryptedKeys };
         }
         async function applyImport() {
             const dry = await dryRunImport();
             if (!dry.ok) return;
 
             const { prefs, provider_overrides } = dry.normalized;
+            const keys = dry.keys;
 
             if (prefs) {
                 const current = getPrefs();
@@ -1323,6 +1525,20 @@
                 const existing = getOverrides();
                 const merged = { ...existing, ...provider_overrides };
                 setOverrides(merged);
+            }
+
+            if (keys) {
+                let count = 0;
+                for (const [pid, keyVal] of Object.entries(keys)) {
+                    const p = getProvider(pid);
+                    if (!p) continue;
+                    const kName = providerKeyName(p);
+                    setEffectiveKey(pid, kName, keyVal);
+                    count++;
+                }
+                alert(`导入成功！\n配置已更新。\n成功恢复了 ${count} 个密钥。`);
+            } else {
+                alert("导入成功（仅配置，无密钥）。");
             }
 
             closeImportDialog();
@@ -1388,6 +1604,9 @@
             persistPrefsFromUi();
             refreshAll();
         });
+        exportWithKeysCheckbox.addEventListener("change", () => {
+            refreshAll(); // update status log
+        });
 
         exportConfigBtn.addEventListener("click", handleExport);
         importConfigBtn.addEventListener("click", openImportDialog);
@@ -1420,6 +1639,21 @@
                 (writeRes.notes.length ? `备注：${writeRes.notes.join(" ")}` : "");
 
             setTimeout(() => { closeSetKeyDialog(); refreshAll(); }, 350);
+        });
+
+        // Pwd Dialog Events
+        pwdDialogCloseBtn.addEventListener("click", () => closePwdDialog(null));
+        pwdDialogConfirmBtn.addEventListener("click", () => {
+            const val = String(pwdInput.value || "").trim();
+            if (!val) {
+                pwdDialogLog.textContent = "密码不能为空";
+                pwdDialogLog.style.display = "block";
+                return;
+            }
+            closePwdDialog(val);
+        });
+        pwdInput.addEventListener("keydown", (e) => {
+            if (e.key === "Enter") pwdDialogConfirmBtn.click();
         });
 
         importFileInput.addEventListener("change", async () => {
