@@ -3321,8 +3321,8 @@ ${paths.includes('D') || paths.includes('E') ? `
                     const totalCount = toolCount + productCount;
 
                     // 精简解构报告以避免 token 过长导致输出质量下降
-                    const truncatedReport = STATE.decodeReport.length > 4000
-                        ? STATE.decodeReport.slice(0, 4000) + '\n...(内容已截断)'
+                    const truncatedReport = STATE.decodeReport.length > 6000
+                        ? STATE.decodeReport.slice(0, 6000) + '\n...(内容已截断)'
                         : STATE.decodeReport;
 
                     const systemMessage = `你是一个 JSON 生成器。你只输出有效的 JSON 数组，不输出任何其他内容。不要输出 markdown 代码块标记。`;
