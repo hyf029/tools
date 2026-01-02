@@ -663,10 +663,14 @@
             padding: 14px;
             max-height: 600px;
             overflow-y: auto;
+            overflow-x: auto;
+            max-width: 100%;
         }
 
         .output-content.markdown-body {
             line-height: 1.7;
+            word-break: break-word;
+            overflow-wrap: break-word;
         }
 
         .output-content.markdown-body h1,
@@ -1081,6 +1085,8 @@
             .output-content.markdown-body pre {
                 padding: 10px;
                 font-size: 11px;
+                max-width: 100%;
+                overflow-x: auto;
             }
 
             /* 日志区域 */
