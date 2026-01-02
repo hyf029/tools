@@ -1788,16 +1788,24 @@
                     const reader = resp.body.getReader();
                     const decoder = new TextDecoder();
                     let fullContent = "";
+                    let buffer = "";  // 缓冲区用于处理跨 chunk 的不完整行
 
                     while (true) {
                         const { done, value } = await reader.read();
                         if (done) break;
 
-                        const chunk = decoder.decode(value, { stream: true });
-                        const lines = chunk.split('\n').filter(line => line.trim().startsWith('data: '));
+                        // 将新数据追加到缓冲区
+                        buffer += decoder.decode(value, { stream: true });
+
+                        // 按换行符分割，保留最后一个可能不完整的行
+                        const lines = buffer.split('\n');
+                        buffer = lines.pop() || "";  // 最后一行可能不完整，放回缓冲区
 
                         for (const line of lines) {
-                            const data = line.slice(6).trim();
+                            const trimmed = line.trim();
+                            if (!trimmed.startsWith('data: ')) continue;
+
+                            const data = trimmed.slice(6).trim();
                             if (data === '[DONE]') continue;
 
                             try {
@@ -1810,6 +1818,21 @@
                             } catch (e) {
                                 // Skip malformed JSON
                             }
+                        }
+                    }
+
+                    // 处理缓冲区中剩余的数据
+                    if (buffer.trim().startsWith('data: ')) {
+                        const data = buffer.trim().slice(6).trim();
+                        if (data && data !== '[DONE]') {
+                            try {
+                                const json = JSON.parse(data);
+                                const content = json.choices?.[0]?.delta?.content || '';
+                                if (content) {
+                                    fullContent += content;
+                                    if (onChunk) onChunk(content, fullContent);
+                                }
+                            } catch (e) { }
                         }
                     }
 
