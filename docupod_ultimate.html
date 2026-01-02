@@ -1,0 +1,1014 @@
+<!DOCTYPE html>
+<html lang="zh-CN" data-theme="light">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>播客生成器 (全能网页版)</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/uuid/8.3.2/uuid.min.js"></script>
+
+    <style>
+        :root {
+            --bg: #f6f7fb;
+            --bg2: #fff;
+            --text: #0f172a;
+            --accent: #2563eb;
+            --border: rgba(15, 23, 42, 0.1);
+            --panel: rgba(255, 255, 255, 0.9);
+            --good: #059669;
+            --bad: #e11d48;
+        }
+
+        body {
+            margin: 0;
+            font-family: -apple-system, system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            padding-bottom: 100px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .card {
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 24px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+        }
+
+        h1,
+        h2,
+        h3 {
+            margin-top: 0;
+            font-weight: 800;
+        }
+
+        .btn {
+            background: var(--accent);
+            color: #fff;
+            border: none;
+            padding: 10px 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 14px;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            opacity: 0.9;
+            transform: translateY(-1px);
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .btn.secondary {
+            background: #f1f5f9;
+            color: #475569;
+            border: 1px solid var(--border);
+        }
+
+        .btn.magic {
+            background: linear-gradient(135deg, #6366f1, #a855f7);
+            border: none;
+        }
+
+        .row {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .field {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        label {
+            display: block;
+            font-size: 12px;
+            color: #64748b;
+            margin-bottom: 6px;
+            font-weight: 600;
+        }
+
+        input,
+        select,
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+            background: #f8fafc;
+            font-family: inherit;
+            box-sizing: border-box;
+        }
+
+        .file-drop {
+            border: 2px dashed var(--accent);
+            border-radius: 12px;
+            padding: 30px;
+            text-align: center;
+            background: rgba(37, 99, 235, 0.04);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .file-drop:hover {
+            background: rgba(37, 99, 235, 0.08);
+        }
+
+        .chat-box {
+            background: #f8fafc;
+            border-radius: 12px;
+            padding: 15px;
+            max-height: 500px;
+            overflow-y: auto;
+            border: 1px solid var(--border);
+        }
+
+        .message {
+            margin-bottom: 16px;
+            display: flex;
+            gap: 12px;
+        }
+
+        .avatar {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            flex-shrink: 0;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .msg-content {
+            flex: 1;
+        }
+
+        .msg-name {
+            font-size: 12px;
+            font-weight: 700;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .msg-text {
+            background: #fff;
+            padding: 10px 14px;
+            border-radius: 10px;
+            border: 1px solid var(--border);
+            line-height: 1.6;
+            font-size: 15px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+        }
+
+        .playing .msg-text {
+            border-color: var(--accent);
+            background: #eff6ff;
+        }
+
+        /* 播放器控制栏 */
+        .player-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 90%;
+            max-width: 600px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 12px 20px;
+            border-radius: 16px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.15);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 100;
+            animation: slideUp 0.3s ease;
+        }
+
+        @keyframes slideUp {
+            from {
+                transform: translate(-50%, 100%);
+            }
+
+            to {
+                transform: translate(-50%, 0);
+            }
+        }
+
+        /* 状态标签 */
+        .badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 99px;
+            font-size: 11px;
+            font-weight: 700;
+            background: #e2e8f0;
+            color: #64748b;
+        }
+
+        .badge.magic {
+            background: #f3e8ff;
+            color: #7e22ce;
+            border: 1px solid #d8b4fe;
+        }
+    </style>
+
+    <script type="application/json" id="tool_meta">
+    {
+      "tool_id": "docupod-ultimate",
+      "tool_name": "播客生成器",
+      "version": "3.0.0",
+      "description": "集成三种 TTS 引擎的 PDF 转播客工具",
+      "capabilities": {"ai": true, "audio": true, "networking": true},
+      "ai_integration": { "uses_key_manager": true }
+    }
+    </script>
+</head>
+
+<body>
+
+    <div class="container">
+        <header style="text-align:center; margin-bottom:30px;">
+            <h1>🎧 播客生成器</h1>
+            <p style="color:#64748b;">Hack 02: 文档转播客 · 纯浏览器 · 黑魔法加持</p>
+        </header>
+
+        <section class="card">
+            <details open>
+                <summary style="font-weight:800; cursor:pointer;">⚙️ 核心配置 (Config)</summary>
+                <div style="margin-top:20px;">
+                    <div id="aiSettingsMount"></div>
+
+                    <hr style="margin:20px 0; border:none; border-top:1px dashed #cbd5e1;">
+
+                    <h3 style="font-size:14px; margin-bottom:10px;">🎙️ 声学矩阵 (TTS Engine)</h3>
+                    <div class="row">
+                        <div class="field">
+                            <label>选择语音方案</label>
+                            <select id="ttsEngineSelect">
+                                <option value="native">方案 A: 浏览器原生 (免费/稳定/机械音)</option>
+                                <option value="openai">方案 B: OpenAI API (付费/S级音质)</option>
+                                <option value="siliconflow">方案 C: CosyVoice2 (硅基流动/A级音质/可下载)</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <div id="ttsConfigPanel"
+                        style="background:#f1f5f9; padding:12px; border-radius:8px; font-size:13px; color:#475569;">
+                    </div>
+                </div>
+            </details>
+        </section>
+
+        <section class="card">
+            <div class="row" style="justify-content:space-between;">
+                <h2>📄 剧本炼金台</h2>
+                <div id="statusBadge" class="badge">就绪</div>
+            </div>
+
+            <div class="file-drop" id="dropZone">
+                <div style="font-size:24px; margin-bottom:10px;">📂</div>
+                <p style="margin:0;">拖入 PDF 文件 或 点击上传</p>
+                <input type="file" id="fileInput" accept="application/pdf" style="display:none;">
+                <div id="fileName" style="margin-top:10px; color:var(--accent); font-weight:700;"></div>
+            </div>
+
+            <textarea id="rawText" style="display:none;"></textarea>
+
+            <div style="margin-top:20px; text-align:center;">
+                <button id="btnGenerate" class="btn" disabled>🚀 Step 1: 提取文本并生成剧本</button>
+            </div>
+        </section>
+
+        <section class="card" id="scriptSection" style="display:none;">
+            <div class="row" style="justify-content:space-between;">
+                <h2>📝 对话剧本</h2>
+                <button id="btnPlayScript" class="btn magic">▶️ Step 2: 全文合成播放</button>
+            </div>
+            <div id="scriptContainer" class="chat-box"></div>
+        </section>
+
+        <div id="playerBar" class="player-bar" style="display:none;">
+            <div style="display:flex; align-items:center; gap:15px; flex:1; overflow:hidden;">
+                <div id="playerAvatar" class="avatar" style="background:#e2e8f0; font-size:14px;">▶️</div>
+                <div style="overflow:hidden;">
+                    <div style="font-weight:700; font-size:13px;">正在播放</div>
+                    <div id="playerText"
+                        style="font-size:12px; color:#64748b; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                        ...</div>
+                </div>
+            </div>
+            <div style="display:flex; gap:10px;">
+                <button id="btnStop" class="btn secondary" style="padding:6px 12px; font-size:12px;">⏹️ 停止</button>
+                <button id="btnDownload" class="btn" style="padding:6px 12px; font-size:12px; display:none;">💾 下载
+                    MP3</button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // ==========================================
+        // 模块 1: AI Module v2 (集成 Key Manager)
+        // ==========================================
+        const AI_MODULE = (() => {
+            const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
+            const AI_PROVIDERS = {
+                "siliconflow": {
+                    name: "硅基流动 (SiliconFlow)",
+                    keyName: "siliconflow_key",
+                    baseUrl: "https://api.siliconflow.cn/v1",
+                    models: [
+                        { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B（Fast）" },
+                        { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+                        { id: "Pro/zai-org/GLM-4.7", name: "GLM-4.7" },
+                        { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2（Thinking）" },
+                        { id: "Qwen/Qwen3-VL-32B-Thinking", name: "Qwen 3 VL 32B（Thinking）" }
+                    ]
+                },
+                "openrouter": {
+                    name: "OpenRouter",
+                    keyName: "openrouter_key",
+                    baseUrl: "https://openrouter.ai/api/v1",
+                    models: [
+                        { id: "openai/gpt-4o", name: "GPT-4o" },
+                        { id: "google/gemini-pro", name: "Gemini Pro" },
+                        { id: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5" },
+                        { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
+                        { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" }
+                    ]
+                },
+                "deepseek": {
+                    name: "DeepSeek Official",
+                    keyName: "deepseek_key",
+                    baseUrl: "https://api.deepseek.com",
+                    models: [
+                        { id: "deepseek-chat", name: "DeepSeek V3" }
+                    ]
+                },
+                "custom": {
+                    name: "自定义 / 本地（Ollama）",
+                    keyName: "custom_key",
+                    baseUrl: "http://localhost:11434/v1",
+                    models: []
+                }
+            };
+
+            function safeJsonParse(str) {
+                try { return { ok: true, value: JSON.parse(str) }; }
+                catch (e) { return { ok: false, error: String(e) }; }
+            }
+            function getOverrides() {
+                const raw = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
+                if (!raw) return {};
+                const parsed = safeJsonParse(raw);
+                if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") return {};
+                return parsed.value;
+            }
+            function normalizeBaseUrl(baseUrl) {
+                const s = String(baseUrl || "").trim();
+                return s.replace(/\/+$/, "");
+            }
+            function joinUrl(baseUrl, path) {
+                const b = normalizeBaseUrl(baseUrl);
+                const p = String(path || "").trim().replace(/^\/+/, "");
+                return `${b}/${p}`;
+            }
+            function getProvider(providerId) { return AI_PROVIDERS[providerId]; }
+
+            function getMergedProviderConfig(providerId) {
+                const p = getProvider(providerId);
+                if (!p) throw new Error(`未知 provider_id: ${providerId}`);
+                const overrides = getOverrides();
+                const o = overrides[providerId] || {};
+                const customModels = Array.isArray(o.custom_models) ? o.custom_models : [];
+                const mergedModels = [
+                    ...(Array.isArray(p.models) ? p.models : []),
+                    ...customModels
+                        .filter(m => m && typeof m === "object" && m.id)
+                        .map(m => ({ id: String(m.id), name: m.name ? String(m.name) : String(m.id), _custom: true }))
+                ];
+                const baseUrl = o.base_url_override ? String(o.base_url_override) : p.baseUrl;
+                const modelId = o.model_id_override ? String(o.model_id_override) : (mergedModels[0]?.id || "");
+                return { provider_id: providerId, name: p.name, key_name: p.keyName, base_url: baseUrl, models: mergedModels, model_id: modelId };
+            }
+
+            function getKeyStatus(providerId) {
+                const p = getProvider(providerId);
+                if (!p) return { ok: false, has_key: false, key_name: "" };
+                const keyName = p.keyName;
+                const key = localStorage.getItem(keyName);
+                return { ok: true, has_key: Boolean(key), key_name: keyName };
+            }
+
+            function classifyFetchError(err) {
+                const msg = String(err?.message || err || "");
+                const lower = msg.toLowerCase();
+                if (lower.includes("abort")) return { kind: "环境错误", msg: "请求超时/被取消" };
+                if (lower.includes("failed to fetch") || lower.includes("network") || lower.includes("cors")) {
+                    return { kind: "环境错误", msg: msg };
+                }
+                return { kind: "内部错误", msg: msg };
+            }
+
+            function actionableErrorMessage(kind, msg) {
+                if (kind === "环境错误") return `环境错误：${msg}\n检查网络/CORS/混合内容。`;
+                if (kind === "平台错误") return `平台错误：${msg}\n检查 key、限流、模型 ID。`;
+                return `内部错误：${msg}`;
+            }
+
+            async function corsProbe(baseUrl, timeoutMs = 8000) {
+                const url = String(baseUrl || "").trim();
+                if (!url) return { ok: false, result: "空 URL" };
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), timeoutMs);
+                try {
+                    const resp = await fetch(url, { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
+                    return { ok: true, result: `CORS 可用 (${resp.status})` };
+                } catch (e) {
+                    return { ok: false, result: "可能被 CORS/网络拦截" };
+                } finally { clearTimeout(timer); }
+            }
+
+            async function call_llm_unified({ provider_id, base_url, api_key, model_id, messages, temperature = 0.7, max_tokens = 2000, timeout_ms = 60000 }) {
+                if (!api_key) { const e = new Error("平台错误: 缺少 API Key（请先在 key-manager.html 设置）"); e._kind = "平台错误"; throw e; }
+                const url = joinUrl(base_url, "/chat/completions");
+                const headers = { "Authorization": `Bearer ${api_key}`, "Content-Type": "application/json" };
+                const body = { model: model_id, messages, temperature, max_tokens, response_format: { type: "json_object" } };
+                const controller = new AbortController();
+                const timer = setTimeout(() => controller.abort(), timeout_ms);
+                try {
+                    const resp = await fetch(url, { method: "POST", mode: "cors", headers, body: JSON.stringify(body), signal: controller.signal });
+                    const text = await resp.text();
+                    const parsed = safeJsonParse(text);
+                    if (!resp.ok) { const e = new Error(`平台错误: HTTP ${resp.status}\n${text.slice(0, 500)}`); e._kind = "平台错误"; throw e; }
+                    return parsed.ok ? parsed.value.choices[0].message.content : text;
+                } catch (e) {
+                    if (e && e._kind) throw e;
+                    const info = classifyFetchError(e);
+                    const err = new Error(`${info.kind}: ${info.msg}`); err._kind = info.kind; throw err;
+                } finally { clearTimeout(timer); }
+            }
+
+            function render_ai_settings_html() {
+                const providerOptions = Object.keys(AI_PROVIDERS).map(pid => `<option value="${pid}">${AI_PROVIDERS[pid].name}</option>`).join("");
+                return `
+            <h3 style="font-size:14px; margin-bottom:10px;">🤖 AI 配置（自动从 Key Manager 同步）</h3>
+            <div class="hint" style="margin-bottom:10px; font-size:12px; color:#64748b;">
+                请先在 <a href="key-manager.html" target="_blank">key-manager.html</a> 设置密钥，本页会自动读取。
+            </div>
+            <div class="row" style="margin-bottom:10px;">
+                <span class="badge" style="background:#fef3c7; color:#92400e; border:1px solid #fcd34d;">
+                    <input id="aiNetworkingToggle" type="checkbox" style="margin-right:4px;" />
+                    允许联网（默认关闭）
+                </span>
+                <span class="badge" id="aiKeyStatusPill">密钥状态：未检查</span>
+            </div>
+            <div class="row">
+                <div class="field"><label>平台（Provider）</label><select id="aiProviderSelect">${providerOptions}</select></div>
+                <div class="field"><label>模型预设</label><select id="aiModelPresetSelect"></select></div>
+            </div>
+            <div class="row">
+                <div class="field"><label>Base URL</label><input type="text" id="aiBaseUrlInput" /></div>
+                <div class="field"><label>模型 ID</label><input type="text" id="aiModelIdInput" /></div>
+            </div>
+            <div class="row" style="margin-top:10px;">
+                <button class="btn secondary" id="aiSyncBtn" type="button" style="font-size:12px;">从 Key Manager 同步</button>
+                <button class="btn secondary" id="aiCorsProbeBtn" type="button" style="font-size:12px;">CORS 探测</button>
+            </div>
+            <div id="aiLog" style="margin-top:10px; font-size:11px; color:#64748b; font-family:monospace; background:#f1f5f9; padding:8px; border-radius:6px;">AI 模块就绪。</div>
+        `;
+            }
+
+            function mount_ai_settings({ mount_el, default_provider_id = "siliconflow", on_state_change = null }) {
+                mount_el.innerHTML = render_ai_settings_html();
+                const $ = (id) => mount_el.querySelector(id);
+                const aiNetworkingToggle = $("#aiNetworkingToggle");
+                const aiProviderSelect = $("#aiProviderSelect");
+                const aiBaseUrlInput = $("#aiBaseUrlInput");
+                const aiModelPresetSelect = $("#aiModelPresetSelect");
+                const aiModelIdInput = $("#aiModelIdInput");
+                const aiKeyStatusPill = $("#aiKeyStatusPill");
+                const aiLog = $("#aiLog");
+                const aiSyncBtn = $("#aiSyncBtn");
+                const aiCorsProbeBtn = $("#aiCorsProbeBtn");
+
+                const state = { networking_enabled: false, provider_id: default_provider_id, base_url: "", model_id: "", temperature: 0.7, max_tokens: 2000, timeout_ms: 60000 };
+
+                function emit() { on_state_change && on_state_change(get_state()); }
+
+                function setKeyStatusPill(providerId) {
+                    const ks = getKeyStatus(providerId);
+                    if (ks.has_key) {
+                        aiKeyStatusPill.style.background = "#d1fae5"; aiKeyStatusPill.style.color = "#065f46"; aiKeyStatusPill.style.border = "1px solid #6ee7b7";
+                        aiKeyStatusPill.textContent = `✅ 已设置（${ks.key_name}）`;
+                    } else {
+                        aiKeyStatusPill.style.background = "#fee2e2"; aiKeyStatusPill.style.color = "#991b1b"; aiKeyStatusPill.style.border = "1px solid #fca5a5";
+                        aiKeyStatusPill.textContent = `❌ 未设置（${ks.key_name}）`;
+                    }
+                }
+
+                function rebuildModelPresetOptions(providerId, preferModelId = "") {
+                    const cfg = getMergedProviderConfig(providerId);
+                    const models = cfg.models || [];
+                    const options = [...models.map(m => `<option value="${String(m.id)}">${String(m.name || m.id)}${m._custom ? "（自定义）" : ""}</option>`), `<option value="__custom__">手动输入模型 ID</option>`].join("");
+                    aiModelPresetSelect.innerHTML = options;
+                    const effectiveModelId = preferModelId || cfg.model_id || "";
+                    const hasPreset = models.some(m => String(m.id) === String(effectiveModelId));
+                    aiModelPresetSelect.value = hasPreset ? String(effectiveModelId) : "__custom__";
+                }
+
+                function syncFromKeyManager(providerId) {
+                    const cfg = getMergedProviderConfig(providerId);
+                    state.base_url = String(cfg.base_url || "");
+                    state.model_id = String(cfg.model_id || "");
+                    aiBaseUrlInput.value = state.base_url;
+                    aiModelIdInput.value = state.model_id;
+                    rebuildModelPresetOptions(providerId, state.model_id);
+                    setKeyStatusPill(providerId);
+                    aiLog.textContent = `已同步：${cfg.name} | ${state.model_id}`;
+                    emit();
+                }
+
+                aiProviderSelect.value = default_provider_id;
+                syncFromKeyManager(default_provider_id);
+
+                aiNetworkingToggle.addEventListener("change", () => { state.networking_enabled = Boolean(aiNetworkingToggle.checked); aiLog.textContent = state.networking_enabled ? "已允许联网" : "已关闭联网"; emit(); });
+                aiProviderSelect.addEventListener("change", () => { state.provider_id = aiProviderSelect.value; syncFromKeyManager(state.provider_id); });
+                aiBaseUrlInput.addEventListener("change", () => { state.base_url = String(aiBaseUrlInput.value || "").trim(); emit(); });
+                aiModelPresetSelect.addEventListener("change", () => { const v = aiModelPresetSelect.value; if (v !== "__custom__") { aiModelIdInput.value = v; state.model_id = v; emit(); } });
+                aiModelIdInput.addEventListener("change", () => { state.model_id = String(aiModelIdInput.value || "").trim(); emit(); });
+                aiSyncBtn.addEventListener("click", () => syncFromKeyManager(state.provider_id));
+                aiCorsProbeBtn.addEventListener("click", async () => { aiLog.textContent = "CORS 探测中..."; const res = await corsProbe(aiBaseUrlInput.value); aiLog.textContent = res.result; });
+
+                function get_state() { return { ...state, key_status: getKeyStatus(state.provider_id) }; }
+
+                async function call_ai({ messages }) {
+                    const s = get_state();
+                    if (!s.networking_enabled) { const e = new Error("环境错误: 请先勾选【允许联网】"); e._kind = "环境错误"; throw e; }
+                    const p = getProvider(s.provider_id);
+                    const apiKey = localStorage.getItem(p.keyName) || "";
+                    return await call_llm_unified({ provider_id: s.provider_id, base_url: s.base_url, api_key: apiKey, model_id: s.model_id, messages, temperature: s.temperature, max_tokens: s.max_tokens, timeout_ms: s.timeout_ms });
+                }
+
+                function get_actionable_error(err) { return actionableErrorMessage(err?._kind || "内部错误", String(err?.message || err || "")); }
+
+                return { get_state, call_ai, get_actionable_error, sync: () => syncFromKeyManager(state.provider_id) };
+            }
+
+            return { mount_ai_settings, getMergedProviderConfig, getKeyStatus, corsProbe, call_llm_unified, actionableErrorMessage };
+        })();
+
+        // AI 模块实例
+        let aiInstance = null;
+
+        // ==========================================
+        // 模块 2: TTS 引擎矩阵 (核心)
+        // ==========================================
+        const TTS_ENGINE = (() => {
+            // 方案 A: 浏览器原生
+            function speakNative(text, role) {
+                return new Promise((resolve) => {
+                    const u = new SpeechSynthesisUtterance(text);
+                    const voices = speechSynthesis.getVoices();
+                    // 简单分配：Bob用第一个男声/低沉，Alice用第一个女声/高音
+                    // 这里简化处理，Alice 语速快一点，音调高一点
+                    if (role === 'Alice') { u.pitch = 1.1; u.rate = 1.1; }
+                    else { u.pitch = 0.9; u.rate = 0.95; }
+
+                    u.lang = 'zh-CN';
+                    u.onend = resolve;
+                    speechSynthesis.speak(u);
+                });
+            }
+
+            // 方案 B: OpenAI API
+            async function speakOpenAI(text, role) {
+                // 从 key-manager 获取 OpenAI 官方 Key
+                const key = localStorage.getItem('openai_key') || '';
+
+                const voice = role === 'Alice' ? 'nova' : 'onyx';
+
+                if (!key) throw new Error("OpenAI TTS 需要在 key-manager 设置 OpenAI 官方 Key (openai_key)");
+
+                const resp = await fetch("https://api.openai.com/v1/audio/speech", {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json" },
+                    body: JSON.stringify({ model: "tts-1", input: text, voice: voice })
+                });
+
+                if (!resp.ok) throw new Error("TTS API Error");
+                const blob = await resp.blob();
+                AUDIO_RECORDER.add(blob); // 收集音频用于下载
+                const audio = new Audio(URL.createObjectURL(blob));
+                return new Promise(r => { audio.onended = r; audio.play(); });
+            }
+
+            // 方案 C: 硅基流动 CosyVoice2 TTS
+            async function speakSiliconFlow(text, role) {
+                // 兼容 localStorage 和 sessionStorage（key-manager 有多种存储模式）
+                const key = localStorage.getItem('siliconflow_key') || sessionStorage.getItem('siliconflow_key') || '';
+                if (!key) {
+                    console.error('[TTS] siliconflow_key 未找到！请检查 key-manager 设置');
+                    throw new Error("请在 key-manager 设置 siliconflow_key（确保存储模式为 localStorage 或勾选兼容模式）");
+                }
+
+                // Alice: bella (女声), Bob: alex (男声)
+                const voice = role === 'Alice'
+                    ? 'FunAudioLLM/CosyVoice2-0.5B:bella'
+                    : 'FunAudioLLM/CosyVoice2-0.5B:alex';
+
+                const MAX_RETRIES = 2;
+                const TIMEOUT_MS = 20000; // 增加到 20 秒
+                let lastError = null;
+
+                console.log(`[TTS] 开始合成: ${role} - "${text.slice(0, 30)}..."`);
+
+                for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
+                    try {
+                        // 使用 Promise.race 实现完整超时（覆盖 fetch + blob）
+                        const fetchWithFullTimeout = async () => {
+                            const controller = new AbortController();
+
+                            const resp = await fetch("https://api.siliconflow.cn/v1/audio/speech", {
+                                method: "POST",
+                                headers: {
+                                    "Authorization": `Bearer ${key}`,
+                                    "Content-Type": "application/json"
+                                },
+                                body: JSON.stringify({
+                                    model: "FunAudioLLM/CosyVoice2-0.5B",
+                                    input: text,
+                                    voice: voice,
+                                    response_format: "mp3",
+                                    stream: false  // 关键：禁用流式，确保完整返回
+                                }),
+                                signal: controller.signal
+                            });
+
+                            // 处理 429/503/504 重试
+                            if (resp.status === 429 || resp.status === 503 || resp.status === 504) {
+                                throw { retryable: true, status: resp.status };
+                            }
+
+                            if (!resp.ok) {
+                                const errText = await resp.text();
+                                throw new Error(`CosyVoice2 错误 (${resp.status}): ${errText.slice(0, 100)}`);
+                            }
+
+                            console.log(`[TTS] API 响应成功，正在下载音频...`);
+                            const blob = await resp.blob();
+                            console.log(`[TTS] 音频下载完成: ${(blob.size / 1024).toFixed(1)} KB`);
+
+                            if (blob.size === 0) throw new Error("API 返回空音频");
+                            return blob;
+                        };
+
+                        const timeout = new Promise((_, reject) =>
+                            setTimeout(() => reject(new Error("请求超时 (20s)")), TIMEOUT_MS)
+                        );
+
+                        const blob = await Promise.race([fetchWithFullTimeout(), timeout]);
+
+                        AUDIO_RECORDER.add(blob);
+                        const audio = new Audio(URL.createObjectURL(blob));
+
+                        // 带错误处理的播放
+                        return new Promise((resolve, reject) => {
+                            audio.onended = () => { console.log(`[TTS] 播放完成: ${role}`); resolve(); };
+                            audio.onerror = (e) => reject(new Error("音频播放失败"));
+                            audio.play().catch(reject);
+                        });
+
+                    } catch (e) {
+                        if (e.retryable) {
+                            lastError = new Error(`API 繁忙 (${e.status})，重试中...`);
+                            console.warn(`[TTS] 第 ${attempt + 1} 次尝试: ${e.status}，等待重试`);
+                        } else {
+                            lastError = e;
+                            console.warn(`[TTS] 第 ${attempt + 1} 次尝试失败:`, e.message);
+                        }
+                        if (attempt < MAX_RETRIES) {
+                            await new Promise(r => setTimeout(r, 1500 * (attempt + 1))); // 递增等待
+                        }
+                    }
+                }
+                throw lastError || new Error("TTS 请求失败");
+            }
+
+            return { speakNative, speakOpenAI, speakSiliconFlow };
+        })();
+
+        // ==========================================
+        // 模块 2.5: 音频录制器 (Audio Recorder)
+        // ==========================================
+        const AUDIO_RECORDER = (() => {
+            let chunks = [];
+            let isRecording = false;
+            const MAX_CHUNKS = 150; // 最多150段，约25分钟
+
+            function start() { chunks = []; isRecording = true; console.log('[AUDIO_RECORDER] 开始录制'); }
+            function stop() { isRecording = false; console.log('[AUDIO_RECORDER] 停止录制，共', chunks.length, '段'); }
+            function add(blob) {
+                if (isRecording && chunks.length < MAX_CHUNKS) {
+                    chunks.push(blob);
+                    console.log('[AUDIO_RECORDER] 添加第', chunks.length, '段');
+                }
+            }
+            function canDownload() { return chunks.length > 0; }
+            function getCount() { return chunks.length; }
+
+            async function download(filename = 'podcast.mp3') {
+                if (chunks.length === 0) { alert('暂无可下载的音频'); return; }
+
+                // 合并所有音频片段
+                const merged = new Blob(chunks, { type: 'audio/mpeg' });
+                const url = URL.createObjectURL(merged);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+                console.log('[AUDIO_RECORDER] 下载完成，文件大小:', (merged.size / 1024 / 1024).toFixed(2), 'MB');
+            }
+
+            return { start, stop, add, canDownload, getCount, download };
+        })();
+
+        // ==========================================
+        // 模块 3: 业务编排 (Controller)
+        // ==========================================
+
+        // 初始化 AI 模块
+        aiInstance = AI_MODULE.mount_ai_settings({
+            mount_el: document.getElementById('aiSettingsMount'),
+            default_provider_id: 'siliconflow',
+            on_state_change: (s) => console.log('[DocuPod AI State]', s)
+        });
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+        // DOM 引用
+        const ui = {
+            fileIn: document.getElementById('fileInput'),
+            drop: document.getElementById('dropZone'),
+            rawText: document.getElementById('rawText'),
+            btnGen: document.getElementById('btnGenerate'),
+            ttsSel: document.getElementById('ttsEngineSelect'),
+            ttsPanel: document.getElementById('ttsConfigPanel'),
+            scriptBox: document.getElementById('scriptContainer'),
+            scriptSec: document.getElementById('scriptSection'),
+            playerBar: document.getElementById('playerBar'),
+            playerText: document.getElementById('playerText'),
+            badge: document.getElementById('statusBadge')
+        };
+
+        // TTS 说明面板更新
+        ui.ttsSel.onchange = () => {
+            const val = ui.ttsSel.value;
+            const tips = {
+                'native': "ℹ️ 使用浏览器自带语音合成。无需联网，无需 Key。缺点是声音比较机械。",
+                'openai': "ℹ️ 使用 OpenAI 官方 TTS。需要在 <a href='key-manager.html' target='_blank'>key-manager</a> 设置 OpenAI 官方 Key。每 1000 字符约 $0.015。",
+                'siliconflow': "ℹ️ 使用硅基流动 CosyVoice2。需要在 <a href='key-manager.html' target='_blank'>key-manager</a> 设置 siliconflow_key。¥50/M 字符。支持音频下载。"
+            };
+            ui.ttsPanel.innerHTML = tips[val];
+        };
+        ui.ttsSel.dispatchEvent(new Event('change')); // init
+
+        // 文件上传逻辑
+        ui.drop.onclick = () => ui.fileIn.click();
+        ui.fileIn.onchange = async (e) => {
+            const f = e.target.files[0];
+            if (!f) return;
+            document.getElementById('fileName').innerText = f.name;
+            ui.badge.innerText = "解析中...";
+
+            const ab = await f.arrayBuffer();
+            const pdf = await pdfjsLib.getDocument(ab).promise;
+            let txt = "";
+            for (let i = 1; i <= Math.min(pdf.numPages, 200); i++) { // 限制前200页
+                const p = await pdf.getPage(i);
+                txt += (await p.getTextContent()).items.map(s => s.str).join(" ");
+            }
+            ui.rawText.value = txt;
+            ui.badge.innerText = `已提取 ${txt.length} 字`;
+            ui.btnGen.disabled = false;
+        };
+
+        // 剧本生成逻辑
+        let globalScript = null;
+        ui.btnGen.onclick = async () => {
+            const txt = ui.rawText.value;
+            if (!txt) return alert("无文本");
+
+            ui.btnGen.disabled = true;
+            ui.badge.innerText = "AI 思考中...";
+
+            try {
+                const prompt = `
+# Role
+你是由 Google DeepMind 架构理念设计的 "Knowledge Alchemist" (知识炼金术士)。
+你的任务是将输入的 **[原始文档]** (可能因长度限制被截断) 深度重构为一档**高信噪比、富有洞察力**的 **[双人播客剧本]**。
+
+
+# Constraints & Safety
+1. **真实性原则**: 基于文档真实内容，不编造。
+2. **语言**: 必须使用**中文**。
+3. ⚠️ **防超时铁律**: 单个对话回合(turn) **严禁超过 150 字**。
+4. ⚠️ **深度要求**: 虽然单句要短，但**总对话轮次(Turns)必须多**。不要匆忙结束，要层层递进。
+
+# Core Philosophy (核心心法)
+拒绝平铺直叙的摘要。我们要的是**"Aha Moments" (顿悟时刻)**。
+每一段对话都必须回答用户潜意识里的问题："So What? (这与我何干?)" 和 "Why Now? (为什么是现在?)"。
+
+# Character Design (角色重塑)
+- **Host A (Alice)**: 
+  - **人设**: 焦虑的高知职场人，代表听众的痛点。
+  - **风格**: 怀疑论者。她不相信术语，只关心落地。她会问："但这不就是以前的自动化吗？有什么本质区别？" 或 "听起来很贵，值得吗？"
+  - **功能**: 挖掘冲突，替听众打破砂锅问到底。
+
+- **Host B (Bob)**: 
+  - **人设**: 拥有上帝视角的科技哲学家，冷静、犀利。
+  - **风格**: 擅长**降维打击**。他不用术语解释术语，而是用**精妙的比喻 (Analogy)** 和 **底层逻辑 (First Principles)** 来解释复杂概念。
+  - **功能**: 将枯燥的技术文档升华为商业智慧。
+
+# Script Structure (叙事结构)
+1. **The Hook (痛点切入)**: 
+   - 禁止寒暄！直接从文档中最反直觉的一个数据或一个场景切入。
+   - 例如："你有没有想过，你每天有 30% 的时间其实是在做机器人的工作？"
+2. **The Deep Dive (深度拆解)**: 
+   - 选取文档中 3-5 个核心 Hack/案例进行深度剖析。
+   - **每个知识点至少进行 4-5 轮的来回探讨**。
+   - Host A 必须充当"杠精"，提出质疑，逼 Host B 解释得更透彻。
+   - **必须使用比喻**：例如将 "Multimodal Search" 比作 "给公司的大脑装上了视神经"。
+   - **引入冲突**：Alice 质疑 -> Bob 抛出颠覆性观点 -> Alice 恍然大悟。
+3. **The Escalation (价值升维)**: 
+   - 讨论这些信息对普通人/行业的深层影响。讨论这不仅仅是工具，更是"生产关系的变革" (从 Doer 变成 Manager)。
+4. **The Takeaway (行动指南)**: 
+   - 结尾给出3个具体的、明天就能用的建议。
+
+# Constraints & Safety (硬性约束)
+1. **真实性**: 基于文档内容，严禁编造数据。
+2. **语言**: 必须使用**中文**进行对话，口语化，自然流畅。
+3. **防超时机制**: ⚠️ **关键**: 为了防止 TTS 生成失败，**每一轮对话 (Turn) 严禁超过 100 字**。如果解释很长，必须让 Alice 插话打断，或者 Bob 也就是停顿一下分段说。
+4. **拒绝说教**: 不要像讲课，要像两个聪明人在咖啡馆的深度对谈。
+
+# Output Format (Strict JSON)
+{
+  "dialogue": [
+    {"speaker": "Alice", "text": "说实话，看完这份 Google 的报告，我有点背脊发凉..."},
+    {"speaker": "Bob", "text": "你是说那个预测 2028 年 33% 的软件都将拥有自主意识的数据吗？"},
+    {"speaker": "Alice", "text": "对！这意味着什么？我们都要失业了？"},
+    {"speaker": "Bob", "text": "恰恰相反。这意味着我们将迎来'认知卸载'的时代。想象一下，你有了一个不知疲倦的数字分身..."}
+  ]
+}
+                `;
+
+                // 使用新的 AI 模块 API
+                const res = await aiInstance.call_ai({
+                    messages: [
+                        { role: "system", content: prompt },
+                        { role: "user", content: txt.slice(0, 300000) } // 截断
+                    ]
+                });
+
+                const json = JSON.parse(res.replace(/```json|```/g, ""));
+                globalScript = json.dialogue;
+                renderScript(globalScript);
+                ui.scriptSec.style.display = 'block';
+                ui.badge.innerText = "剧本就绪";
+
+            } catch (e) {
+                alert("生成失败: " + e.message);
+                ui.badge.innerText = "出错";
+            } finally {
+                ui.btnGen.disabled = false;
+            }
+        };
+
+        function renderScript(lines) {
+            ui.scriptBox.innerHTML = lines.map(l => {
+                const isA = l.speaker === 'Alice';
+                return `
+            <div class="message" style="flex-direction:${isA ? 'row' : 'row-reverse'}">
+                <div class="avatar" style="background:${isA ? '#dbeafe' : '#fae8ff'}">${isA ? '👩' : '👨'}</div>
+                <div class="msg-content">
+                    <div class="msg-name" style="text-align:${isA ? 'left' : 'right'}">${l.speaker}</div>
+                    <div class="msg-text">${l.text}</div>
+                </div>
+            </div>
+        `;
+            }).join("");
+        }
+
+        // 播放控制逻辑 (The Orchestrator)
+        let isStopping = false;
+        const btnDownload = document.getElementById('btnDownload');
+
+        document.getElementById('btnPlayScript').onclick = async () => {
+            if (!globalScript) return;
+            const engine = ui.ttsSel.value;
+
+            ui.playerBar.style.display = 'flex';
+            btnDownload.style.display = 'none'; // 隐藏下载按钮
+            isStopping = false;
+
+            // OpenAI 和 SiliconFlow TTS 支持录制
+            if (engine === 'openai' || engine === 'siliconflow') AUDIO_RECORDER.start();
+
+            const messages = document.querySelectorAll('.message');
+
+            for (let i = 0; i < globalScript.length; i++) {
+                if (isStopping) break;
+
+                const line = globalScript[i];
+
+                // UI 更新
+                messages.forEach(m => m.classList.remove('playing'));
+                if (messages[i]) {
+                    messages[i].classList.add('playing');
+                    messages[i].scrollIntoView({ behavior: "smooth", block: "center" });
+                }
+
+                // 显示正在合成状态（关键！让用户知道在工作）
+                ui.playerText.innerText = `⏳ 正在合成... ${line.speaker}: ${line.text.slice(0, 30)}...`;
+                ui.playerText.style.color = '#f59e0b'; // 橙色表示处理中
+
+                try {
+                    if (engine === 'native') await TTS_ENGINE.speakNative(line.text, line.speaker);
+                    else if (engine === 'openai') await TTS_ENGINE.speakOpenAI(line.text, line.speaker);
+                    else if (engine === 'siliconflow') await TTS_ENGINE.speakSiliconFlow(line.text, line.speaker);
+
+                    // 成功后恢复正常颜色
+                    ui.playerText.style.color = '';
+                } catch (e) {
+                    // 错误：使用 alert 确保用户看到
+                    ui.playerText.innerText = `❌ 错误: ${e.message}`;
+                    ui.playerText.style.color = '#ef4444'; // 红色
+                    console.error('[TTS] 播放出错:', e.message);
+                    alert(`TTS 错误: ${e.message}\n\n请检查:\n1. key-manager 是否已设置 siliconflow_key\n2. 存储模式是否为 localStorage`);
+                    isStopping = true;
+                    ui.playerBar.style.display = 'none';
+                    break;
+                }
+
+                // 停顿感
+                await new Promise(r => setTimeout(r, 500));
+            }
+
+            // 播放完成，显示下载按钮（OpenAI 和 SiliconFlow）
+            if (!isStopping && (engine === 'openai' || engine === 'siliconflow')) {
+                AUDIO_RECORDER.stop();
+                if (AUDIO_RECORDER.canDownload()) {
+                    btnDownload.style.display = 'inline-block';
+                    ui.playerText.innerText = `播放完成！共 ${AUDIO_RECORDER.getCount()} 段，可下载`;
+                }
+            } else {
+                ui.playerBar.style.display = 'none';
+            }
+        };
+
+        document.getElementById('btnStop').onclick = () => {
+            isStopping = true;
+            speechSynthesis.cancel();
+            // 停止时也可以下载已播放部分
+            if (AUDIO_RECORDER.canDownload()) {
+                AUDIO_RECORDER.stop();
+                btnDownload.style.display = 'inline-block';
+                ui.playerText.innerText = `已停止，共 ${AUDIO_RECORDER.getCount()} 段可下载`;
+            } else {
+                ui.playerBar.style.display = 'none';
+            }
+        };
+
+        // 下载按钮事件
+        btnDownload.onclick = () => {
+            AUDIO_RECORDER.download('docupod_podcast.mp3');
+        };
+
+    </script>
+</body>
+
+</html>

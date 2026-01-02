@@ -1,0 +1,813 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>全维深度解析器 v6.0 (Logic Chain)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script type="application/json" id="tool_meta">
+    {
+        "tool_id": "ai-insight-refractor-v6",
+        "tool_name": "全维深度解析器 (逻辑链版)",
+        "tool_version": "6.0.0",
+        "capabilities": { "networking": true, "ai": true, "download_output": true },
+        "ai_integration": {
+            "uses_key_manager": true,
+            "providers": ["siliconflow", "openrouter", "deepseek", "custom"]
+        }
+    }
+    </script>
+
+    <style>
+        .loader {
+            border: 3px solid #f3f3f3;
+            border-radius: 50%;
+            border-top: 3px solid #3b82f6;
+            width: 16px;
+            height: 16px;
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        .markdown-body {
+            font-size: 0.95rem;
+            line-height: 1.75;
+            color: #334155;
+        }
+
+        .markdown-body h1,
+        .markdown-body h2 {
+            font-weight: 800;
+            color: #0f172a;
+            margin: 1.2em 0 0.6em;
+            font-size: 1.1em;
+            letter-spacing: -0.01em;
+        }
+
+        .markdown-body strong {
+            color: #1e40af;
+            font-weight: 700;
+            background: rgba(59, 130, 246, 0.05);
+            padding: 0 3px;
+            border-radius: 2px;
+        }
+
+        .markdown-body ul {
+            list-style-type: disc;
+            padding-left: 1.4em;
+            margin-bottom: 0.8em;
+        }
+
+        .markdown-body li {
+            margin-bottom: 0.25em;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 10px;
+        }
+
+        /* 阶段标识徽章 */
+        .stage-badge {
+            font-size: 10px;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .stage-1 {
+            background: #e0f2fe;
+            color: #0369a1;
+            border: 1px solid #bae6fd;
+        }
+
+        .stage-2 {
+            background: #f0fdf4;
+            color: #15803d;
+            border: 1px solid #bbf7d0;
+        }
+
+        .stage-3 {
+            background: #faf5ff;
+            color: #7e22ce;
+            border: 1px solid #e9d5ff;
+        }
+
+        /* 渐进式显示动画 */
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .animate-fadeIn {
+            animation: fadeIn 0.4s ease-out forwards;
+        }
+
+        /* === 沉浸阅读器样式 Pro === */
+        #reading-modal {
+            transition: opacity 0.3s ease;
+        }
+
+        #reading-modal.hidden {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        #reading-modal:not(.hidden) {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* 阅读器内部排版增强 */
+        .prose-focus {
+            font-size: 1.05rem;
+            line-height: 1.8;
+            color: #374151;
+            max-width: 100%;
+        }
+
+        .prose-focus p {
+            margin-bottom: 1.2em;
+            text-align: justify;
+        }
+
+        .prose-focus h1,
+        .prose-focus h2 {
+            margin-top: 1.5em;
+            margin-bottom: 0.8em;
+            padding-bottom: 0.3em;
+            border-bottom: 2px solid #e2e8f0;
+            color: #1e293b;
+            font-size: 1.4em;
+        }
+
+        .prose-focus h3 {
+            margin-top: 1.2em;
+            margin-bottom: 0.5em;
+            font-size: 1.2em;
+            color: #334155;
+            font-weight: 700;
+        }
+
+        .prose-focus blockquote {
+            background: #f8fafc;
+            border-left: 4px solid #6366f1;
+            padding: 1em 1.2em;
+            margin: 1.5em 0;
+            font-style: italic;
+            color: #475569;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .prose-focus ul,
+        .prose-focus ol {
+            padding-left: 1.6em;
+            margin-bottom: 1.2em;
+        }
+
+        .prose-focus li {
+            margin-bottom: 0.5em;
+        }
+
+        .prose-focus li::marker {
+            color: #6366f1;
+            font-weight: bold;
+        }
+
+        .prose-focus strong {
+            color: #1e40af;
+            background: rgba(99, 102, 241, 0.1);
+            padding: 0 4px;
+        }
+
+        .prose-focus code {
+            font-family: Menlo, Monaco, Consolas, "Courier New", monospace;
+            background-color: #f1f5f9;
+            padding: 0.2em 0.4em;
+            border-radius: 4px;
+            font-size: 0.9em;
+            color: #db2777;
+        }
+
+        .prose-focus pre {
+            background-color: #1e293b;
+            color: #e2e8f0;
+            padding: 1em;
+            border-radius: 8px;
+            overflow-x: auto;
+            margin: 1.5em 0;
+        }
+
+        .prose-focus pre code {
+            background-color: transparent;
+            padding: 0;
+            color: inherit;
+        }
+    </style>
+</head>
+
+<body class="bg-slate-50 text-slate-800 font-sans min-h-screen p-4 md:p-8">
+
+    <div class="max-w-7xl mx-auto space-y-6">
+        <header
+            class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 border-b border-slate-200 pb-6">
+            <div>
+                <h1 class="text-2xl md:text-3xl font-extrabold text-slate-900 tracking-tight flex items-center gap-3">
+                    全维深度解析器
+                    <span class="text-white text-xs align-top font-mono bg-indigo-600 px-2 py-1 rounded shadow-sm">v6.0
+                        Logic Chain</span>
+                </h1>
+                <p class="text-slate-500 mt-2 text-sm">3-Stage Waterfall Analysis: Roots → Trunk → Branches</p>
+            </div>
+            <div class="flex gap-2">
+                <button onclick="app.copyAllMD()"
+                    class="text-xs bg-white border border-slate-300 hover:bg-slate-50 text-slate-700 font-medium py-2 px-3 rounded shadow-sm flex items-center gap-1">
+                    📋 复制全部 MD
+                </button>
+                <button onclick="app.downloadAllPDF()"
+                    class="text-xs bg-indigo-600 hover:bg-indigo-700 text-white font-medium py-2 px-3 rounded shadow-sm flex items-center gap-1">
+                    📄 下载全部 PDF
+                </button>
+            </div>
+        </header>
+
+        <div id="aiSettingsMount" class="bg-white rounded-xl shadow-sm border border-slate-200 p-4 mb-6"></div>
+
+        <div class="bg-white rounded-xl shadow-lg border border-slate-200 p-6 transition-all hover:shadow-xl relative">
+            <div class="flex justify-between items-baseline mb-2">
+                <label class="text-xs font-bold text-slate-500 uppercase tracking-wider">原始素材 (Raw Context)</label>
+                <button onclick="document.getElementById('input-text').value=''"
+                    class="text-xs text-slate-400 hover:text-red-500">CLEAR</button>
+            </div>
+            <textarea id="input-text" rows="5"
+                class="w-full bg-slate-50 border border-slate-300 rounded-lg p-4 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 font-mono transition-all resize-y"
+                placeholder="在此粘贴复杂的商业思考、会议记录或行业报告..."></textarea>
+
+            <button onclick="app.runPipeline()" id="btn-analyze"
+                class="mt-4 w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 px-6 rounded-lg transition duration-200 flex items-center justify-center gap-2 shadow-md">
+                <span>启动链式推演 (Start Pipeline)</span>
+                <span id="pipeline-loader" class="loader hidden"
+                    style="border-color: rgba(255,255,255,0.3); border-top-color: white;"></span>
+            </button>
+        </div>
+
+        <div id="results-grid" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6 pb-20">
+        </div>
+    </div>
+
+    <script>
+        const AI_MODULE = (() => {
+            // AI Providers 配置（与 key-manager 同步）
+            const AI_PROVIDERS = {
+                "siliconflow": {
+                    name: "硅基流动 (SiliconFlow)",
+                    keyName: "siliconflow_key",
+                    baseUrl: "https://api.siliconflow.cn/v1",
+                    models: [
+                        { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B（Fast）" },
+                        { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+                        { id: "Pro/zai-org/GLM-4.7", name: "GLM-4.7" },
+                        { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2（Thinking）" },
+                        { id: "Qwen/Qwen3-VL-32B-Thinking", name: "Qwen 3 VL 32B（Thinking）" }
+                    ]
+                },
+                "openrouter": {
+                    name: "OpenRouter",
+                    keyName: "openrouter_key",
+                    baseUrl: "https://openrouter.ai/api/v1",
+                    models: [
+                        { id: "openai/gpt-4o", name: "GPT-4o" },
+                        { id: "google/gemini-pro", name: "Gemini Pro" },
+                        { id: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5" },
+                        { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
+                        { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" }
+                    ]
+                },
+                "deepseek": {
+                    name: "DeepSeek Official",
+                    keyName: "deepseek_key",
+                    baseUrl: "https://api.deepseek.com",
+                    models: [{ id: "deepseek-chat", name: "DeepSeek V3" }]
+                },
+                "custom": {
+                    name: "自定义 / 本地（Ollama）",
+                    keyName: "custom_key",
+                    baseUrl: "http://localhost:11434/v1",
+                    models: []
+                }
+            };
+
+            // 获取 Key（兼容 localStorage 和 sessionStorage）
+            function getKey(keyName) {
+                return localStorage.getItem(keyName) || sessionStorage.getItem(keyName) || '';
+            }
+
+            function getHostname(u) { try { return new URL(u).hostname } catch { return "" } }
+
+            function checkDomain(u) {
+                const h = getHostname(u);
+                const allow = ["api.siliconflow.cn", "openrouter.ai", "api.deepseek.com", "api.openai.com", "localhost", "127.0.0.1"];
+                if (!allow.includes(h)) {
+                    const k = "ai_domain_consent_v1", s = localStorage.getItem(k) || "{}", o = JSON.parse(s);
+                    if (!o[h] && !confirm(`允许请求域名 ${h}?`)) throw new Error("域名未授权");
+                    o[h] = true; localStorage.setItem(k, JSON.stringify(o));
+                }
+            }
+
+            async function callAI({ base, key, model, msgs }) {
+                checkDomain(base);
+                if (!key) throw new Error("Missing API Key. 请在 key-manager 设置对应 Key");
+                const res = await fetch(`${base.replace(/\/+$/, "")}/chat/completions`, {
+                    method: "POST",
+                    headers: { "Authorization": `Bearer ${key}`, "Content-Type": "application/json", "HTTP-Referer": window.location.href },
+                    body: JSON.stringify({ model, messages: msgs, temperature: 0.7, max_tokens: 2000 })
+                });
+                if (!res.ok) throw new Error(`API Error ${res.status}`);
+                const data = await res.json();
+                return data.choices?.[0]?.message?.content || "";
+            }
+
+            return {
+                mount: (el) => {
+                    let s = { p: "siliconflow", u: "", m: "", net: false };
+                    const render = () => {
+                        const p = AI_PROVIDERS[s.p];
+                        const key = getKey(p.keyName);
+                        const keyStatus = key ? "✅ Ready" : "❌ No Key";
+                        const modelOptions = p.models.map(m =>
+                            `<option value="${m.id}" ${m.id === (s.m || p.models[0]?.id) ? 'selected' : ''}>${m.name}</option>`
+                        ).join("");
+
+                        el.innerHTML = `
+                            <details class="text-xs border p-3 rounded-lg bg-slate-50" open>
+                                <summary class="font-bold cursor-pointer text-slate-700">⚙️ AI 设置 (${p.name}) - ${keyStatus}</summary>
+                                <div class="mt-3 grid gap-3">
+                                    <div class="flex items-center gap-2">
+                                        <input type="checkbox" id="net" ${s.net ? 'checked' : ''} class="w-4 h-4">
+                                        <label for="net" class="text-slate-600">启用网络调用</label>
+                                        <a href="key-manager.html" target="_blank" class="ml-auto text-blue-500 hover:underline">🔑 管理 Key</a>
+                                    </div>
+                                    <div class="grid grid-cols-1 md:grid-cols-3 gap-2">
+                                        <select id="prov" class="border p-2 rounded bg-white">
+                                            ${Object.keys(AI_PROVIDERS).map(k => `<option value="${k}" ${k === s.p ? 'selected' : ''}>${AI_PROVIDERS[k].name}</option>`).join("")}
+                                        </select>
+                                        <select id="mod" class="border p-2 rounded bg-white">
+                                            ${modelOptions}
+                                            <option value="">-- 自定义 --</option>
+                                        </select>
+                                        <input id="modCustom" class="border p-2 rounded ${s.m && !p.models.find(m => m.id === s.m) ? '' : 'hidden'}" value="${s.m}" placeholder="Model ID">
+                                    </div>
+                                    <input id="base" class="border p-2 rounded" value="${s.u || p.baseUrl}" placeholder="Base URL">
+                                </div>
+                            </details>`;
+
+                        el.querySelector('#prov').onchange = e => { s.p = e.target.value; s.u = ""; s.m = ""; render() };
+                        el.querySelector('#base').onchange = e => s.u = e.target.value;
+                        el.querySelector('#mod').onchange = e => {
+                            s.m = e.target.value;
+                            el.querySelector('#modCustom').classList.toggle('hidden', !!e.target.value);
+                        };
+                        el.querySelector('#modCustom').onchange = e => s.m = e.target.value;
+                        el.querySelector('#net').onchange = e => s.net = e.target.checked;
+                        if (!s.u) s.u = p.baseUrl;
+                        if (!s.m) s.m = p.models[0]?.id || "";
+                    };
+                    render();
+                    return {
+                        call: (msgs) => {
+                            if (!s.net) throw new Error("请先勾选「启用网络调用」");
+                            const p = AI_PROVIDERS[s.p];
+                            return callAI({ base: s.u, key: getKey(p.keyName), model: s.m, msgs });
+                        }
+                    }
+                }
+            };
+        })();
+
+        /**
+         * v6.0 App Logic: The Logic Chain
+         */
+        const app = (() => {
+            // 定义 DAG (有向无环图) 结构
+            // dependency 指向的是上游 Agent ID
+            const AGENTS = [
+                // --- STAGE 1: ROOTS (The Brain) ---
+                {
+                    id: 'strategy', stage: 1,
+                    title: '战略洞察 (Strategy)', icon: '♟️', color: 'border-blue-500',
+                    desc: "定义核心价值与方向",
+                    prompt: "你是一流的战略顾问。使用 MECE 和 SCQA 模型深度解构文本。输出 5 个高价值洞察：\n1.内核\n2.决策映射\n3.二阶效应。"
+                },
+                {
+                    id: 'system', stage: 1,
+                    title: '系统模型 (System)', icon: '🏗️', color: 'border-blue-500',
+                    desc: "抽象底层 IPO 逻辑",
+                    prompt: "你是系统架构师。提取 IPO 模型：\n- Input(输入)\n- Process(黑盒逻辑)\n- Output(输出)\n- Feedback(增强回路)。"
+                },
+
+                // --- STAGE 2: TRUNK (The Body) ---
+                {
+                    id: 'action', stage: 2, dependency: ['strategy'],
+                    title: '执行落地 (Action)', icon: '🚀', color: 'border-green-500',
+                    desc: "基于战略制定计划",
+                    contextPrompt: (res) => `参考上游 [Strategy Agent] 的战略洞察：\n"""\n${res.strategy}\n"""\n\n请**必须**基于上述战略方向，而非仅基于原文，制定 5 步执行计划(Action/Owner/KPI/Quick Win)。`
+                },
+                {
+                    id: 'leverage', stage: 2, dependency: ['system'],
+                    title: '杠杆支点 (Leverage)', icon: '🔧', color: 'border-green-500',
+                    desc: "基于系统寻找瓶颈",
+                    contextPrompt: (res) => `参考上游 [System Agent] 的系统模型：\n"""\n${res.system}\n"""\n\n在这个系统架构中，找出：\n1.关键齿轮(优化10%带来50%提升)\n2.瓶颈(限制因素)\n3.多米诺骨牌。`
+                },
+                {
+                    id: 'persona', stage: 2, dependency: ['strategy'],
+                    title: '利益相关者 (Persona)', icon: '🎩', color: 'border-green-500',
+                    desc: "基于战略评估反应",
+                    contextPrompt: (res) => `参考上游 [Strategy Agent] 的战略方向：\n"""\n${res.strategy}\n"""\n\n针对这个战略，分析以下角色的潜台词和恐惧：\n1.增长黑客\n2.CFO\n3.技术负责人。`
+                },
+
+                // --- STAGE 3: BRANCHES (The Critique) ---
+                {
+                    id: 'assumption', stage: 3, dependency: ['strategy', 'action'],
+                    title: '红队测试 (Red Team)', icon: '🔍', color: 'border-purple-500',
+                    desc: "攻击战略与执行",
+                    contextPrompt: (res) => `参考 [Strategy] 和 [Action]：\n"""\n战略：${res.strategy}\n计划：${res.action}\n"""\n\n作为红队，请无情攻击上述计划。找出 3 个致命隐性假设，并进行事前验尸。`
+                },
+                {
+                    id: 'debate', stage: 3, dependency: ['strategy'],
+                    title: '观点对标 (Debate)', icon: '⚖️', color: 'border-purple-500',
+                    desc: "寻找对立面",
+                    contextPrompt: (res) => `针对 [Strategy] 提出的核心观点：\n"""\n${res.strategy}\n"""\n\n请引入竞争性观点：\n1.谁会反对？\n2.反对理由？\n3.合题(Synthesis)是什么？`
+                },
+                {
+                    id: 'contrarian', stage: 3, dependency: ['system', 'strategy'],
+                    title: '逆向思维 (Contrarian)', icon: '⚡', color: 'border-purple-500',
+                    desc: "寻找反共识",
+                    contextPrompt: (res) => `基于 [System] 和 [Strategy] 的共识：\n请像 Peter Thiel 一样思考，找出一个“反共识真理”：大多数人认同上述分析，但哪个被忽视的真理是相反的？`
+                }
+            ];
+
+            let ai = null;
+            const resultsStore = {}; // 存储所有 Agent 的输出结果
+
+            // Stage 标题配置
+            const STAGE_TITLES = {
+                1: { name: 'ROOTS (根基思考)', icon: '🌳', desc: '战略与系统的底层逻辑' },
+                2: { name: 'TRUNK (主干延伸)', icon: '🌿', desc: '基于根基展开执行与杠杆' },
+                3: { name: 'BRANCHES (分支验证)', icon: '🍃', desc: '批判性思维与反向验证' }
+            };
+
+            function init() {
+                ai = AI_MODULE.mount(document.getElementById("aiSettingsMount"));
+                // 初始化时显示空白提示
+                const grid = document.getElementById('results-grid');
+                grid.innerHTML = `<div class="col-span-full text-center text-slate-400 py-20">
+                    <p class="text-lg">👆 输入文本后点击「启动链式推演」开始分析</p>
+                </div>`;
+            }
+
+            // 清空 Grid
+            function clearGrid() {
+                document.getElementById('results-grid').innerHTML = '';
+            }
+
+            // 渲染指定 Stage 的卡片
+            function renderStage(stageNum) {
+                const grid = document.getElementById('results-grid');
+                const stageAgents = AGENTS.filter(a => a.stage === stageNum);
+                const stageInfo = STAGE_TITLES[stageNum];
+
+                // 添加 Stage 标题
+                grid.insertAdjacentHTML('beforeend', `
+                    <div class="col-span-full mt-6 mb-3 stage-section animate-fadeIn">
+                        <div class="flex items-center gap-3 mb-1">
+                            <span class="text-2xl">${stageInfo.icon}</span>
+                            <h2 class="text-lg font-bold text-slate-700">Stage ${stageNum}: ${stageInfo.name}</h2>
+                        </div>
+                        <p class="text-xs text-slate-400 ml-9">${stageInfo.desc}</p>
+                    </div>
+                `);
+
+                // 添加该 Stage 的 Agent 卡片
+                stageAgents.forEach(a => {
+                    grid.insertAdjacentHTML('beforeend', `
+                        <div class="bg-white rounded-lg shadow border-t-4 ${a.color} p-5 flex flex-col min-h-[12rem] h-auto md:h-96 hover:shadow-lg transition-all relative animate-fadeIn">
+                            <div class="absolute top-2 right-2 flex gap-1">
+                                <button onclick="app.openReader('${a.id}')" title="沉浸阅读" 
+                                    class="text-[10px] p-1.5 md:px-1.5 md:py-0.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-600 rounded cursor-pointer transition-colors font-bold">🔍</button>
+                                <button onclick="app.copySingleMD('${a.id}')" title="复制 MD" 
+                                    class="text-[10px] p-1.5 md:px-1.5 md:py-0.5 bg-slate-100 hover:bg-slate-200 rounded cursor-pointer transition-colors">📋</button>
+                                <button onclick="app.downloadSinglePDF('${a.id}')" title="下载 PDF"
+                                    class="text-[10px] p-1.5 md:px-1.5 md:py-0.5 bg-slate-100 hover:bg-slate-200 rounded cursor-pointer transition-colors">📄</button>
+                                <span class="stage-badge stage-${a.stage}">Stage ${a.stage}</span>
+                            </div>
+                            <div class="flex flex-col mb-3 pb-2 border-b border-slate-100">
+                                <h3 class="font-bold text-slate-700 flex items-center gap-2 text-base">${a.icon} ${a.title}</h3>
+                                <p class="text-[10px] text-slate-400 mt-1">${a.desc}</p>
+                            </div>
+                            <div id="status-${a.id}" class="text-[10px] font-mono text-slate-400 mb-2">⏳ 等待中...</div>
+                            <div id="content-${a.id}" class="flex-1 md:overflow-y-auto overflow-y-visible markdown-body custom-scrollbar pr-1 text-sm bg-slate-50 rounded p-2 border border-slate-100">
+                                <div class="h-full flex items-center justify-center text-slate-300 italic text-xs text-center py-8 md:py-0">
+                                    准备分析...
+                                </div>
+                            </div>
+                        </div>
+                    `);
+                });
+
+                // 滚动到新渲染的 Stage
+                const sections = grid.querySelectorAll('.stage-section');
+                if (sections.length > 0) {
+                    sections[sections.length - 1].scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            }
+
+            // 保留旧函数（兼容）
+            function renderGrid() {
+                clearGrid();
+                [1, 2, 3].forEach(s => renderStage(s));
+            }
+
+            function updateStatus(id, type, msg) {
+                const el = document.getElementById(`status-${id}`);
+                if (!el) return;
+                if (type === 'run') { el.className = "text-blue-600 font-bold animate-pulse text-xs"; el.innerText = "⚙️ " + msg; }
+                if (type === 'wait') { el.className = "text-slate-400 text-xs"; el.innerText = "⏳ " + msg; }
+                if (type === 'done') { el.className = "text-green-600 font-bold text-xs"; el.innerText = "✅ DONE"; }
+                if (type === 'err') { el.className = "text-red-500 font-bold text-xs"; el.innerText = "❌ ERROR"; }
+            }
+
+            function updateContent(id, html) {
+                document.getElementById(`content-${id}`).innerHTML = html;
+            }
+
+            // --- 核心：流水线调度引擎 ---
+            async function runPipeline() {
+                const rawText = document.getElementById('input-text').value.trim();
+                if (!rawText) return alert("请先输入文本");
+
+                const btn = document.getElementById('btn-analyze');
+                const loader = document.getElementById('pipeline-loader');
+                btn.disabled = true; btn.classList.add('opacity-75'); loader.classList.remove('hidden');
+
+                // 清空旧结果
+                for (let key in resultsStore) delete resultsStore[key];
+                clearGrid();
+
+                try {
+                    // STAGE 1: ROOTS (并行)
+                    renderStage(1);  // 先渲染 Stage 1 卡片
+                    await runStage(1, rawText);
+
+                    // STAGE 2: TRUNK (并行，但依赖 S1)
+                    renderStage(2);  // Stage 1 完成后渲染 Stage 2
+                    await runStage(2, rawText);
+
+                    // STAGE 3: BRANCHES (并行，但依赖 S1+S2)
+                    renderStage(3);  // Stage 2 完成后渲染 Stage 3
+                    await runStage(3, rawText);
+
+                } catch (e) {
+                    console.error("Pipeline Fatal Error", e);
+                    alert("流水线意外中断，请检查控制台或网络");
+                } finally {
+                    btn.disabled = false; btn.classList.remove('opacity-75'); loader.classList.add('hidden');
+                }
+            }
+
+            async function runStage(stageNum, rawText) {
+                const stageAgents = AGENTS.filter(a => a.stage === stageNum);
+                console.log(`--- Starting Stage ${stageNum} ---`);
+
+                // Promise.all 实现同级并行
+                await Promise.all(stageAgents.map(async (agent) => {
+                    updateStatus(agent.id, 'run', 'ANALYZING...');
+
+                    try {
+                        // 1. 构建 Prompt (上下文注入)
+                        let systemPrompt = agent.prompt;
+
+                        // 检查是否有依赖，如果有，尝试注入上下文
+                        if (agent.contextPrompt) {
+                            // 检查依赖项是否存在于 resultsStore
+                            const missingDeps = (agent.dependency || []).filter(d => !resultsStore[d]);
+
+                            if (missingDeps.length === 0) {
+                                // 依赖全齐，注入增强版 Prompt
+                                const contextInstruction = agent.contextPrompt(resultsStore);
+                                systemPrompt = `${agent.prompt}\n\n=== 上下文注入 (CONTEXT INJECTION) ===\n${contextInstruction}`;
+                            } else {
+                                // 依赖缺失（可能是上游失败了），降级处理
+                                console.warn(`Agent ${agent.id} missing deps: ${missingDeps}, falling back to raw mode.`);
+                                systemPrompt += `\n\n(注意：上游分析缺失，请仅基于原始素材进行分析)`;
+                            }
+                        }
+
+                        // 2. 调用 AI
+                        const messages = [
+                            { role: "system", content: systemPrompt },
+                            { role: "user", content: `原始素材 (Raw Material):\n"""\n${rawText}\n"""` }
+                        ];
+
+                        const output = await ai.call(messages);
+
+                        // 3. 存储结果 (供下游使用) & 渲染
+                        resultsStore[agent.id] = output;
+                        updateContent(agent.id, marked.parse(output));
+                        updateStatus(agent.id, 'done');
+
+                    } catch (e) {
+                        console.error(`Agent ${agent.id} failed:`, e);
+                        updateContent(agent.id, `<div class="text-red-500 text-xs">${e.message}</div>`);
+                        updateStatus(agent.id, 'err');
+                        // 即使失败，也不要把 resultsStore 填空，这样下游会触发“依赖缺失”的降级逻辑
+                    }
+                }));
+            }
+
+            // === 导出工具函数 ===
+
+            // 复制到剪贴板
+            async function copyToClipboard(text, successMsg = "已复制") {
+                try {
+                    await navigator.clipboard.writeText(text);
+                    alert(successMsg);
+                } catch (e) {
+                    // 降级方案
+                    const ta = document.createElement('textarea');
+                    ta.value = text;
+                    document.body.appendChild(ta);
+                    ta.select();
+                    document.execCommand('copy');
+                    document.body.removeChild(ta);
+                    alert(successMsg);
+                }
+            }
+
+            // 单项复制 MD
+            function copySingleMD(agentId) {
+                const agent = AGENTS.find(a => a.id === agentId);
+                if (!resultsStore[agentId]) return alert("该项无数据");
+                const md = `## ${agent.icon} ${agent.title}\n\n${resultsStore[agentId]}`;
+                copyToClipboard(md, `${agent.title} 已复制到剪贴板`);
+            }
+
+            // 单项下载 PDF
+            function downloadSinglePDF(agentId) {
+                const agent = AGENTS.find(a => a.id === agentId);
+                if (!resultsStore[agentId]) return alert("该项无数据");
+                const el = document.getElementById(`content-${agentId}`);
+                const opt = {
+                    margin: 10,
+                    filename: `${agent.title.replace(/[^\w\u4e00-\u9fa5]/g, '')}_${new Date().toISOString().slice(0, 10)}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(el).save();
+            }
+
+            // 批量复制 MD
+            function copyAllMD() {
+                if (Object.keys(resultsStore).length === 0) return alert("无数据");
+                let md = "# 全维深度解析报告\n\n";
+                AGENTS.forEach(a => {
+                    if (resultsStore[a.id]) {
+                        md += `## ${a.icon} ${a.title}\n\n${resultsStore[a.id]}\n\n---\n\n`;
+                    }
+                });
+                copyToClipboard(md, "全部结果已复制到剪贴板");
+            }
+
+            // 批量下载 PDF
+            function downloadAllPDF() {
+                if (Object.keys(resultsStore).length === 0) return alert("无数据");
+
+                // 创建临时容器
+                const container = document.createElement('div');
+                container.style.padding = '20px';
+                container.style.fontFamily = 'sans-serif';
+                container.innerHTML = `<h1 style="font-size:24px;margin-bottom:20px;color:#1e293b;">全维深度解析报告</h1>`;
+
+                AGENTS.forEach(a => {
+                    if (resultsStore[a.id]) {
+                        container.innerHTML += `
+                            <div style="margin-bottom:30px;page-break-inside:avoid;">
+                                <h2 style="font-size:16px;color:#334155;border-bottom:1px solid #e2e8f0;padding-bottom:8px;margin-bottom:12px;">
+                                    ${a.icon} ${a.title}
+                                </h2>
+                                <div style="font-size:13px;line-height:1.7;color:#475569;">${marked.parse(resultsStore[a.id])}</div>
+                            </div>`;
+                    }
+                });
+
+                const opt = {
+                    margin: 10,
+                    filename: `全维解析报告_${new Date().toISOString().slice(0, 10)}.pdf`,
+                    image: { type: 'jpeg', quality: 0.98 },
+                    html2canvas: { scale: 2 },
+                    jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+                };
+                html2pdf().set(opt).from(container).save();
+            }
+
+            // 旧版导出（保留兼容）
+            function exportReport() {
+                if (Object.keys(resultsStore).length === 0) return alert("无数据");
+                let md = "# 全维深度解析报告 (v6.0)\n\n";
+                AGENTS.forEach(a => {
+                    if (resultsStore[a.id]) {
+                        md += `## ${a.icon} ${a.title}\n\n${resultsStore[a.id]}\n\n---\n\n`;
+                    }
+                });
+                const blob = new Blob([md], { type: 'text/markdown' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url; a.download = `Insight_Report_v6_${new Date().toISOString().slice(0, 10)}.md`;
+                a.click();
+            }
+
+            // 沉浸阅读模式逻辑
+            function openReader(agentId) {
+                const agent = AGENTS.find(a => a.id === agentId);
+                if (!resultsStore[agentId]) return alert("该项无数据");
+
+                const modal = document.getElementById('reading-modal');
+                const container = document.getElementById('reader-content');
+
+                // 渲染内容
+                container.innerHTML = `
+                    <h1>${agent.icon} ${agent.title}</h1>
+                    <div class="text-slate-500 text-sm mb-8 font-mono">Stage ${agent.stage}: ${STAGE_TITLES[agent.stage].name}</div>
+                    ${marked.parse(resultsStore[agentId])}
+                `;
+
+                // 显示 Modal
+                modal.classList.remove('hidden');
+                document.body.style.overflow = 'hidden'; // 锁定背景滚动
+            }
+
+            function closeReader() {
+                const modal = document.getElementById('reading-modal');
+                modal.classList.add('hidden');
+                document.body.style.overflow = ''; // 恢复背景滚动
+            }
+
+            // ESC 关闭监听
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'Escape') closeReader();
+            });
+
+            return { init, runPipeline, exportReport, copySingleMD, downloadSinglePDF, copyAllMD, downloadAllPDF, openReader, closeReader };
+        })();
+
+        window.onload = app.init;
+    </script>
+    <!-- 沉浸阅读模态框 -->
+    <div id="reading-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-white/98">
+        <div class="w-full h-full max-w-3xl mx-auto flex flex-col relative">
+            <!-- 顶部工具栏 -->
+            <div class="flex justify-end p-4 md:p-6 absolute top-0 right-0 z-10">
+                <button onclick="app.closeReader()"
+                    class="text-slate-400 hover:text-slate-800 transition-colors p-2 rounded-full hover:bg-slate-100">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12">
+                        </path>
+                    </svg>
+                </button>
+            </div>
+            <!-- 阅读容器 -->
+            <div class="flex-1 overflow-y-auto custom-scrollbar px-6 md:px-12 py-16 md:py-24">
+                <div id="reader-content" class="prose-focus mx-auto">
+                    <!-- 内容动态注入 -->
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+
+</html>
