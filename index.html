@@ -345,6 +345,7 @@
         }
 
         .view-toggle.desktop-mode {
+            display: flex !important;
             background: var(--primary);
             color: white;
             border-color: var(--primary);
@@ -668,10 +669,24 @@
         // ==================== PWA 安装 ====================
         const PWAInstall = {
             deferredPrompt: null,
+            isIOS: /iPad|iPhone|iPod/.test(navigator.userAgent),
+            isStandalone: window.matchMedia('(display-mode: standalone)').matches,
 
             init() {
-                // 仅在支持的环境下显示
-                if ('serviceWorker' in navigator && location.protocol !== 'file:') {
+                // file:// 协议下不显示
+                if (location.protocol === 'file:') return;
+
+                // 已经安装为 PWA 则不显示
+                if (this.isStandalone) return;
+
+                // iOS 设备直接显示按钮（提示使用 Safari 添加）
+                if (this.isIOS) {
+                    document.getElementById('installBtn').style.display = 'flex';
+                    return;
+                }
+
+                // 非 iOS 设备：注册 Service Worker 并监听安装事件
+                if ('serviceWorker' in navigator) {
                     navigator.serviceWorker.register('sw.js').catch(() => { });
 
                     window.addEventListener('beforeinstallprompt', (e) => {
@@ -688,9 +703,12 @@
             },
 
             prompt() {
+                if (this.isIOS) {
+                    alert('📱 iOS 用户请使用 Safari 浏览器打开本页面，\n然后点击底部「分享」→「添加到主屏幕」');
+                    return;
+                }
                 if (!this.deferredPrompt) {
-                    // iOS Safari 不支持 beforeinstallprompt，显示手动指引
-                    alert('iOS 用户请点击浏览器底部的「分享」→「添加到主屏幕」');
+                    alert('您的浏览器不支持安装，请尝试使用 Chrome 或 Edge');
                     return;
                 }
                 this.deferredPrompt.prompt();
