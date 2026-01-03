@@ -5,14 +5,17 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>源流 Origin - 认知校准系统</title>
     <style>
+        /* =========================
+           Theme / Tokens
+        ========================= */
         :root {
             --bg: #f6f7fb;
             --bg2: #ffffff;
-            --panel: rgba(255,255,255,0.86);
-            --panel2: rgba(255,255,255,0.72);
+            --panel: rgba(255, 255, 255, 0.86);
+            --panel2: rgba(255, 255, 255, 0.72);
             --text: #0f172a;
             --muted: #475569;
-            --border: rgba(15,23,42,0.14);
+            --border: rgba(15, 23, 42, 0.14);
             --accent: #2563eb;
             --accent2: #7c3aed;
             --good: #059669;
@@ -20,43 +23,66 @@
             --warn: #d97706;
             --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
             --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
-            --shadow: 0 10px 40px rgba(2,6,23,0.08);
-            --shadow-lg: 0 20px 60px rgba(2,6,23,0.12);
+            --shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
+            --shadow-lg: 0 20px 60px rgba(2, 6, 23, 0.12);
         }
+
         @media (prefers-color-scheme: dark) {
             :root {
                 --bg: #0b0f19;
                 --bg2: #0b1020;
-                --panel: rgba(17,24,39,0.86);
-                --panel2: rgba(15,23,42,0.72);
+                --panel: rgba(17, 24, 39, 0.86);
+                --panel2: rgba(15, 23, 42, 0.72);
                 --text: #e5e7eb;
                 --muted: #9ca3af;
-                --border: rgba(255,255,255,0.14);
+                --border: rgba(255, 255, 255, 0.14);
                 --accent: #60a5fa;
                 --accent2: #a78bfa;
                 --good: #34d399;
                 --bad: #fb7185;
                 --warn: #fbbf24;
-                --shadow: 0 10px 40px rgba(0,0,0,0.35);
-                --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+                --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+                --shadow-lg: 0 20px 60px rgba(0, 0, 0, 0.5);
             }
         }
+
         html[data-theme="light"] {
-            --bg: #f6f7fb; --bg2: #ffffff; --panel: rgba(255,255,255,0.86);
-            --panel2: rgba(255,255,255,0.72); --text: #0f172a; --muted: #475569;
-            --border: rgba(15,23,42,0.14); --accent: #2563eb; --accent2: #7c3aed;
-            --good: #059669; --bad: #e11d48; --warn: #d97706;
-            --shadow: 0 10px 40px rgba(2,6,23,0.08);
-        }
-        html[data-theme="dark"] {
-            --bg: #0b0f19; --bg2: #0b1020; --panel: rgba(17,24,39,0.86);
-            --panel2: rgba(15,23,42,0.72); --text: #e5e7eb; --muted: #9ca3af;
-            --border: rgba(255,255,255,0.14); --accent: #60a5fa; --accent2: #a78bfa;
-            --good: #34d399; --bad: #fb7185; --warn: #fbbf24;
-            --shadow: 0 10px 40px rgba(0,0,0,0.35);
+            --bg: #f6f7fb;
+            --bg2: #ffffff;
+            --panel: rgba(255, 255, 255, 0.86);
+            --panel2: rgba(255, 255, 255, 0.72);
+            --text: #0f172a;
+            --muted: #475569;
+            --border: rgba(15, 23, 42, 0.14);
+            --accent: #2563eb;
+            --accent2: #7c3aed;
+            --good: #059669;
+            --bad: #e11d48;
+            --warn: #d97706;
+            --shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
         }
 
+        html[data-theme="dark"] {
+            --bg: #0b0f19;
+            --bg2: #0b1020;
+            --panel: rgba(17, 24, 39, 0.86);
+            --panel2: rgba(15, 23, 42, 0.72);
+            --text: #e5e7eb;
+            --muted: #9ca3af;
+            --border: rgba(255, 255, 255, 0.14);
+            --accent: #60a5fa;
+            --accent2: #a78bfa;
+            --good: #34d399;
+            --bad: #fb7185;
+            --warn: #fbbf24;
+            --shadow: 0 10px 40px rgba(0, 0, 0, 0.35);
+        }
+
+        /* =========================
+           Base
+        ========================= */
         * { box-sizing: border-box; margin: 0; padding: 0; }
+
         body {
             font-family: var(--sans);
             color: var(--text);
@@ -68,11 +94,15 @@
             min-height: 100vh;
             line-height: 1.6;
         }
+
         a { color: var(--accent); text-decoration: none; }
         a:hover { text-decoration: underline; }
 
         .container { max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px; }
 
+        /* =========================
+           Header
+        ========================= */
         header {
             background: linear-gradient(180deg, var(--panel), var(--panel2));
             border: 1px solid var(--border);
@@ -82,6 +112,7 @@
             backdrop-filter: blur(12px);
             box-shadow: var(--shadow);
         }
+
         .header-top {
             display: flex;
             justify-content: space-between;
@@ -89,7 +120,9 @@
             flex-wrap: wrap;
             gap: 16px;
         }
+
         .brand { display: flex; align-items: center; gap: 12px; }
+
         .logo {
             width: 48px;
             height: 48px;
@@ -102,6 +135,7 @@
             color: white;
             font-weight: 900;
         }
+
         .brand-text h1 {
             font-size: 22px;
             font-weight: 900;
@@ -110,9 +144,13 @@
             -webkit-text-fill-color: transparent;
             background-clip: text;
         }
+
         .brand-text p { font-size: 13px; color: var(--muted); margin-top: 2px; }
         .header-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
+        /* =========================
+           Common Components
+        ========================= */
         .btn {
             background: color-mix(in srgb, var(--accent) 14%, transparent);
             color: var(--text);
@@ -124,6 +162,7 @@
             font-size: 13px;
             transition: all 0.2s ease;
         }
+
         .btn:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); transform: translateY(-1px); }
         .btn:active { transform: translateY(0); }
         .btn.secondary { background: color-mix(in srgb, var(--text) 6%, transparent); border-color: var(--border); }
@@ -142,12 +181,13 @@
             color: var(--muted);
             background: color-mix(in srgb, var(--bg2) 70%, transparent);
         }
+
         .pill.good { border-color: color-mix(in srgb, var(--good) 40%, transparent); color: var(--good); background: color-mix(in srgb, var(--good) 10%, transparent); }
         .pill.bad { border-color: color-mix(in srgb, var(--bad) 40%, transparent); color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
         .pill.warn { border-color: color-mix(in srgb, var(--warn) 40%, transparent); color: var(--warn); background: color-mix(in srgb, var(--warn) 10%, transparent); }
         .pill.accent { border-color: color-mix(in srgb, var(--accent) 40%, transparent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
-        select, input[type="text"], input[type="number"], textarea {
+        select, input[type="text"], textarea {
             background: color-mix(in srgb, var(--bg2) 90%, transparent);
             color: var(--text);
             border: 1px solid var(--border);
@@ -157,17 +197,44 @@
             font-size: 14px;
             transition: border-color 0.2s ease, box-shadow 0.2s ease;
         }
+
         select:focus, input:focus, textarea:focus {
             border-color: var(--accent);
             box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
         }
-        textarea {
-            width: 100%;
-            min-height: 100px;
-            font-family: var(--sans);
-            resize: vertical;
+
+        .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+
+        .log {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            background: color-mix(in srgb, var(--bg2) 60%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 240px;
+            overflow-y: auto;
         }
 
+        .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field label { font-size: 12px; font-weight: 600; color: var(--muted); }
+
+        .grid { display: grid; gap: 16px; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 900px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        .empty-state { text-align: center; padding: 24px 16px; color: var(--muted); }
+        .empty-state-title { font-size: 16px; font-weight: 800; color: var(--text); margin-bottom: 6px; }
+
+        /* Card system */
         .card {
             background: linear-gradient(180deg, var(--panel), var(--panel2));
             border: 1px solid var(--border);
@@ -185,44 +252,27 @@
             gap: 8px;
         }
 
-        .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
-        .grid { display: grid; gap: 16px; }
-        .grid-2 { grid-template-columns: repeat(2, 1fr); }
-        .grid-3 { grid-template-columns: repeat(3, 1fr); }
-        @media (max-width: 900px) {
-            .grid-2, .grid-3 { grid-template-columns: 1fr; }
-        }
-
-        .field { display: flex; flex-direction: column; gap: 6px; }
-        .field label { font-size: 12px; font-weight: 600; color: var(--muted); }
-        .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
-
-        .log {
-            font-family: var(--mono);
-            font-size: 12px;
-            color: var(--muted);
-            background: color-mix(in srgb, var(--bg2) 60%, transparent);
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            padding: 12px;
-            white-space: pre-wrap;
-            word-break: break-word;
-            max-height: 240px;
-            overflow-y: auto;
-        }
-
+        /* Details */
         details {
             border: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
             border-radius: 14px;
             padding: 12px 14px;
             background: color-mix(in srgb, var(--bg2) 50%, transparent);
         }
-        details summary { cursor: pointer; font-weight: 800; font-size: 14px; }
+        details summary {
+            cursor: pointer;
+            font-weight: 800;
+            font-size: 14px;
+        }
         details[open] summary { margin-bottom: 12px; }
 
+        /* =========================
+           Layout
+        ========================= */
         .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
         @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
 
+        /* Input Section */
         .input-section {
             background: linear-gradient(180deg, var(--panel), var(--panel2));
             border: 1px solid var(--border);
@@ -230,6 +280,7 @@
             padding: 24px;
             box-shadow: var(--shadow);
         }
+
         .input-box input {
             width: 100%;
             padding: 16px 20px;
@@ -238,6 +289,7 @@
             border: 2px solid var(--border);
             background: var(--bg2);
         }
+
         .input-box input:focus { border-color: var(--accent); }
 
         .quick-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
@@ -253,6 +305,7 @@
         .quick-tag:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
 
         .mode-selector { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+
         .mode-btn {
             flex: 1;
             min-width: 140px;
@@ -264,13 +317,17 @@
             transition: all 0.2s ease;
             text-align: left;
         }
+
         .mode-btn:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
         .mode-btn.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
         .mode-btn .mode-icon { font-size: 16px; margin-bottom: 4px; font-weight: 900; }
         .mode-btn .mode-title { font-weight: 700; font-size: 14px; }
         .mode-btn .mode-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
+        /* Results */
         .results-section { margin-top: 20px; }
+
         .result-card {
             background: linear-gradient(180deg, var(--panel), var(--panel2));
             border: 1px solid var(--border);
@@ -279,12 +336,14 @@
             margin-bottom: 16px;
             box-shadow: var(--shadow);
         }
+
         .result-card.master-card { border-left: 4px solid var(--accent); }
 
         .master-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
         .master-name { font-size: 18px; font-weight: 800; }
         .master-domain { font-size: 13px; color: var(--muted); margin-top: 2px; }
         .master-coords { display: flex; gap: 6px; flex-wrap: wrap; }
+
         .coord-tag {
             font-size: 11px;
             padding: 3px 8px;
@@ -292,6 +351,7 @@
             background: color-mix(in srgb, var(--accent) 12%, transparent);
             color: var(--accent);
         }
+
         .master-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
         .master-section-title {
             font-size: 12px;
@@ -301,6 +361,7 @@
             text-transform: uppercase;
             letter-spacing: 0.5px;
         }
+
         .master-works { display: flex; gap: 8px; flex-wrap: wrap; }
         .work-tag {
             padding: 6px 12px;
@@ -309,21 +370,46 @@
             border: 1px solid var(--border);
             font-size: 13px;
         }
-        .anti-pattern-card {
-            background: color-mix(in srgb, var(--bad) 8%, transparent);
-            border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent);
-            border-radius: 12px;
+
+        .variation-card {
             padding: 14px;
-            margin-top: 16px;
-        }
-        .anti-pattern-card h4 {
-            color: var(--bad);
-            font-size: 13px;
-            font-weight: 700;
-            margin-bottom: 8px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--bg2) 60%, transparent);
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
         }
 
+        .variation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+
+        .variation-name { font-weight: 700; font-size: 14px; }
+        .variation-distance {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: color-mix(in srgb, var(--accent) 12%, transparent);
+            color: var(--accent);
+        }
+
+        .variation-example {
+            padding: 12px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--text) 5%, transparent);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-top: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        /* Sidebar */
         .sidebar .card { margin-bottom: 16px; }
+
         .compass-visual {
             width: 100%;
             aspect-ratio: 1;
@@ -338,6 +424,7 @@
             margin-bottom: 12px;
             padding: 10px;
         }
+
         .master-list { display: flex; flex-direction: column; gap: 8px; }
         .master-item {
             display: flex;
@@ -351,6 +438,7 @@
         }
         .master-item-name { font-weight: 600; }
         .master-item-source { font-size: 11px; color: var(--muted); }
+
         .remove-btn {
             background: none;
             border: none;
@@ -371,6 +459,7 @@
         .skill-item-name { font-weight: 600; font-size: 13px; }
         .skill-item-from { font-size: 11px; color: var(--muted); margin-top: 2px; }
 
+        /* Loading */
         .loading {
             display: flex;
             flex-direction: column;
@@ -390,93 +479,7 @@
         }
         @keyframes spin { to { transform: rotate(360deg); } }
 
-        .layer-section {
-            margin-top: 16px;
-            padding: 16px;
-            border-radius: 14px;
-            background: color-mix(in srgb, var(--bg2) 50%, transparent);
-            border: 1px solid var(--border);
-        }
-        .layer-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
-        .layer-badge {
-            width: 28px;
-            height: 28px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 12px;
-            font-weight: 800;
-            color: white;
-        }
-        .layer-badge.l1 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
-        .layer-badge.l2 { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
-        .layer-badge.l3 { background: linear-gradient(135deg, #f472b6, #ec4899); }
-        .layer-badge.l4 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
-        .layer-title { font-weight: 700; font-size: 14px; }
-        .layer-content { font-size: 13px; line-height: 1.7; }
-        .layer-content ul { margin-left: 20px; margin-top: 8px; }
-        .layer-content li { margin-bottom: 6px; }
-
-        .transfer-step {
-            display: flex;
-            gap: 14px;
-            padding: 14px;
-            border-radius: 12px;
-            background: color-mix(in srgb, var(--bg2) 50%, transparent);
-            border: 1px solid var(--border);
-            margin-bottom: 12px;
-        }
-        .step-number {
-            width: 32px;
-            height: 32px;
-            border-radius: 10px;
-            background: linear-gradient(135deg, var(--accent), var(--accent2));
-            color: white;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-weight: 800;
-            font-size: 14px;
-            flex-shrink: 0;
-        }
-        .step-content { flex: 1; }
-        .step-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
-        .step-desc { font-size: 13px; color: var(--muted); }
-
-        .variation-card {
-            padding: 14px;
-            border-radius: 12px;
-            background: color-mix(in srgb, var(--bg2) 60%, transparent);
-            border: 1px solid var(--border);
-            margin-bottom: 10px;
-        }
-        .variation-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 8px;
-            flex-wrap: wrap;
-        }
-        .variation-name { font-weight: 700; font-size: 14px; }
-        .variation-distance {
-            font-size: 11px;
-            padding: 3px 8px;
-            border-radius: 6px;
-            background: color-mix(in srgb, var(--accent) 12%, transparent);
-            color: var(--accent);
-        }
-        .variation-example {
-            padding: 12px;
-            border-radius: 10px;
-            background: color-mix(in srgb, var(--text) 5%, transparent);
-            font-size: 13px;
-            line-height: 1.6;
-            margin-top: 8px;
-            border-left: 3px solid var(--accent);
-        }
-
+        /* Toast */
         .toast {
             position: fixed;
             bottom: 24px;
@@ -497,7 +500,9 @@
         .toast.success { border-color: var(--good); color: var(--good); }
         .toast.error { border-color: var(--bad); color: var(--bad); }
 
-        /* Stepper scoped styles */
+        /* =========================
+           Stepper (B档)
+        ========================= */
         #flowStepper .flow-stepper { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
         #flowStepper .flow-step {
             flex: 1;
@@ -525,6 +530,7 @@
         }
         #flowStepper .flow-step-title { font-weight: 800; font-size: 13px; line-height: 1.2; }
         #flowStepper .flow-step-desc { margin-top: 4px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+
         #flowStepper .flow-step.is-active {
             border-color: color-mix(in srgb, var(--accent) 55%, transparent);
             background: color-mix(in srgb, var(--accent) 10%, transparent);
@@ -534,6 +540,7 @@
             color: white;
             border: none;
         }
+
         #flowStepper .flow-step.is-done {
             border-color: color-mix(in srgb, var(--good) 40%, transparent);
             background: color-mix(in srgb, var(--good) 10%, transparent);
@@ -543,6 +550,7 @@
             color: var(--good);
             border-color: color-mix(in srgb, var(--good) 35%, transparent);
         }
+
         #flowStepper .flow-step.is-blocked { opacity: 0.75; }
         #flowStepper .flow-step.is-blocked .flow-step-badge {
             background: color-mix(in srgb, var(--warn) 10%, transparent);
@@ -550,6 +558,105 @@
             border-color: color-mix(in srgb, var(--warn) 25%, transparent);
         }
 
+        /* =========================
+           Morning (content + journal)
+        ========================= */
+        #morningCard #morningContent { margin-top: 12px; }
+
+        #morningCard .morning-wrap {
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+            padding: 14px;
+        }
+
+        #morningCard .morning-section-title {
+            font-size: 12px;
+            font-weight: 900;
+            color: var(--muted);
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            margin-bottom: 8px;
+        }
+
+        #morningCard .morning-quote {
+            font-size: 13px;
+            line-height: 1.85;
+            color: color-mix(in srgb, var(--text) 85%, var(--muted));
+            padding: 10px 12px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--text) 5%, transparent);
+            border-left: 3px solid var(--accent);
+        }
+
+        #morningCard .morning-list {
+            margin-top: 10px;
+            padding: 0;
+            margin-left: 18px;
+            color: var(--muted);
+        }
+        #morningCard .morning-list li {
+            margin: 6px 0;
+            line-height: 1.7;
+        }
+
+        #morningCard .morning-practice {
+            margin-top: 12px;
+            padding: 12px 12px;
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+            border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);
+        }
+        #morningCard .morning-practice .morning-practice-text {
+            font-size: 13px;
+            line-height: 1.75;
+            color: var(--text);
+        }
+
+        #morningCard .morning-meta-row {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 10px;
+        }
+
+        #morningCard .morning-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 5px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--muted);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+        }
+
+        #morningJournal .journal-entry {
+            margin-top: 10px;
+            padding-top: 10px;
+            border-top: 1px solid var(--border);
+        }
+        #morningJournal .journal-head {
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            align-items: baseline;
+            flex-wrap: wrap;
+        }
+        #morningJournal .journal-title { font-weight: 800; color: var(--text); }
+        #morningJournal .journal-time { font-size: 11px; color: var(--muted); }
+        #morningJournal .journal-body {
+            margin-top: 10px;
+            padding: 12px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+        }
+
+        /* =========================
+           Responsive
+        ========================= */
         @media (max-width: 420px) {
             #flowStepper .flow-step { min-width: 100%; }
             .container { padding: 14px 12px 60px; }
@@ -613,10 +720,7 @@
                 <div class="quick-tags">
                     <span class="quick-tag" data-query="文案写作">文案写作</span>
                     <span class="quick-tag" data-query="短视频口播">短视频口播</span>
-                    <span class="quick-tag" data-query="视频剪辑">视频剪辑</span>
-                    <span class="quick-tag" data-query="公众演讲">公众演讲</span>
                     <span class="quick-tag" data-query="产品设计">产品设计</span>
-                    <span class="quick-tag" data-query="商业思维">商业思维</span>
                 </div>
 
                 <div class="mode-selector">
@@ -687,7 +791,7 @@
             <div class="results-section" id="resultsSection">
                 <div class="empty-state">
                     <div class="empty-state-title">溯源而上，找到大师</div>
-                    <p class="hint">输入你想学的技能，我帮你找到源头级大师</p>
+                    <p class="hint">建议先看右侧“晨间校准”，再选择任务并产出。</p>
                 </div>
             </div>
         </div>
@@ -695,7 +799,9 @@
         <div class="sidebar">
             <div class="card">
                 <h2>我的审美坐标系</h2>
-                <div class="compass-visual" id="compassVisual"><span>探索更多大师来填充坐标系</span></div>
+                <div class="compass-visual" id="compassVisual">
+                    <span>探索更多大师来填充坐标系</span>
+                </div>
                 <div id="compassSummary" class="hint" style="margin: 10px 0 12px;"></div>
                 <div id="compassBlindspots" style="display:none; margin-bottom: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: color-mix(in srgb, var(--warn) 10%, transparent);">
                     <div style="font-weight: 800; font-size: 12px; color: var(--warn); margin-bottom: 6px;">盲区提示</div>
@@ -713,16 +819,20 @@
             <div class="card" id="morningCard">
                 <h2>晨间校准</h2>
                 <div class="hint" id="morningMeta">每天一口好东西，30 秒即可。</div>
-                <div id="morningContent" style="margin-top: 12px;">
-                    <div class="empty-state" style="padding: 14px;"><p class="hint">正在准备今日校准…</p></div>
+
+                <div id="morningContent">
+                    <div class="hint">准备中…</div>
                 </div>
+
                 <div class="row" style="margin-top: 12px;">
                     <button class="btn secondary" id="refreshMorningBtn" type="button" style="flex: 1;">刷新今日</button>
                     <button class="btn primary" id="saveMorningBtn" type="button" style="flex: 1;" disabled>存入审美日记</button>
                 </div>
+
                 <div class="row" style="margin-top: 10px;">
                     <button class="btn secondary" id="copyMorningBtn" type="button" style="width: 100%;" disabled>复制今日内容</button>
                 </div>
+
                 <details style="margin-top: 10px;">
                     <summary>历史（日记）</summary>
                     <div id="morningJournal" class="hint" style="margin-top: 10px;">暂无记录</div>
@@ -732,18 +842,14 @@
             <div class="card">
                 <h2>我的大师图谱</h2>
                 <div class="master-list" id="masterList">
-                    <div class="empty-state" style="padding: 20px;">
-                        <p class="hint">还没有收藏大师<br/>探索后点击“保存”添加</p>
-                    </div>
+                    <div class="hint">还没有收藏大师</div>
                 </div>
             </div>
 
             <div class="card">
                 <h2>已解锁的技法</h2>
                 <div class="skill-list" id="skillList">
-                    <div class="empty-state" style="padding: 20px;">
-                        <p class="hint">通过“四层拆解”解锁技法</p>
-                    </div>
+                    <div class="hint">还没有技法</div>
                 </div>
             </div>
 
@@ -761,15 +867,21 @@
                             <option value="通用写作">通用写作</option>
                         </select>
                     </div>
+
                     <div class="field" style="margin-top: 10px;">
                         <label for="checklistConstraints">约束（可选）</label>
                         <input id="checklistConstraints" type="text" placeholder="如：500字以内 / 60秒口播 / 三段式 / 需含CTA" />
                     </div>
+
                     <div class="row" style="margin-top: 10px;">
                         <button class="btn secondary" id="generateChecklistLocalBtn" type="button" style="flex: 1;">本地快速生成</button>
                         <button class="btn primary" id="generateChecklistAiBtn" type="button" style="flex: 1;">AI 生成</button>
                     </div>
-                    <div class="hint" style="margin-top: 8px;">本地生成不联网；AI 生成会基于你已保存的技法做个性化清单。</div>
+
+                    <div class="hint" style="margin-top: 8px;">
+                        本地生成不联网；AI 生成会基于你已保存的技法做个性化清单。
+                    </div>
+
                     <div id="checklistOutput" style="margin-top: 12px;"></div>
                 </div>
             </div>
@@ -780,41 +892,53 @@
 <div class="toast" id="toast"></div>
 
 <script>
-/**
- * AI Module v2 (原版完整)
- */
+/* -----------------------------
+ * 0) Storage check
+ * ----------------------------- */
+function storageAvailable() {
+    try {
+        const k = "__origin_test__";
+        localStorage.setItem(k, "1");
+        localStorage.removeItem(k);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+/* -----------------------------
+ * 1) AI Module (full) + model list optimization
+ * ----------------------------- */
 const AI_MODULE = (() => {
     const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
 
     const AI_PROVIDERS = {
-"siliconflow": {
-    name: "硅基流动 (SiliconFlow)",
-    keyName: "siliconflow_key",
-    baseUrl: "https://api.siliconflow.cn/v1",
-    models: [
-        { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
-        { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
-        { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B (Fast)" },
-
-        { id: "Pro/zai-org/GLM-4.7", name: "GLM-4.7 (Pro)" },
-        { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2 Thinking (Pro)" },
-        { id: "Qwen/Qwen3-VL-32B-Thinking", name: "Qwen3 VL 32B Thinking" }
-    ]
-},
-"openrouter": {
-    name: "OpenRouter",
-    keyName: "openrouter_key",
-    baseUrl: "https://openrouter.ai/api/v1",
-    models: [
-        { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
-        { id: "openai/gpt-4o", name: "GPT-4o" },
-        { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
-
-        { id: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5" },
-        { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
-        { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" }
-    ]
-},
+        "siliconflow": {
+            name: "硅基流动 (SiliconFlow)",
+            keyName: "siliconflow_key",
+            baseUrl: "https://api.siliconflow.cn/v1",
+            models: [
+                { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
+                { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+                { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B (Fast)" },
+                { id: "Pro/zai-org/GLM-4.7", name: "GLM-4.7 (Pro)" },
+                { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2 Thinking (Pro)" },
+                { id: "Qwen/Qwen3-VL-32B-Thinking", name: "Qwen3 VL 32B Thinking" }
+            ]
+        },
+        "openrouter": {
+            name: "OpenRouter",
+            keyName: "openrouter_key",
+            baseUrl: "https://openrouter.ai/api/v1",
+            models: [
+                { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                { id: "openai/gpt-4o", name: "GPT-4o" },
+                { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+                { id: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5" },
+                { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
+                { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" }
+            ]
+        },
         "deepseek": {
             name: "DeepSeek Official",
             keyName: "deepseek_key",
@@ -1207,7 +1331,10 @@ const AI_MODULE = (() => {
             syncFromKeyManager(state.provider_id);
         });
 
-        aiBaseUrlInput.addEventListener("change", () => { state.base_url = String(aiBaseUrlInput.value || "").trim(); emit(); });
+        aiBaseUrlInput.addEventListener("change", () => {
+            state.base_url = String(aiBaseUrlInput.value || "").trim();
+            emit();
+        });
 
         aiModelPresetSelect.addEventListener("change", () => {
             const chosen = aiModelPresetSelect.value;
@@ -1217,7 +1344,10 @@ const AI_MODULE = (() => {
             emit();
         });
 
-        aiModelIdInput.addEventListener("change", () => { state.model_id = String(aiModelIdInput.value || "").trim(); emit(); });
+        aiModelIdInput.addEventListener("change", () => {
+            state.model_id = String(aiModelIdInput.value || "").trim();
+            emit();
+        });
 
         aiTemperature.addEventListener("change", () => {
             const v = Number(aiTemperature.value);
@@ -1240,9 +1370,7 @@ const AI_MODULE = (() => {
             aiLog.textContent = JSON.stringify(res, null, 2);
         });
 
-        function get_state() {
-            return { ...state, key_status: getKeyStatus(state.provider_id) };
-        }
+        function get_state() { return { ...state, key_status: getKeyStatus(state.provider_id) }; }
 
         async function call_ai({ messages }) {
             const s = get_state();
@@ -1293,420 +1421,19 @@ const AI_MODULE = (() => {
     };
 })();
 
-function storageAvailable() {
-    try {
-        const k = "__origin_test__";
-        localStorage.setItem(k, "1");
-        localStorage.removeItem(k);
-        return true;
-    } catch {
-        return false;
-    }
-}
-
+/* -----------------------------
+ * 2) App state & helpers
+ * ----------------------------- */
 const STORAGE_KEYS = {
     MASTERS: "origin_masters_v1",
     SKILLS: "origin_skills_v1",
-    COMPASS: "origin_compass_v1",
-    THEME: "origin_theme_v1",
-
     COMPASS_SNAPSHOT: "origin_compass_snapshot_v1",
     COMPASS_HISTORY: "origin_compass_history_v1",
-
+    THEME: "origin_theme_v1",
     CHECKLIST_LAST: "origin_checklist_last_v1",
     CHECKLIST_STATE: "origin_checklist_state_v1",
-
     MORNING_TODAY: "origin_morning_today_v1",
     MORNING_JOURNAL: "origin_morning_journal_v1"
-};
-
-const AppState = {
-    masters: [],
-    skills: [],
-    compass: { temperature: [], density: [], aggression: [], structure: [] },
-    currentMode: "source",
-    storage_ok: true,
-    lastRequest: null,
-    setLastRequest(req) { this.lastRequest = req; },
-
-    load() {
-        if (!this.storage_ok) return;
-        try {
-            const masters = localStorage.getItem(STORAGE_KEYS.MASTERS);
-            const skills = localStorage.getItem(STORAGE_KEYS.SKILLS);
-            const compass = localStorage.getItem(STORAGE_KEYS.COMPASS);
-
-            if (masters) this.masters = JSON.parse(masters);
-            if (skills) this.skills = JSON.parse(skills);
-            if (compass) this.compass = JSON.parse(compass);
-        } catch (e) {
-            console.error("Failed to load state:", e);
-        }
-    },
-
-    save() {
-        if (!this.storage_ok) return;
-        try {
-            localStorage.setItem(STORAGE_KEYS.MASTERS, JSON.stringify(this.masters));
-            localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(this.skills));
-            localStorage.setItem(STORAGE_KEYS.COMPASS, JSON.stringify(this.compass));
-        } catch (e) {
-            console.error("Failed to save state:", e);
-        }
-    },
-
-    addMaster(master) {
-        if (!this.masters.find(m => m.name === master.name)) {
-            this.masters.push(master);
-            this.save();
-
-            const snap = computeCompassFromMasters(this.masters);
-            saveCompassSnapshot(snap, "add_master");
-            updateCompassVisual(snap);
-
-            return true;
-        }
-        return false;
-    },
-
-    removeMaster(name) {
-        this.masters = this.masters.filter(m => m.name !== name);
-        this.save();
-
-        const snap = computeCompassFromMasters(this.masters);
-        saveCompassSnapshot(snap, "remove_master");
-        updateCompassVisual(snap);
-    },
-
-    addSkill(skill) {
-        if (!this.skills.find(s => s.name === skill.name && s.from === skill.from)) {
-            this.skills.push(skill);
-            this.save();
-            return true;
-        }
-        return false;
-    }
-};
-
-const PROMPTS = {
-    source: {
-        system: `你是“源流”系统的 AI 内核，一个专精于“源头学习法”的认知教练。
-
-【核心原则】
-1. 源头主义：只推荐经过时间验证的大师，严禁推荐网红、知识付费讲师、营销号
-2. 四维坐标：为每位大师标注审美坐标（温度/密度/攻击性/结构感）
-3. 可迁移性优先：不只是介绍大师，更要说明“学他什么”
-4. 诚实原则：不知道的就说不知道，不编造
-
-【源头级大师判断标准】
-1. 时间验证：作品经历 20 年以上考验仍被认可
-2. 同行公认：该领域专业人士提起会表示敬意
-3. 可学性：有足够的公开作品可供研究
-4. 独特性：有鲜明的、可识别的风格特征
-5. 影响力：对后来者产生了可追溯的影响
-
-【严禁推荐】
-- 网红、知识付费讲师、营销号
-- 只有流量没有作品沉淀的人
-- 作品未经时间验证的新锐
-- 二道贩子（转述他人方法论的人）
-
-【审美坐标系四维度定义】
-- 温度：冷/中/热
-- 密度：高/中/低
-- 攻击性：高/中/低
-- 结构感：强/中/弱
-
-【输出要求】
-必须使用 JSON 格式，严格遵循 Schema，便于前端解析。`,
-        user: (skill) => `用户想学的技能：${skill}
-
-【输出 JSON Schema】
-{
-  "skill": "用户输入的技能",
-  "masters": [
-    {
-      "name": "大师姓名",
-      "domain": "细分领域",
-      "era": "活跃年代",
-      "aesthetic_coordinates": {
-        "temperature": "冷/中/热",
-        "density": "高/中/低",
-        "aggression": "高/中/低",
-        "structure": "强/中/弱"
-      },
-      "why_source_level": "为什么是源头级（50字内）",
-      "core_contribution": "核心贡献（一句话）",
-      "learnability_score": 1,
-      "learnability_note": "可学性说明",
-      "masterpieces": ["代表作1", "代表作2", "代表作3"],
-      "learn_what": "具体学什么",
-      "learn_how": "怎么学（100字内）",
-      "quick_taste": "一句风格片段/金句"
-    }
-  ],
-  "anti_patterns": [
-    { "type": "噪音源类型", "why": "为什么规避", "examples": ["例1", "例2"] }
-  ],
-  "learning_strategy": "元建议",
-  "meta_insight": "一句话点破本质"
-}`
-    },
-
-    deconstruct: {
-        system: `你是“源流”系统的四层拆解引擎。
-
-【四层拆解框架】
-Layer 1 表层特征（可迁移性 2）
-Layer 2 结构模式（可迁移性 4）
-Layer 3 心理表征（可迁移性 5）
-Layer 4 元认知（可迁移性 3）
-
-【拆解原则】
-1. 必须打穿四层
-2. 每层要有示例 + 依据 evidence
-3. 诚实标注不确定
-4. 最后提炼可迁移能力模块
-
-【输出要求】
-必须是严格 JSON。`,
-        user: (master, focus = "") => `请对「${master}」进行四层拆解。
-${focus ? `聚焦：${focus}` : ""}
-
-【输出 JSON Schema】
-{
-  "master": "大师姓名",
-  "focus": "聚焦作品/领域",
-  "overview": "一句话概括",
-  "layers": {
-    "L1_surface": {
-      "title": "表层特征",
-      "features": [
-        { "feature": "特征", "example": "示例", "frequency": "常见/偶尔/标志性", "evidence": "依据" }
-      ],
-      "transferability": 2,
-      "transfer_warning": "风险",
-      "learning_advice": "建议"
-    },
-    "L2_structure": {
-      "title": "结构模式",
-      "patterns": [
-        { "pattern_name": "模式名", "description": "描述", "example": "示例", "applicable_scenarios": ["场景"], "evidence": "依据" }
-      ],
-      "transferability": 4,
-      "learning_advice": "建议"
-    },
-    "L3_mental": {
-      "title": "心理表征",
-      "representations": [
-        { "aspect": "方面", "content": "内容", "evidence": "依据", "confidence": "高/中/低" }
-      ],
-      "transferability": 5,
-      "learning_advice": "建议",
-      "self_check_questions": ["自检问题1", "自检问题2"]
-    },
-    "L4_meta": {
-      "title": "元认知",
-      "beliefs": [
-        { "belief_type": "类型", "content": "内容", "evidence": "依据", "confidence": "高/中/低" }
-      ],
-      "transferability": 3,
-      "learning_advice": "建议",
-      "reflection_prompt": "反思问题"
-    }
-  },
-  "extractable_skills": [
-    { "skill_name": "技法名", "from_layer": "L2", "description": "描述", "how_to_practice": "练习", "difficulty": "入门/进阶/高阶" }
-  ],
-  "synthesis": {
-    "one_sentence_essence": "一句话精华",
-    "biggest_misconception": "常见误解",
-    "learning_path_suggestion": "学习路径建议",
-    "related_masters": ["对照大师"]
-  },
-  "uncertainty_notes": "不确定说明"
-}`
-    },
-
-    transfer: {
-        system: `你是“源流”系统的迁移实验室教练。
-
-【迁移四步法】
-Step 1 抽象：提取原则
-Step 2 匹配：场景对应
-Step 3 变体：至少 3 种（近/中/远迁移）
-Step 4 实验：小测试 + 指标
-
-【要求】
-1. 每个变体必须给出具体示例（不少于 50 字）
-2. 必须说明适用与局限
-3. 诚实评估把握程度
-4. 输出必须严格 JSON。`,
-        user: (technique, master, scenario, constraints = "") => `【迁移任务】
-要迁移的技法：${technique}
-技法来源：${master}
-目标场景：${scenario}
-${constraints ? `场景约束：${constraints}` : ""}
-
-【输出 JSON Schema】
-{
-  "technique": "技法名称",
-  "source_master": "来源大师",
-  "target_scenario": "目标场景",
-  "constraints": "约束",
-  "steps": {
-    "step1_abstraction": {
-      "master_specific_example": "大师做法",
-      "abstracted_principle": "抽象原则",
-      "principle_essence": "本质"
-    },
-    "step2_mapping": {
-      "mapping_table": [
-        { "original_element": "原元素", "target_element": "目标元素", "adaptation_needed": "适配" }
-      ]
-    },
-    "step3_variations": {
-      "variations": [
-        { "variation_name": "变体名", "variation_type": "近迁移/中迁移/远迁移", "description": "描述", "concrete_example": "示例（>=50字）", "pros": ["优点"], "cons": ["缺点"] }
-      ]
-    },
-    "step4_experiment": {
-      "experiment_design": "实验设计",
-      "success_metrics": ["指标"]
-    }
-  },
-  "confidence_assessment": { "overall_confidence": "高/中/低" },
-  "anti_patterns": { "common_mistakes": ["错误"] },
-  "next_steps": "下一步"
-}`
-    },
-
-    navigate: {
-        system: `你是“源流”系统的作品导航引擎。
-
-原则：
-1. 推荐必须具体到作品名/章节/时间点
-2. 分层：入门首选/核心作品/隐藏宝藏/可跳过
-3. 路径化：说明顺序理由
-4. 每个推荐配“看的时候注意什么”和“作业”
-输出必须严格 JSON。`,
-        user: (master, timebudget = "不限", level = "入门") => `【导航请求】
-大师：${master}
-时间预算：${timebudget}
-用户水平：${level}
-
-【输出 JSON Schema】
-{
-  "master": "大师姓名",
-  "user_level": "用户水平",
-  "time_budget": "时间预算",
-  "total_works_overview": "作品概览",
-  "learning_path": {
-    "gateway_work": {
-      "title": "入门首选",
-      "type": "类型",
-      "access": "获取方式",
-      "why_start_here": "原因",
-      "time_required": "耗时",
-      "what_to_notice": ["注意1", "注意2"],
-      "homework": { "observation": "观察作业", "practice": "练习作业" }
-    },
-    "core_works": [
-      { "title": "作品名", "type": "类型", "why_important": "重要性", "what_to_notice": ["注意"], "builds_on": "承接", "homework": "作业" }
-    ],
-    "hidden_gems": [
-      { "title": "宝藏", "why_underrated": "被低估原因", "unique_value": "独特价值", "who_should_see": "适合谁" }
-    ],
-    "skip_list": [
-      { "title": "可跳过", "why_skip": "原因", "when_to_revisit": "何时回看" }
-    ]
-  },
-  "milestone": {
-    "after_gateway": "完成入门后你能…",
-    "after_core": "完成核心后你能…",
-    "mastery_sign": "学到位的标志"
-  },
-  "personalized_advice": "个性化建议"
-}`
-    },
-
-    diagnose: {
-        system: `你是“源流”系统的审美诊断引擎。
-
-四维度：
-- 温度：冷/中/热
-- 密度：高/中/低
-- 攻击性：高/中/低
-- 结构感：强/中/弱
-
-输出严格 JSON。`,
-        user: (masterNames, userDomain = "内容创作") => `【诊断请求】
-用户收藏大师：${masterNames.join("、")}
-用户创作领域：${userDomain}
-
-【输出 JSON Schema】
-{
-  "masters_analyzed": ["大师1"],
-  "user_domain": "领域",
-  "coordinate_analysis": {
-    "temperature": { "distribution": "偏冷/偏热/均衡", "center_value": "冷/中/热", "spread": "集中/分散", "masters_distribution": { "冷": [], "中": [], "热": [] } },
-    "density": { "distribution": "偏高/偏低/均衡", "center_value": "高/中/低", "spread": "集中/分散", "masters_distribution": { "高": [], "中": [], "低": [] } },
-    "aggression": { "distribution": "偏高/偏低/均衡", "center_value": "高/中/低", "spread": "集中/分散", "masters_distribution": { "高": [], "中": [], "低": [] } },
-    "structure": { "distribution": "偏强/偏弱/均衡", "center_value": "强/中/弱", "spread": "集中/分散", "masters_distribution": { "强": [], "中": [], "弱": [] } }
-  },
-  "pattern_summary": "整体特征",
-  "diagnosis": { "strengths": ["优势"], "blind_spots": ["盲区"], "imbalance_risk": "风险", "style_prediction": "预测" },
-  "recommendations": { "expand_boundary": [], "deepen_strength": [] },
-  "evolution_insight": "建议"
-}`
-    },
-
-    checklist: {
-        system: `你是“源流”系统的创作检查清单引擎。
-只使用用户提供的“已学技法”生成清单项；输出严格 JSON。`,
-        user: ({ user_domain, constraints, skills }) => {
-            const list = (skills || []).map(s => `- ${s.name}（来自：${s.from}）`).join("\n");
-            return `用户创作载体：${user_domain}
-约束：${constraints || "无"}
-用户已学技法：
-${list || "- （空）"}
-
-输出 JSON：
-{
-  "checklist_title": "清单标题",
-  "user_domain": "创作载体",
-  "constraints": "约束",
-  "sections": [
-    { "section_title": "章节", "items": [ { "item": "条目", "why": "原因", "from_skill": "技法名", "severity": "must/should/could", "quick_fix": "快修" } ] }
-  ]
-}`;
-        }
-    },
-
-    morning: {
-        system: `你是“源流”系统的晨间校准引擎。
-不要输出长篇引用；输出严格 JSON。`,
-        user: ({ date, master_names }) => `日期：${date}
-用户收藏大师：${(master_names || []).join("、") || "（空）"}
-
-输出 JSON：
-{
-  "date": "YYYY-MM-DD",
-  "source": { "master": "大师/来源", "work_hint": "作品指向", "note": "选择说明" },
-  "quote_or_scene": "极短引用或片段描述",
-  "what_to_notice": ["观察点1", "观察点2"],
-  "micro_practice": "30秒作业",
-  "coordinate_hint": { "temperature": "冷/中/热", "density": "高/中/低", "aggression": "高/中/低", "structure": "强/中/弱" }
-}`
-    }
-};
-
-const MODE_HELP = {
-    source: { placeholder: "输入技能，如：文案写作 / 短视频口播", hint: "输入技能，输出源头级大师、坐标与学习建议。", examples: ["文案写作", "短视频口播", "产品设计"] },
-    deconstruct: { placeholder: "输入大师名，如：鲁迅 / 诺兰 盗梦空间", hint: "输入大师名，输出四层拆解与可提取技法。", examples: ["鲁迅", "诺兰 盗梦空间", "赵本山 小品 节奏"] },
-    transfer: { placeholder: "可输入：技法 -> 场景；也可用表单", hint: "把某个技法迁移到你的场景。推荐用表单。", examples: ["短句节奏 -> 小红书笔记", "冷启动开头 -> 60秒口播"] },
-    navigate: { placeholder: "输入大师名，如：鲁迅 / 诺兰", hint: "输入大师名，输出学习路径与作业。", examples: ["鲁迅", "诺兰", "海明威"] },
-    diagnose: { placeholder: "无需输入，直接开始探索", hint: "基于收藏大师做审美诊断（至少 2 位）。", examples: [] }
 };
 
 function escapeHtml(str) {
@@ -1729,19 +1456,175 @@ function safeJsonParseGlobal(str) {
     catch (e) { return { ok: false, error: String(e) }; }
 }
 
-function flashElement(el) {
-    if (!el) return;
-    const old = el.style.boxShadow;
-    el.style.boxShadow = "0 0 0 3px " + "color-mix(in srgb, var(--accent) 25%, transparent)";
-    setTimeout(() => { el.style.boxShadow = old || ""; }, 900);
+const AppState = {
+    masters: [],
+    skills: [],
+    currentMode: "source",
+    storage_ok: true,
+    lastRequest: null,
+    setLastRequest(req) { this.lastRequest = req; },
+
+    load() {
+        if (!this.storage_ok) return;
+        try {
+            const masters = localStorage.getItem(STORAGE_KEYS.MASTERS);
+            const skills = localStorage.getItem(STORAGE_KEYS.SKILLS);
+            if (masters) this.masters = JSON.parse(masters);
+            if (skills) this.skills = JSON.parse(skills);
+        } catch (e) {
+            console.error("Failed to load state:", e);
+        }
+    },
+
+    save() {
+        if (!this.storage_ok) return;
+        try {
+            localStorage.setItem(STORAGE_KEYS.MASTERS, JSON.stringify(this.masters));
+            localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(this.skills));
+        } catch (e) {
+            console.error("Failed to save state:", e);
+        }
+    },
+
+    addMaster(master) {
+        if (!this.masters.find(m => m.name === master.name)) {
+            this.masters.push(master);
+            this.save();
+            return true;
+        }
+        return false;
+    },
+
+    removeMaster(name) {
+        this.masters = this.masters.filter(m => m.name !== name);
+        this.save();
+    },
+
+    addSkill(skill) {
+        if (!this.skills.find(s => s.name === skill.name && s.from === skill.from)) {
+            this.skills.push(skill);
+            this.save();
+            return true;
+        }
+        return false;
+    }
+};
+
+/* -----------------------------
+ * 3) PROMPTS v2 (PROMPTS_JSON + adapter)
+ * ----------------------------- */
+const PROMPTS_JSON = {
+    "source": {
+        "system": "你是“源流”系统的源头探测引擎：为用户在某个技能上建立“源头参照系”，并帮助用户先看、再学、再迁移。\n\n【核心立场】\n1) 源头主义：只推荐源头级大师（经时间验证、同行公认、影响可追溯）。\n2) 反噪音：严禁推荐网红、知识付费讲师、营销号、二道贩子。\n3) 先看优先：用户拿到推荐后，应先“浸泡看作品”，再做方法拆解。\n4) 可迁移性：每位大师必须写清“学什么能力模块”，避免泛泛而谈。\n5) 诚实原则：不确定就说不确定，并给用户验证任务。\n\n【输出要求】\n- 只输出 JSON，不要 Markdown/解释。\n- 严格遵循用户给定 Schema。\n- 信息要短、准、可执行。",
+        "user_template": "用户想学的技能：{skill}\n\n请推荐 3-5 位该领域的“源头级大师”。\n\n要求：\n1) 每位大师必须写清“学他什么”（能力模块），避免“学习风格”这类空话。\n2) 每位大师必须给可学性评分与说明（作品是否易得、是否需要前置知识、语言障碍等）。\n3) 给出“先看/浸泡”的建议：从哪一部作品/片段开始看。\n4) 不确定的作品信息请标注，并给出验证任务（例如：建议用户自行核对篇目/版本）。\n\n只输出 JSON，Schema：\n{\n  \"skill\": \"用户输入的技能\",\n  \"masters\": [\n    {\n      \"name\": \"大师姓名\",\n      \"domain\": \"细分领域\",\n      \"era\": \"活跃年代\",\n      \"aesthetic_coordinates\": {\n        \"temperature\": \"冷/中/热\",\n        \"density\": \"高/中/低\",\n        \"aggression\": \"高/中/低\",\n        \"structure\": \"强/中/弱\"\n      },\n      \"why_source_level\": \"为什么是源头级（50字内）\",\n      \"core_contribution\": \"核心贡献（一句话）\",\n      \"learnability_score\": 1,\n      \"learnability_note\": \"可学性说明\",\n      \"masterpieces\": [\"代表作1\", \"代表作2\", \"代表作3\"],\n      \"learn_what\": \"具体学什么（能力模块）\",\n      \"learn_how\": \"怎么学（100字内，强调先看后拆解）\",\n      \"quick_taste\": \"一句片段描述/风格触感\"\n    }\n  ],\n  \"anti_patterns\": [\n    { \"type\": \"噪音源类型\", \"why\": \"为什么规避\", \"examples\": [\"例1\", \"例2\"] }\n  ],\n  \"learning_strategy\": \"元建议（强调先看/浸泡）\",\n  \"meta_insight\": \"一句话点破本质\"\n}"
+    },
+    "deconstruct": {
+        "system": "你是“源流”系统的四层拆解引擎：把大师的作品拆到“可迁移能力模块”，并给出可执行练习。\n\n【四层框架】\nL1 表层特征：看得见的风格表象（容易模仿，风险高）\nL2 结构模式：作品骨架与节奏（最值得学）\nL3 心理表征：大师创作时脑中的目标函数与质量标准（真正内功）\nL4 元认知：底层信念（可启发但不可照搬）\n\n【关键要求】\n1) 每层必须有具体例子 + evidence（依据来自哪些作品/行为观察）。\n2) 明确区分：观察事实 vs 推断判断，并标注 confidence。\n3) 产出必须能“拿来练”：extractable_skills 里每条都要有 how_to_practice。\n\n【输出要求】\n只输出 JSON；严格遵循 Schema；内容短、准、可执行。",
+        "user_template": "请对「{master}」进行四层拆解。\n{focus_line}\n\n只输出 JSON，Schema：\n{\n  \"master\": \"大师姓名\",\n  \"focus\": \"聚焦作品/领域\",\n  \"overview\": \"一句话概括\",\n  \"layers\": {\n    \"L1_surface\": {\n      \"title\": \"表层特征\",\n      \"features\": [\n        { \"feature\": \"特征\", \"example\": \"示例\", \"frequency\": \"常见/偶尔/标志性\", \"evidence\": \"依据\" }\n      ],\n      \"transferability\": 2,\n      \"transfer_warning\": \"直接模仿风险（短句）\",\n      \"learning_advice\": \"怎么学（强调先观察后模仿）\"\n    },\n    \"L2_structure\": {\n      \"title\": \"结构模式\",\n      \"patterns\": [\n        { \"pattern_name\": \"模式名\", \"description\": \"描述\", \"example\": \"示例\", \"applicable_scenarios\": [\"场景\"], \"evidence\": \"依据\" }\n      ],\n      \"transferability\": 4,\n      \"learning_advice\": \"怎么学（给可执行练习）\"\n    },\n    \"L3_mental\": {\n      \"title\": \"心理表征\",\n      \"representations\": [\n        { \"aspect\": \"方面\", \"content\": \"内容\", \"evidence\": \"依据\", \"confidence\": \"高/中/低\" }\n      ],\n      \"transferability\": 5,\n      \"learning_advice\": \"怎么学（用自检问题驱动）\",\n      \"self_check_questions\": [\"自检问题1\", \"自检问题2\"]\n    },\n    \"L4_meta\": {\n      \"title\": \"元认知\",\n      \"beliefs\": [\n        { \"belief_type\": \"类型\", \"content\": \"内容\", \"evidence\": \"依据\", \"confidence\": \"高/中/低\" }\n      ],\n      \"transferability\": 3,\n      \"learning_advice\": \"怎么学（提示：启发，不照搬）\",\n      \"reflection_prompt\": \"反思问题\"\n    }\n  },\n  \"extractable_skills\": [\n    { \"skill_name\": \"技法名\", \"from_layer\": \"L2\", \"description\": \"描述\", \"how_to_practice\": \"练习\", \"difficulty\": \"入门/进阶/高阶\" }\n  ],\n  \"synthesis\": {\n    \"one_sentence_essence\": \"一句话精华\",\n    \"biggest_misconception\": \"常见误解\",\n    \"learning_path_suggestion\": \"学习路径建议（先看什么再拆什么）\",\n    \"related_masters\": [\"对照大师\"]\n  },\n  \"uncertainty_notes\": \"不确定说明（需要用户核验的点）\"\n}"
+    },
+    "transfer": {
+        "system": "你是“源流”系统的迁移实验室教练：把大师技法迁移到用户场景，输出可测试的变体与实验。\n\n【迁移原则】\n1) 先抽象原则，再做场景映射，最后给变体与实验。\n2) 变体必须包含“具体可用的示例”（不要只讲道理）。\n3) 明确标注迁移的把握程度，并指出失败原因与修正路径。\n4) 不要伪造引用；必要时用“片段描述”替代长引用。\n\n【输出要求】\n只输出 JSON；严格遵循 Schema；语言短、动作明确。",
+        "user_template": "【迁移任务】\n要迁移的技法：{technique}\n技法来源：{master}\n目标场景：{scenario}\n{constraints_line}\n\n要求：\n1) 变体至少 3 个，且每个都包含 concrete_example（完整示例，不少于50字）。\n2) step4_experiment 必须给最小测试方法与可观测指标。\n3) 如果某部分不确定，写在 confidence_note 与 uncertain_parts。\n\n只输出 JSON，Schema：\n{\n  \"technique\": \"技法名称\",\n  \"source_master\": \"来源大师\",\n  \"target_scenario\": \"目标场景\",\n  \"constraints\": \"约束\",\n  \"transfer_analysis\": {\n    \"transfer_type\": \"近迁移/中迁移/远迁移\",\n    \"transfer_type_reason\": \"原因\",\n    \"key_challenges\": [\"挑战1\", \"挑战2\"]\n  },\n  \"steps\": {\n    \"step1_abstraction\": {\n      \"master_specific_example\": \"大师做法（片段描述即可）\",\n      \"abstracted_principle\": \"抽象原则\",\n      \"principle_formula\": \"公式\",\n      \"principle_essence\": \"本质\"\n    },\n    \"step2_mapping\": {\n      \"mapping_table\": [\n        { \"original_element\": \"原元素\", \"target_element\": \"目标元素\", \"adaptation_needed\": \"适配\", \"adaptation_reason\": \"原因\" }\n      ],\n      \"unmappable_elements\": \"无法映射\",\n      \"constraint_impact\": \"约束影响\"\n    },\n    \"step3_variations\": {\n      \"variations\": [\n        {\n          \"variation_name\": \"变体名\",\n          \"variation_type\": \"近迁移/中迁移/远迁移\",\n          \"description\": \"描述\",\n          \"concrete_example\": \"具体示例（>=50字）\",\n          \"how_it_applies_principle\": \"如何体现原则\",\n          \"pros\": [\"优点1\"],\n          \"cons\": [\"缺点1\"],\n          \"best_for\": \"适用情况\",\n          \"risk\": \"风险\"\n        }\n      ]\n    },\n    \"step4_experiment\": {\n      \"experiment_design\": \"实验设计（最小可行）\",\n      \"success_metrics\": [\"指标1\", \"指标2\"],\n      \"minimum_sample\": \"最小样本\",\n      \"iteration_guide\": \"迭代建议\"\n    }\n  },\n  \"confidence_assessment\": {\n    \"overall_confidence\": \"高/中/低\",\n    \"confidence_note\": \"说明\",\n    \"uncertain_parts\": \"不确定点\"\n  },\n  \"anti_patterns\": {\n    \"common_mistakes\": [\"错误1\", \"错误2\"],\n    \"why_mistakes_happen\": \"原因\",\n    \"how_to_avoid\": \"避免方法\"\n  },\n  \"next_steps\": \"下一步（一句可执行动作）\"\n}"
+    },
+    "navigate": {
+        "system": "你是“源流”系统的作品导航引擎：让用户先看/浸泡，再逐步拆解。\n\n【要求】\n1) 推荐必须具体到作品名/章节/时间点（拒绝“去看他的书”）。\n2) 必须说明顺序理由（为什么先看这个）。\n3) 每个作品都配“看的时候注意什么”和“作业”。\n4) 不确定的作品信息要标注，并给用户核验任务。\n\n【输出要求】\n只输出 JSON；严格遵循 Schema；表达简洁。",
+        "user_template": "【导航请求】\n大师：{master}\n用户时间预算：{time_budget}\n用户当前水平：{level}\n\n只输出 JSON，Schema：\n{\n  \"master\": \"大师姓名\",\n  \"user_level\": \"用户水平\",\n  \"time_budget\": \"时间预算\",\n  \"total_works_overview\": \"作品概览\",\n  \"learning_path\": {\n    \"gateway_work\": {\n      \"title\": \"入门首选\",\n      \"type\": \"类型\",\n      \"access\": \"获取方式\",\n      \"why_start_here\": \"原因\",\n      \"time_required\": \"耗时\",\n      \"what_to_notice\": [\"注意1\", \"注意2\"],\n      \"homework\": { \"observation\": \"观察作业\", \"practice\": \"练习作业\" }\n    },\n    \"core_works\": [\n      { \"title\": \"作品名\", \"type\": \"类型\", \"why_important\": \"重要性\", \"what_to_notice\": [\"注意\"], \"builds_on\": \"承接\", \"homework\": \"作业\" }\n    ],\n    \"hidden_gems\": [\n      { \"title\": \"宝藏\", \"why_underrated\": \"被低估原因\", \"unique_value\": \"独特价值\", \"who_should_see\": \"适合谁\" }\n    ],\n    \"skip_list\": [\n      { \"title\": \"可跳过\", \"why_skip\": \"原因\", \"when_to_revisit\": \"何时回看\" }\n    ]\n  },\n  \"influence_map\": {\n    \"influenced_by\": [{ \"name\": \"影响者\", \"what_influence\": \"影响点\" }],\n    \"influenced\": [{ \"name\": \"被影响者\", \"what_influence\": \"影响点\" }],\n    \"contrast_with\": [{ \"name\": \"对照者\", \"contrast_point\": \"对照点\" }]\n  },\n  \"milestone\": {\n    \"after_gateway\": \"完成入门后你能…\",\n    \"after_core\": \"完成核心后你能…\",\n    \"mastery_sign\": \"学到位的标志\"\n  },\n  \"personalized_advice\": \"个性化建议\"\n}"
+    },
+    "diagnose": {
+        "system": "你是“源流”系统的审美诊断引擎。\n\n四维度：温度（冷/中/热）、密度（高/中/低）、攻击性（高/中/低）、结构感（强/中/弱）。\n\n要求：\n1) 基于用户收藏大师分析。\n2) 输出偏科与盲区，并给补盲区/深化优势的下一步动作。\n3) 诚实标注不确定。\n\n只输出严格 JSON。",
+        "user_template": "【诊断请求】\n用户收藏的大师：{masters_joined}\n用户的创作领域：{user_domain}\n\n只输出 JSON，Schema：\n{\n  \"masters_analyzed\": [\"大师1\"],\n  \"user_domain\": \"领域\",\n  \"coordinate_analysis\": {\n    \"temperature\": { \"distribution\": \"偏冷/偏热/均衡\", \"center_value\": \"冷/中/热\", \"spread\": \"集中/分散\", \"masters_distribution\": { \"冷\": [], \"中\": [], \"热\": [] } },\n    \"density\": { \"distribution\": \"偏高/偏低/均衡\", \"center_value\": \"高/中/低\", \"spread\": \"集中/分散\", \"masters_distribution\": { \"高\": [], \"中\": [], \"低\": [] } },\n    \"aggression\": { \"distribution\": \"偏高/偏低/均衡\", \"center_value\": \"高/中/低\", \"spread\": \"集中/分散\", \"masters_distribution\": { \"高\": [], \"中\": [], \"低\": [] } },\n    \"structure\": { \"distribution\": \"偏强/偏弱/均衡\", \"center_value\": \"强/中/弱\", \"spread\": \"集中/分散\", \"masters_distribution\": { \"强\": [], \"中\": [], \"弱\": [] } }\n  },\n  \"pattern_summary\": \"整体特征\",\n  \"diagnosis\": {\n    \"strengths\": [\"优势\"],\n    \"blind_spots\": [\"盲区\"],\n    \"imbalance_risk\": \"风险\",\n    \"style_prediction\": \"预测\"\n  },\n  \"recommendations\": {\n    \"expand_boundary\": [\n      { \"suggested_master\": \"建议探索\", \"master_coordinates\": \"坐标\", \"why_recommend\": \"原因\", \"expected_gain\": \"收获\", \"entry_work\": \"入门作品\" }\n    ],\n    \"deepen_strength\": [\n      { \"suggested_master\": \"建议深化\", \"why_recommend\": \"原因\", \"what_to_focus\": \"关注点\" }\n    ]\n  },\n  \"evolution_insight\": \"演化建议\"\n}"
+    },
+    "checklist": {
+        "system": "你是“源流”系统的创作检查清单引擎。\n\n要求：\n1) 清单必须可执行：每条都要具体、可检查、可快速修复。\n2) 只使用用户提供的 skills 作为来源：from_skill 必须来自 skills。\n3) 输出严格 JSON，不要 Markdown。\n4) 语言短句，避免正确废话。",
+        "user_template": "用户创作载体：{user_domain}\n约束（可选）：{constraints}\n用户已学技法（只能从这些技法生成清单项）：\n{skills_bullets}\n\n只输出 JSON，Schema：\n{\n  \"checklist_title\": \"清单标题\",\n  \"user_domain\": \"创作载体\",\n  \"constraints\": \"约束\",\n  \"generated_from_skills\": [ { \"name\": \"技法名\", \"from\": \"来源大师\" } ],\n  \"sections\": [\n    {\n      \"section_title\": \"章节标题\",\n      \"items\": [\n        {\n          \"item\": \"可检查的短句（不超过20字）\",\n          \"why\": \"为什么重要（30字内）\",\n          \"from_skill\": \"对应的技法名（必须来自 skills）\",\n          \"severity\": \"must/should/could\",\n          \"quick_fix\": \"不通过时怎么快速修（30字内）\"\n        }\n      ]\n    }\n  ],\n  \"closing_note\": \"一句收尾建议（可选）\"\n}\n\n如果 skills 为空：仍按同 schema 输出，但 sections 为空，并在 closing_note 里提示先去保存技法。"
+    },
+    "morning": {
+        "system": "你是“源流”系统的晨间校准引擎：给用户“一口高质量输入”用于浸泡校准。\n\n硬性要求：\n1) 避免长篇引用：如需引用必须极短（<=30个汉字）；更推荐“片段描述/场景描述/写法特点”。\n2) 输出必须严格 JSON。\n3) 给 2 个观察点 + 1 个 30 秒微作业（可执行、短句）。\n\n只输出 JSON，不要 Markdown。",
+        "user_template": "日期：{date}\n用户收藏大师：{masters_joined}\n校准偏好：{mode_hint}\n\n只输出 JSON，Schema：\n{\n  \"date\": \"YYYY-MM-DD\",\n  \"source\": { \"master\": \"大师/来源\", \"work_hint\": \"作品指向\", \"note\": \"选择说明\" },\n  \"quote_or_scene\": \"极短引用（<=30字）或片段描述（推荐）\",\n  \"what_to_notice\": [\"观察点1（<=20字）\", \"观察点2（<=20字）\"],\n  \"micro_practice\": \"30秒作业（<=40字）\",\n  \"coordinate_hint\": { \"temperature\": \"冷/中/热\", \"density\": \"高/中/低\", \"aggression\": \"高/中/低\", \"structure\": \"强/中/弱\" }\n}"
+    }
+};
+
+function tpl(str, vars) {
+    let out = String(str || "");
+    for (const [k, v] of Object.entries(vars || {})) {
+        out = out.replaceAll(`{${k}}`, String(v ?? ""));
+    }
+    return out;
 }
+
+const PROMPTS = {
+    source: {
+        system: PROMPTS_JSON.source.system,
+        user: (skill) => tpl(PROMPTS_JSON.source.user_template, { skill })
+    },
+    deconstruct: {
+        system: PROMPTS_JSON.deconstruct.system,
+        user: (master, focus = "") => tpl(PROMPTS_JSON.deconstruct.user_template, {
+            master,
+            focus_line: focus ? `聚焦：${focus}` : ""
+        })
+    },
+    transfer: {
+        system: PROMPTS_JSON.transfer.system,
+        user: (technique, master, scenario, constraints = "") => tpl(PROMPTS_JSON.transfer.user_template, {
+            technique,
+            master,
+            scenario,
+            constraints_line: constraints ? `场景约束：${constraints}` : ""
+        })
+    },
+    navigate: {
+        system: PROMPTS_JSON.navigate.system,
+        user: (master, time_budget = "不限", level = "入门") => tpl(PROMPTS_JSON.navigate.user_template, {
+            master,
+            time_budget,
+            level
+        })
+    },
+    diagnose: {
+        system: PROMPTS_JSON.diagnose.system,
+        user: (masterNames, user_domain = "内容创作") => tpl(PROMPTS_JSON.diagnose.user_template, {
+            masters_joined: (masterNames || []).join("、"),
+            user_domain
+        })
+    },
+    checklist: {
+        system: PROMPTS_JSON.checklist.system,
+        user: ({ user_domain, constraints, skills }) => {
+            const bullets = (skills || [])
+                .map(s => `- ${s.name}（来自：${s.from}）`)
+                .join("\n") || "- （空）";
+            return tpl(PROMPTS_JSON.checklist.user_template, {
+                user_domain: user_domain || "通用写作",
+                constraints: constraints || "无",
+                skills_bullets: bullets
+            });
+        }
+    },
+    morning: {
+        system: PROMPTS_JSON.morning.system,
+        user: ({ date, master_names, mode_hint }) => tpl(PROMPTS_JSON.morning.user_template, {
+            date,
+            masters_joined: (master_names || []).join("、") || "（空）",
+            mode_hint: mode_hint || "均衡"
+        })
+    }
+};
+
+const MODE_HELP = {
+    source: { placeholder: "输入技能，如：文案写作 / 短视频口播 / 产品设计", hint: "输入技能，输出源头级大师、坐标与学习建议。", examples: ["文案写作", "短视频口播", "产品设计"] },
+    deconstruct: { placeholder: "输入大师名（可加作品/领域），如：鲁迅 / 诺兰 盗梦空间", hint: "输入大师名，输出四层拆解与可提取技法。", examples: ["鲁迅", "诺兰 盗梦空间", "赵本山 小品 节奏"] },
+    transfer: { placeholder: "可输入：技法 -> 场景；也可用下方表单更稳", hint: "把技法迁移到你的场景，推荐用表单。", examples: ["短句节奏 -> 小红书笔记", "冷启动开头 -> 60秒口播"] },
+    navigate: { placeholder: "输入大师名，如：鲁迅 / 诺兰 / 海明威", hint: "输入大师名，输出学习路径与作业。", examples: ["鲁迅", "诺兰", "海明威"] },
+    diagnose: { placeholder: "无需输入，直接开始探索", hint: "基于收藏大师做审美诊断（至少 2 位）。", examples: [] }
+};
 
 function setModeUI(mode) {
     const input = document.getElementById("mainInput");
     const hintText = document.getElementById("modeHintText");
     const examples = document.getElementById("modeHintExamples");
-
     const cfg = MODE_HELP[mode] || MODE_HELP.source;
+
     if (input) input.placeholder = cfg.placeholder || "";
     if (hintText) hintText.textContent = cfg.hint || "";
 
@@ -1763,6 +1646,9 @@ function setModeUI(mode) {
     if (assist) assist.style.display = (mode === "transfer") ? "block" : "none";
 }
 
+/* -----------------------------
+ * 4) Validation (mode-aware)
+ * ----------------------------- */
 function isTooGeneric(s) {
     const t = String(s || "").trim();
     if (!t) return true;
@@ -1785,16 +1671,18 @@ function validateInputByMode(mode) {
         if (input.length < 2 || isTooGeneric(input)) return { ok: false, msg: "请输入更具体的技能（例如：文案写作/短视频口播/产品设计）" };
         return { ok: true };
     }
+
     if (mode === "deconstruct") {
         if (input.length < 2 || isTooGeneric(input)) return { ok: false, msg: "请输入大师名（可加作品/领域）" };
         return { ok: true };
     }
+
     if (mode === "transfer") {
         const scenario = String(document.getElementById("transferScenarioInput")?.value || "").trim();
-        let technique = "";
         const techSel = document.getElementById("transferTechniqueSelect");
         const skills = Array.isArray(AppState.skills) ? AppState.skills : [];
 
+        let technique = "";
         if (techSel && techSel.value !== "" && skills[Number(techSel.value)]) {
             technique = String(skills[Number(techSel.value)].name || "").trim();
         } else {
@@ -1806,15 +1694,18 @@ function validateInputByMode(mode) {
         if (!scenario || scenario.length < 2) return { ok: false, msg: "请填写目标场景（例如：小红书笔记/60秒口播）" };
         return { ok: true };
     }
+
     if (mode === "navigate") {
         if (input.length < 2 || isTooGeneric(input)) return { ok: false, msg: "请输入大师名（例如：鲁迅/诺兰/海明威）" };
         return { ok: true };
     }
+
     if (mode === "diagnose") {
         const count = (AppState.masters || []).length;
         if (count < 2) return { ok: false, msg: "请先收藏至少 2 位大师再进行诊断" };
         return { ok: true };
     }
+
     return { ok: true };
 }
 
@@ -1835,6 +1726,9 @@ function validateAndToggleSubmit() {
     }
 }
 
+/* -----------------------------
+ * 5) Transfer assist
+ * ----------------------------- */
 function refreshTransferAssistOptions() {
     const techSel = document.getElementById("transferTechniqueSelect");
     const masterSel = document.getElementById("transferMasterSelect");
@@ -1871,18 +1765,13 @@ function fillTransferAssistFromQuickInput() {
     if (idx >= 0) techSel.value = String(idx);
 }
 
-/* ===== Compass ===== */
-function getLocalDateKey() {
-    const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth() + 1).padStart(2, "0");
-    const dd = String(d.getDate()).padStart(2, "0");
-    return `${yyyy}-${mm}-${dd}`;
-}
-
+/* -----------------------------
+ * 6) Compass (P7)
+ * ----------------------------- */
 function normalizeCoordValue(dim, v) {
     const s = String(v || "").trim();
     if (!s) return "中";
+
     const map = {
         temperature: { low: ["冷", "偏冷"], mid: ["中", "适中", "均衡"], high: ["热", "偏热"] },
         density: { low: ["低", "偏低"], mid: ["中", "适中", "均衡"], high: ["高", "偏高"] },
@@ -1973,7 +1862,7 @@ function saveCompassSnapshot(snapshot, reason = "auto") {
     try {
         localStorage.setItem(STORAGE_KEYS.COMPASS_SNAPSHOT, JSON.stringify({ ...snapshot, reason, saved_at: new Date().toISOString() }));
 
-        const dayKey = getLocalDateKey();
+        const dayKey = new Date().toISOString().slice(0, 10);
         const raw = localStorage.getItem(STORAGE_KEYS.COMPASS_HISTORY) || "[]";
         let arr = [];
         try { arr = JSON.parse(raw); } catch { arr = []; }
@@ -1998,15 +1887,16 @@ function updateCompassVisual(input) {
     const mastersCount = input?.masters_count ?? AppState?.masters?.length ?? 0;
     const blindspots = input?.blindspots || [];
 
-    const dims = ["temperature", "density", "aggression", "structure"];
-    const labels = ["温度", "密度", "攻击性", "结构"];
-    const valueToPct = (dim, center) => {
+    const valueToPct = (center) => {
         const c = String(center || "中");
         if (c === "冷" || c === "低" || c === "弱") return 30;
         if (c === "热" || c === "高" || c === "强") return 90;
         return 60;
     };
-    const values = dims.map((d) => valueToPct(d, coords?.[d]?.center_value || "中"));
+
+    const dims = ["temperature", "density", "aggression", "structure"];
+    const labels = ["温度", "密度", "攻击性", "结构"];
+    const values = dims.map(d => valueToPct(coords?.[d]?.center_value || "中"));
 
     if (summaryEl) {
         const t = coords?.temperature?.center_value || "中";
@@ -2037,10 +1927,12 @@ function updateCompassVisual(input) {
         </div>
     `).join("");
 
-    visual.innerHTML = `<div style="width: 100%; height: 100%; display: grid; place-items: center; gap: 10px;"><div style="width:100%">${bars}</div></div>`;
+    visual.innerHTML = `<div style="width:100%">${bars}</div>`;
 }
 
-/* ===== Checklist ===== */
+/* -----------------------------
+ * 7) Checklist (P8)
+ * ----------------------------- */
 function loadChecklistState(key) {
     try {
         if (!AppState.storage_ok) return {};
@@ -2088,6 +1980,7 @@ function checklistToMarkdown(data) {
         });
         md += `\n`;
     });
+    if (data?.closing_note) md += `---\n\n${data.closing_note}\n`;
     return md.trim();
 }
 
@@ -2097,13 +1990,16 @@ function buildLocalChecklistData({ user_domain, constraints, skills }) {
         why: "这是你已学到的能力点",
         from_skill: s.name,
         severity: "should",
-        quick_fix: "回到对应大师示例，做一次最小模仿改写"
+        quick_fix: "回到对应示例，做一次最小模仿改写"
     }));
+
     return {
         checklist_title: `${user_domain || "通用写作"}检查清单（本地生成）`,
         user_domain: user_domain || "通用写作",
         constraints: constraints || "",
-        sections: [{ section_title: "技法落实", items }]
+        generated_from_skills: (skills || []).map(s => ({ name: s.name, from: s.from })),
+        sections: [{ section_title: "技法落实", items }],
+        closing_note: "先把已学技法用出来，再追求更复杂的结构。"
     };
 }
 
@@ -2121,6 +2017,8 @@ function renderChecklistResults(data, { stateKey }) {
         return;
     }
 
+    const title = data?.checklist_title || "创作检查清单";
+    const sections = Array.isArray(data?.sections) ? data.sections : [];
     const md = checklistToMarkdown(data);
     const savedState = loadChecklistState(stateKey);
 
@@ -2130,18 +2028,20 @@ function renderChecklistResults(data, { stateKey }) {
         } catch {}
     }
 
-    const sections = Array.isArray(data?.sections) ? data.sections : [];
     container.innerHTML = `
         <div class="result-card" style="margin: 0;">
             <div style="display:flex; justify-content: space-between; gap: 10px; align-items: flex-start;">
                 <div>
-                    <div style="font-weight: 900;">${escapeHtml(data?.checklist_title || "创作检查清单")}</div>
-                    <div class="hint" style="margin-top: 4px;">载体：${escapeHtml(data?.user_domain || "")}</div>
+                    <div style="font-weight: 900;">${escapeHtml(title)}</div>
+                    <div class="hint" style="margin-top: 4px;">
+                        载体：${escapeHtml(data?.user_domain || "")}${data?.constraints ? ` · 约束：${escapeHtml(data.constraints)}` : ""}
+                    </div>
                 </div>
                 <div class="row" style="gap: 8px;">
                     <button class="btn secondary" id="copyChecklistMdBtn" type="button">复制 Markdown</button>
                 </div>
             </div>
+
             <div style="margin-top: 12px;">
                 ${sections.map((sec, secIdx) => {
                     const items = Array.isArray(sec.items) ? sec.items : [];
@@ -2156,9 +2056,15 @@ function renderChecklistResults(data, { stateKey }) {
                                         <label style="display:flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--bg2) 70%, transparent);">
                                             <input type="checkbox" data-statekey="${escapeHtml(stateKey)}" data-checkid="${escapeHtml(id)}" ${checked ? "checked" : ""} style="transform: translateY(3px);" />
                                             <div style="flex: 1;">
-                                                <div style="font-weight: 700;">${escapeHtml(it.item || "")}</div>
-                                                <div class="hint" style="margin-top: 4px;">来自：${escapeHtml(it.from_skill || "")}</div>
-                                                <div class="hint" style="margin-top: 4px;">快修：${escapeHtml(it.quick_fix || "")}</div>
+                                                <div style="display:flex; justify-content: space-between; gap: 10px;">
+                                                    <div style="font-weight: 700;">${escapeHtml(it.item || "")}</div>
+                                                    <span class="pill">${escapeHtml(it.severity || "should")}</span>
+                                                </div>
+                                                <div class="hint" style="margin-top: 4px;">
+                                                    ${it.from_skill ? `来自：${escapeHtml(it.from_skill)}` : ""}
+                                                    ${it.why ? `${it.from_skill ? " · " : ""}原因：${escapeHtml(it.why)}` : ""}
+                                                </div>
+                                                ${it.quick_fix ? `<div class="hint" style="margin-top: 4px;">快修：${escapeHtml(it.quick_fix)}</div>` : ""}
                                             </div>
                                         </label>
                                     `;
@@ -2171,13 +2077,10 @@ function renderChecklistResults(data, { stateKey }) {
         </div>
     `;
 
-    const copyBtn = document.getElementById("copyChecklistMdBtn");
-    if (copyBtn) {
-        copyBtn.addEventListener("click", async () => {
-            try { await navigator.clipboard.writeText(md); showToast("已复制"); }
-            catch { showToast("复制失败", "error"); }
-        });
-    }
+    document.getElementById("copyChecklistMdBtn")?.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(md); showToast("已复制"); }
+        catch { showToast("复制失败", "error"); }
+    });
 
     container.querySelectorAll("input[type='checkbox'][data-checkid]").forEach(cb => {
         cb.addEventListener("change", () => {
@@ -2192,7 +2095,9 @@ function renderChecklistResults(data, { stateKey }) {
     });
 }
 
-/* ===== Morning ===== */
+/* -----------------------------
+ * 8) Morning (P9)
+ * ----------------------------- */
 let MorningState = { today: null };
 
 function safeLoadJson(key, fallback) {
@@ -2260,29 +2165,59 @@ function renderMorning(data) {
 
     if (!data) {
         if (meta) meta.textContent = "每天一口好东西，30 秒即可。";
-        content.innerHTML = `<div class="empty-state" style="padding: 14px;"><p class="hint">今日校准不可用</p></div>`;
+        content.innerHTML = `<div class="hint">今日校准不可用</div>`;
         if (saveBtn) saveBtn.disabled = true;
         if (copyBtn) copyBtn.disabled = true;
         return;
     }
 
     const src = data.source || {};
-    if (meta) meta.textContent = `${escapeHtml(data.date || "")} · 来源：${escapeHtml(src.master || "未知")}${src.note ? ` · ${escapeHtml(src.note)}` : ""}`;
+    const dateText = data.date || "";
+    const srcText = src.master || "未知";
+    const noteText = src.note || "";
+
+    if (meta) {
+        meta.textContent = `${dateText}${srcText ? ` · 来源：${srcText}` : ""}${noteText ? ` · ${noteText}` : ""}`;
+    }
+
+    const quote = data.quote_or_scene || "";
+    const notices = Array.isArray(data.what_to_notice) ? data.what_to_notice : [];
+    const practice = data.micro_practice || "";
+    const coord = data.coordinate_hint || {};
+
+    const coordText = [
+        coord.temperature ? `温度:${coord.temperature}` : "",
+        coord.density ? `密度:${coord.density}` : "",
+        coord.aggression ? `攻击性:${coord.aggression}` : "",
+        coord.structure ? `结构:${coord.structure}` : ""
+    ].filter(Boolean).join(" · ");
 
     content.innerHTML = `
-        <div style="padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg2) 70%, transparent);">
-            <div style="font-weight: 800; margin-bottom: 6px;">今日一口</div>
-            <div style="color: var(--muted); line-height: 1.8;">${escapeHtml(data.quote_or_scene || "")}</div>
-            <div style="margin-top: 12px;">
-                <div style="font-weight: 800; margin-bottom: 6px;">看的时候注意</div>
-                <ul style="margin-left: 18px; color: var(--muted);">
-                    ${(data.what_to_notice || []).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
-                </ul>
+        <div class="morning-wrap">
+            <div class="morning-section-title">今日一口</div>
+            <div class="morning-quote">${escapeHtml(quote)}</div>
+
+            <div style="margin-top: 14px;">
+                <div class="morning-section-title">看的时候注意</div>
+                ${
+                    notices.length
+                        ? `<ul class="morning-list">${notices.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>`
+                        : `<div class="hint">未提供注意点</div>`
+                }
             </div>
-            <div style="margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);">
-                <div style="font-weight: 800; margin-bottom: 4px;">30 秒微作业</div>
-                <div class="hint" style="color: var(--text);">${escapeHtml(data.micro_practice || "")}</div>
+
+            <div class="morning-practice">
+                <div class="morning-section-title" style="margin-bottom: 6px; color: color-mix(in srgb, var(--accent) 70%, var(--muted));">
+                    30 秒微作业
+                </div>
+                <div class="morning-practice-text">${escapeHtml(practice)}</div>
             </div>
+
+            ${
+                coordText
+                    ? `<div class="morning-meta-row"><span class="morning-pill">${escapeHtml(coordText)}</span></div>`
+                    : ``
+            }
         </div>
     `;
 
@@ -2290,47 +2225,66 @@ function renderMorning(data) {
     if (copyBtn) copyBtn.disabled = false;
 }
 
-function loadMorningToday() {
-    const day = getLocalDateKey();
-    const cached = safeLoadJson(STORAGE_KEYS.MORNING_TODAY, null);
-    if (cached && cached.date === day) return cached;
-    return null;
-}
-
-function saveMorningToday(data) { return safeSaveJson(STORAGE_KEYS.MORNING_TODAY, data); }
-
-function loadMorningJournal() {
-    const arr = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
-    return Array.isArray(arr) ? arr : [];
-}
-
-function saveMorningJournal(arr) { return safeSaveJson(STORAGE_KEYS.MORNING_JOURNAL, arr); }
-
 function updateMorningJournalUI() {
     const el = document.getElementById("morningJournal");
     if (!el) return;
 
-    const arr = loadMorningJournal();
-    if (!arr.length) { el.textContent = "暂无记录"; return; }
+    const arr = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+    if (!Array.isArray(arr) || arr.length === 0) {
+        el.textContent = "暂无记录";
+        return;
+    }
 
     const last = arr.slice(-5).reverse();
     el.innerHTML = last.map(x => {
-        const t = x?.saved_at ? new Date(x.saved_at).toLocaleString() : "";
-        const src = x?.data?.source?.master || "未知";
-        const line = x?.data?.quote_or_scene || "";
-        return `<div style="padding: 8px 0; border-top: 1px solid var(--border);">
-            <div style="font-weight: 700;">${escapeHtml(x?.data?.date || "")} · ${escapeHtml(src)}</div>
-            <div class="hint" style="margin-top: 4px;">${escapeHtml(line)}</div>
-            <div class="hint" style="margin-top: 4px;">${escapeHtml(t)}</div>
-        </div>`;
+        const savedAt = x?.saved_at ? new Date(x.saved_at).toLocaleString() : "";
+        const d = x?.data || {};
+        const srcMaster = d?.source?.master || "未知";
+        const quote = d?.quote_or_scene || "";
+        const notices = Array.isArray(d?.what_to_notice) ? d.what_to_notice : [];
+        const practice = d?.micro_practice || "";
+
+        return `
+            <div class="journal-entry">
+                <div class="journal-head">
+                    <div class="journal-title">${escapeHtml(d?.date || "")} · ${escapeHtml(srcMaster)}</div>
+                    <div class="journal-time">${escapeHtml(savedAt)}</div>
+                </div>
+
+                <div class="journal-body">
+                    <div class="morning-section-title">今日一口</div>
+                    <div class="morning-quote">${escapeHtml(quote)}</div>
+
+                    <div style="margin-top: 12px;">
+                        <div class="morning-section-title">看的时候注意</div>
+                        ${
+                            notices.length
+                                ? `<ul class="morning-list">${notices.map(t => `<li>${escapeHtml(t)}</li>`).join("")}</ul>`
+                                : `<div class="hint">（当时未记录注意点）</div>`
+                        }
+                    </div>
+
+                    <div class="morning-practice">
+                        <div class="morning-section-title" style="margin-bottom: 6px; color: color-mix(in srgb, var(--accent) 70%, var(--muted));">
+                            30 秒微作业
+                        </div>
+                        <div class="morning-practice-text">${escapeHtml(practice || "（当时未记录作业）")}</div>
+                    </div>
+                </div>
+            </div>
+        `;
     }).join("");
 }
 
 async function generateMorning({ force = false } = {}) {
-    const day = getLocalDateKey();
+    const day = new Date().toISOString().slice(0, 10);
     if (!force) {
-        const cached = loadMorningToday();
-        if (cached) { renderMorning(cached); FLOW_updateAll(); return; }
+        const cached = safeLoadJson(STORAGE_KEYS.MORNING_TODAY, null);
+        if (cached && cached.date === day) {
+            renderMorning(cached);
+            FLOW_updateAll();
+            return;
+        }
     }
 
     const fallback = buildMorningFallback(day);
@@ -2341,13 +2295,13 @@ async function generateMorning({ force = false } = {}) {
         fallback.source.note = "从你收藏的大师里抽一口";
     }
 
-    saveMorningToday(fallback);
+    safeSaveJson(STORAGE_KEYS.MORNING_TODAY, fallback);
     renderMorning(fallback);
     FLOW_updateAll();
 }
 
 async function generateMorningWithAI() {
-    const day = getLocalDateKey();
+    const day = new Date().toISOString().slice(0, 10);
     const s = aiModule.get_state();
     if (!s.networking_enabled) {
         showToast("未开启联网，已使用离线校准", "warn");
@@ -2358,7 +2312,7 @@ async function generateMorningWithAI() {
     const masterNames = (AppState.masters || []).map(m => m?.name).filter(Boolean);
     const messages = [
         { role: "system", content: PROMPTS.morning.system },
-        { role: "user", content: PROMPTS.morning.user({ date: day, master_names: masterNames }) }
+        { role: "user", content: PROMPTS.morning.user({ date: day, master_names: masterNames, mode_hint: "均衡" }) }
     ];
 
     const content = document.getElementById("morningContent");
@@ -2373,7 +2327,7 @@ async function generateMorningWithAI() {
             ? { date: day, source: { master: "AI 输出", note: "未能解析为 JSON" }, quote_or_scene: parsed._raw_text, what_to_notice: [], micro_practice: "", coordinate_hint: {}, _generated_by: "ai_raw" }
             : { ...parsed, _generated_by: "ai_json" };
 
-        saveMorningToday(data);
+        safeSaveJson(STORAGE_KEYS.MORNING_TODAY, data);
         renderMorning(data);
         FLOW_updateAll();
     } catch (err) {
@@ -2388,9 +2342,10 @@ async function saveMorningToJournal() {
     const data = MorningState.today;
     if (!data) return;
 
-    const arr = loadMorningJournal();
-    arr.push({ saved_at: new Date().toISOString(), data });
-    saveMorningJournal(arr);
+    const arr = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+    const next = Array.isArray(arr) ? arr : [];
+    next.push({ saved_at: new Date().toISOString(), data });
+    safeSaveJson(STORAGE_KEYS.MORNING_JOURNAL, next);
     updateMorningJournalUI();
     showToast("已存入审美日记");
     FLOW_updateAll();
@@ -2407,7 +2362,9 @@ async function copyMorningToday() {
     catch { showToast("复制失败", "error"); }
 }
 
-/* ===== AI parsing & errors ===== */
+/* -----------------------------
+ * 9) AI parsing + error handling
+ * ----------------------------- */
 function extractJsonFromCodeFence(text) {
     const s = String(text || "");
     const m = s.match(/```json\s*([\s\S]*?)\s*```/i);
@@ -2478,13 +2435,13 @@ function normalizeResponseByMode(mode, data) {
     if (mode === "source") {
         if (!data.learning_strategy && data.meta_advice) data.learning_strategy = data.meta_advice;
         data.masters = Array.isArray(data.masters) ? data.masters : [];
-        data.masters.forEach(m => { if (!m.learn_how && m.how_to_learn) m.learn_how = m.how_to_learn; });
-        return data;
+        data.masters.forEach(m => {
+            if (!m.learn_how && m.how_to_learn) m.learn_how = m.how_to_learn;
+        });
     }
     if (mode === "deconstruct") {
         const l3 = data?.layers?.L3_mental;
         if (l3 && !l3.self_check_questions && l3.self_check) l3.self_check_questions = [String(l3.self_check)];
-        return data;
     }
     return data;
 }
@@ -2494,6 +2451,15 @@ function openAISettings() {
     if (aiSettings) aiSettings.open = true;
     const mount = document.getElementById("aiSettingsMount");
     if (mount) mount.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function showLoading() {
+    document.getElementById("resultsSection").innerHTML = `
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>正在生成结果…</p>
+        </div>
+    `;
 }
 
 function renderFallbackAIResponse({ title, rawText, errorText }) {
@@ -2514,17 +2480,12 @@ function renderFallbackAIResponse({ title, rawText, errorText }) {
         </div>
     `;
 
-    const retryBtn = document.getElementById("retryLastBtn");
-    if (retryBtn) retryBtn.addEventListener("click", async () => {
+    document.getElementById("retryLastBtn")?.addEventListener("click", async () => {
         if (!AppState.lastRequest) { showToast("没有可重试的请求", "error"); return; }
         await runLastRequest();
     });
-
-    const openBtn = document.getElementById("openAiSettingsBtn");
-    if (openBtn) openBtn.addEventListener("click", openAISettings);
-
-    const copyBtn = document.getElementById("copyRawBtn");
-    if (copyBtn) copyBtn.addEventListener("click", async () => {
+    document.getElementById("openAiSettingsBtn")?.addEventListener("click", openAISettings);
+    document.getElementById("copyRawBtn")?.addEventListener("click", async () => {
         try { await navigator.clipboard.writeText(String(rawText || "")); showToast("已复制"); }
         catch { showToast("复制失败", "error"); }
     });
@@ -2532,39 +2493,35 @@ function renderFallbackAIResponse({ title, rawText, errorText }) {
     FLOW_updateAll();
 }
 
-async function runLastRequest() {
-    const req = AppState.lastRequest;
-    if (!req) return;
+function showError(message) {
+    const container = document.getElementById("resultsSection");
+    container.innerHTML = `
+        <div class="result-card" style="border-left: 4px solid var(--bad);">
+            <h2 style="color: var(--bad);">出错了</h2>
+            <pre class="log" style="margin-top: 12px;">${escapeHtml(message)}</pre>
+            <div class="row" style="margin-top: 12px;">
+                <button class="btn secondary" id="retryLastBtn2" type="button">重试</button>
+                <button class="btn secondary" id="openAiSettingsBtn2" type="button">打开 AI 设置</button>
+                <button class="btn secondary" id="copyErrBtn2" type="button">复制错误</button>
+            </div>
+        </div>
+    `;
+    document.getElementById("retryLastBtn2")?.addEventListener("click", async () => {
+        if (!AppState.lastRequest) { showToast("没有可重试的请求", "error"); return; }
+        await runLastRequest();
+    });
+    document.getElementById("openAiSettingsBtn2")?.addEventListener("click", openAISettings);
+    document.getElementById("copyErrBtn2")?.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(String(message || "")); showToast("已复制"); }
+        catch { showToast("复制失败", "error"); }
+    });
 
-    const s = aiModule.get_state();
-    if (!s.networking_enabled) {
-        showToast("请先开启联网", "error");
-        openAISettings();
-        return;
-    }
-
-    showLoading();
-    try {
-        const result = await aiModule.call_ai({ messages: req.messages });
-        let data = parseAIResponse(result.text);
-        data = normalizeResponseByMode(req.mode, data);
-        validateSchemaOrThrow(req.mode, data);
-
-        if (req.mode === "source") renderSourceResults(data);
-        else if (req.mode === "deconstruct") renderDeconstructResults(data);
-        else if (req.mode === "transfer") renderTransferResults(data);
-        else if (req.mode === "navigate") renderNavigateResults(data);
-        else if (req.mode === "diagnose") renderDiagnoseResults(data);
-        else renderFallbackAIResponse({ title: "已重试，但该模式不在主区渲染", rawText: JSON.stringify(data, null, 2), errorText: "请在对应模块查看结果。" });
-    } catch (err) {
-        const actionable = aiModule.get_actionable_error(err);
-        renderFallbackAIResponse({ title: "重试失败", rawText: "", errorText: actionable });
-    } finally {
-        FLOW_updateAll();
-    }
+    FLOW_updateAll();
 }
 
-/* ===== Stepper with P0→P1 fixes ===== */
+/* -----------------------------
+ * 10) Stepper (B档) with P0→P1 fixes
+ * ----------------------------- */
 const FLOW_STATE = {
     produced: false,
     session_started_at: null,
@@ -2623,7 +2580,7 @@ function FLOW_hasArchivedThisSession() {
 }
 
 function FLOW_hasMorningToday() {
-    const today = getLocalDateKey();
+    const today = new Date().toISOString().slice(0, 10);
     if (MorningState && MorningState.today && MorningState.today.date === today) return true;
     const cached = FLOW_safeGetLocalJson(STORAGE_KEYS.MORNING_TODAY, null);
     return Boolean(cached && cached.date === today);
@@ -2774,45 +2731,20 @@ function FLOW_initObservers() {
         FLOW_updateAll();
     });
 
-    /* P0-1：subtree:false 防止自激循环 */
     obs.observe(rs, { childList: true, subtree: false });
 }
 
-/* ===== 渲染与提交（略去部分 UI 细节，保持功能完整） ===== */
+/* -----------------------------
+ * 11) Rendering + run
+ * ----------------------------- */
 let aiModule = null;
 let __lastSourceMasters = [];
 let __lastDeconstructSkills = [];
 
-function showLoading() {
-    document.getElementById("resultsSection").innerHTML = `
-        <div class="loading">
-            <div class="loading-spinner"></div>
-            <p>正在生成结果…</p>
-        </div>
-    `;
-}
-
-function showError(message) {
-    const container = document.getElementById("resultsSection");
-    container.innerHTML = `
-        <div class="result-card" style="border-left: 4px solid var(--bad);">
-            <h2 style="color: var(--bad);">出错了</h2>
-            <pre class="log" style="margin-top: 12px;">${escapeHtml(message)}</pre>
-            <div class="row" style="margin-top: 12px;">
-                <button class="btn secondary" id="retryLastBtn2" type="button">重试</button>
-                <button class="btn secondary" id="openAiSettingsBtn2" type="button">打开 AI 设置</button>
-            </div>
-        </div>
-    `;
-    document.getElementById("retryLastBtn2")?.addEventListener("click", async () => { await runLastRequest(); });
-    document.getElementById("openAiSettingsBtn2")?.addEventListener("click", openAISettings);
-    FLOW_updateAll();
-}
-
 function renderMasterList() {
     const container = document.getElementById("masterList");
     if (AppState.masters.length === 0) {
-        container.innerHTML = `<div class="empty-state" style="padding: 20px;"><p class="hint">还没有收藏大师</p></div>`;
+        container.innerHTML = `<div class="hint">还没有收藏大师</div>`;
         return;
     }
 
@@ -2832,6 +2764,9 @@ function renderMasterList() {
             renderMasterList();
             refreshTransferAssistOptions();
             validateAndToggleSubmit();
+            const snap = computeCompassFromMasters(AppState.masters);
+            saveCompassSnapshot(snap, "remove_master");
+            updateCompassVisual(snap);
             FLOW_updateAll();
         });
     });
@@ -2840,10 +2775,11 @@ function renderMasterList() {
 function renderSkillList() {
     const container = document.getElementById("skillList");
     if (AppState.skills.length === 0) {
-        container.innerHTML = `<div class="empty-state" style="padding: 20px;"><p class="hint">还没有技法</p></div>`;
+        container.innerHTML = `<div class="hint">还没有技法</div>`;
         return;
     }
-    container.innerHTML = AppState.skills.slice(0, 5).map(s => `
+
+    container.innerHTML = AppState.skills.slice(0, 6).map(s => `
         <div class="skill-item">
             <div class="skill-item-name">${escapeHtml(s.name)}</div>
             <div class="skill-item-from">来自 ${escapeHtml(s.from)}</div>
@@ -2878,7 +2814,9 @@ function renderSourceResults(data) {
                         <span class="coord-tag">结构: ${escapeHtml(coords.structure || "中")}</span>
                     </div>
                 </div>
+
                 <p style="margin: 12px 0; font-size: 14px;">${escapeHtml(m.why_source_level || "")}</p>
+
                 <div class="row" style="margin-top: 16px;">
                     <button class="btn secondary save-master-btn" data-idx="${idx}">保存到图谱</button>
                     <button class="btn secondary deconstruct-btn" data-name="${escapeHtml(m.name)}">深度拆解</button>
@@ -2894,13 +2832,18 @@ function renderSourceResults(data) {
             const idx = Number(btn.dataset.idx);
             const master = __lastSourceMasters[idx];
             if (!master) return;
+
             if (AppState.addMaster(master)) {
                 btn.textContent = "已保存";
                 btn.disabled = true;
                 renderMasterList();
+                refreshTransferAssistOptions();
                 const snap = computeCompassFromMasters(AppState.masters);
                 saveCompassSnapshot(snap, "add_master");
                 updateCompassVisual(snap);
+            } else {
+                btn.textContent = "已保存";
+                btn.disabled = true;
             }
             FLOW_updateAll();
         });
@@ -2924,7 +2867,6 @@ function renderSourceResults(data) {
 
 function renderDeconstructResults(data) {
     const container = document.getElementById("resultsSection");
-    const layers = data.layers || {};
     __lastDeconstructSkills = Array.isArray(data.extractable_skills) ? data.extractable_skills : [];
 
     let html = `
@@ -2933,6 +2875,7 @@ function renderDeconstructResults(data) {
             <p class="hint">${escapeHtml(data.overview || "")}</p>
         </div>
     `;
+
     if (__lastDeconstructSkills.length > 0) {
         html += `
             <div class="result-card">
@@ -2958,12 +2901,21 @@ function renderDeconstructResults(data) {
             const idx = Number(btn.dataset.idx);
             const s = __lastDeconstructSkills[idx];
             if (!s) return;
-            const skill = { name: String(s.skill_name || "").trim(), from: String(data.master || "").trim(), description: String(s.description || "") };
+
+            const skill = {
+                name: String(s.skill_name || "").trim(),
+                from: String(data.master || "").trim(),
+                description: String(s.description || "")
+            };
+
             if (AppState.addSkill(skill)) {
                 btn.textContent = "已保存";
                 btn.disabled = true;
                 renderSkillList();
                 refreshTransferAssistOptions();
+            } else {
+                btn.textContent = "已保存";
+                btn.disabled = true;
             }
             FLOW_updateAll();
         });
@@ -2974,47 +2926,451 @@ function renderDeconstructResults(data) {
 
 function renderTransferResults(data) {
     const container = document.getElementById("resultsSection");
+
+    const technique = data?.technique || "";
+    const sourceMaster = data?.source_master || "";
+    const targetScenario = data?.target_scenario || "";
+    const constraints = data?.constraints || "";
+
+    const steps = data?.steps || {};
+    const s1 = steps.step1_abstraction || steps.abstraction || {};
+    const s2 = steps.step2_mapping || steps.mapping || {};
+    const s3 = steps.step3_variations || { variations: steps.variations || [] };
+    const s4 = steps.step4_experiment || steps.experiment || {};
+
+    const variations = Array.isArray(s3.variations) ? s3.variations : [];
+    const mappingTable = Array.isArray(s2.mapping_table) ? s2.mapping_table : (Array.isArray(s2.mappings) ? s2.mappings : []);
+    const metrics = Array.isArray(s4.success_metrics) ? s4.success_metrics : [];
+
+    const conf = data?.confidence_assessment?.overall_confidence || data?.confidence || "";
+    const confNote = data?.confidence_assessment?.confidence_note || "";
+    const anti = data?.anti_patterns || {};
+    const mistakes = Array.isArray(anti.common_mistakes) ? anti.common_mistakes : [];
+
     container.innerHTML = `
         <div class="result-card">
             <h2>迁移实验室</h2>
-            <p class="hint">技法：${escapeHtml(data.technique || "")} · 场景：${escapeHtml(data.target_scenario || "")}</p>
+            <p class="hint">把「${escapeHtml(technique)}」（来自 ${escapeHtml(sourceMaster)}）迁移到「${escapeHtml(targetScenario)}」</p>
+            <div class="row" style="margin-top: 12px;">
+                ${constraints ? `<span class="pill">约束：${escapeHtml(constraints)}</span>` : ""}
+                ${conf ? `<span class="pill ${conf === "高" ? "good" : conf === "低" ? "warn" : ""}">把握：${escapeHtml(conf)}</span>` : ""}
+            </div>
+            ${confNote ? `<div class="hint" style="margin-top: 8px;">${escapeHtml(confNote)}</div>` : ""}
         </div>
+
+        <div class="result-card">
+            <h2>Step 1 · 抽象</h2>
+            <div class="variation-card">
+                <div class="hint"><strong>大师做法（片段描述）：</strong>${escapeHtml(s1.master_specific_example || s1.master_example || "")}</div>
+                <div class="hint" style="margin-top: 8px;"><strong>抽象原则：</strong>${escapeHtml(s1.abstracted_principle || s1.principle || "")}</div>
+                ${s1.principle_formula ? `<div class="variation-example"><strong>公式：</strong>${escapeHtml(s1.principle_formula)}</div>` : ""}
+                ${s1.principle_essence ? `<div class="hint" style="margin-top: 8px;"><strong>本质：</strong>${escapeHtml(s1.principle_essence)}</div>` : ""}
+            </div>
+        </div>
+
+        <div class="result-card">
+            <h2>Step 2 · 匹配</h2>
+            ${mappingTable.length ? `
+                <div class="variation-card">
+                    <div class="hint" style="margin-bottom: 8px;">映射表（原元素 → 目标元素）</div>
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <tr style="border-bottom: 1px solid var(--border);">
+                            <th style="text-align:left; padding: 8px; font-size: 12px; color: var(--muted);">原元素</th>
+                            <th style="text-align:left; padding: 8px; font-size: 12px; color: var(--muted);">目标元素</th>
+                            <th style="text-align:left; padding: 8px; font-size: 12px; color: var(--muted);">适配</th>
+                        </tr>
+                        ${mappingTable.map(row => `
+                            <tr style="border-bottom: 1px solid var(--border);">
+                                <td style="padding: 8px; font-size: 13px;">${escapeHtml(row.original_element || row.original || "")}</td>
+                                <td style="padding: 8px; font-size: 13px;">${escapeHtml(row.target_element || row.target || "")}</td>
+                                <td style="padding: 8px; font-size: 12px; color: var(--muted);">${escapeHtml(row.adaptation_needed || row.note || "")}</td>
+                            </tr>
+                        `).join("")}
+                    </table>
+                    ${s2.constraint_impact ? `<div class="hint" style="margin-top: 10px;"><strong>约束影响：</strong>${escapeHtml(s2.constraint_impact)}</div>` : ""}
+                    ${s2.unmappable_elements ? `<div class="hint" style="margin-top: 6px;"><strong>无法映射：</strong>${escapeHtml(s2.unmappable_elements)}</div>` : ""}
+                </div>
+            ` : `<div class="hint">未提供映射表（可能是模型输出缺失）。</div>`}
+        </div>
+
+        <div class="result-card">
+            <h2>Step 3 · 变体（至少 3 个）</h2>
+            ${variations.length ? variations.map(v => `
+                <div class="variation-card">
+                    <div class="variation-header">
+                        <div class="variation-name">${escapeHtml(v.variation_name || v.name || "")}</div>
+                        <span class="variation-distance">${escapeHtml(v.variation_type || v.distance || "")}</span>
+                    </div>
+                    <div class="hint">${escapeHtml(v.description || "")}</div>
+                    ${v.concrete_example || v.example ? `<div class="variation-example">${escapeHtml(v.concrete_example || v.example)}</div>` : ""}
+                    ${v.how_it_applies_principle ? `<div class="hint" style="margin-top: 8px;"><strong>如何体现原则：</strong>${escapeHtml(v.how_it_applies_principle)}</div>` : ""}
+                    <div class="row" style="margin-top: 10px;">
+                        ${Array.isArray(v.pros) && v.pros.length ? `<span class="pill good">优点：${escapeHtml(v.pros.join("、"))}</span>` : ""}
+                        ${Array.isArray(v.cons) && v.cons.length ? `<span class="pill warn">缺点：${escapeHtml(v.cons.join("、"))}</span>` : ""}
+                    </div>
+                    ${v.best_for ? `<div class="hint" style="margin-top: 8px;"><strong>适用：</strong>${escapeHtml(v.best_for)}</div>` : ""}
+                    ${v.risk ? `<div class="hint" style="margin-top: 6px;"><strong>风险：</strong>${escapeHtml(v.risk)}</div>` : ""}
+                </div>
+            `).join("") : `<div class="hint">未输出变体列表（可能是模型输出缺失）。</div>`}
+        </div>
+
+        <div class="result-card">
+            <h2>Step 4 · 实验（最小可行）</h2>
+            <div class="variation-card">
+                <div class="hint"><strong>实验设计：</strong>${escapeHtml(s4.experiment_design || s4.suggestion || "")}</div>
+                ${metrics.length ? `<div class="hint" style="margin-top: 8px;"><strong>成功指标：</strong>${escapeHtml(metrics.join("、"))}</div>` : ""}
+                ${s4.minimum_sample ? `<div class="hint" style="margin-top: 6px;"><strong>最小样本：</strong>${escapeHtml(s4.minimum_sample)}</div>` : ""}
+                ${s4.iteration_guide ? `<div class="hint" style="margin-top: 6px;"><strong>迭代建议：</strong>${escapeHtml(s4.iteration_guide)}</div>` : ""}
+            </div>
+        </div>
+
+        ${mistakes.length ? `
+            <div class="result-card" style="border-left: 4px solid var(--warn);">
+                <h2>常见踩坑</h2>
+                <ul style="margin-left: 18px; color: var(--muted);">
+                    ${mistakes.map(x => `<li>${escapeHtml(x)}</li>`).join("")}
+                </ul>
+            </div>
+        ` : ""}
+
+        ${data?.next_steps ? `
+            <div class="result-card">
+                <h2>下一步</h2>
+                <div class="hint">${escapeHtml(data.next_steps)}</div>
+            </div>
+        ` : ""}
     `;
+
     FLOW_updateAll();
 }
 
 function renderNavigateResults(data) {
     const container = document.getElementById("resultsSection");
+    const path = data?.learning_path || {};
+    const gw = path.gateway_work || null;
+
     container.innerHTML = `
         <div class="result-card">
-            <h2>「${escapeHtml(data.master)}」学习路径</h2>
-            <p class="hint">${escapeHtml(data.total_works_overview || "")}</p>
+            <h2>「${escapeHtml(data?.master || "")}」学习路径</h2>
+            <p class="hint">${escapeHtml(data?.total_works_overview || "")}</p>
+            ${data?.personalized_advice ? `<div class="variation-card"><div class="hint"><strong>个性化建议：</strong>${escapeHtml(data.personalized_advice)}</div></div>` : ""}
         </div>
+
+        ${gw ? `
+            <div class="result-card" style="border-left: 4px solid var(--good);">
+                <h2>入门首选</h2>
+                <div class="variation-card">
+                    <div class="variation-header">
+                        <div class="variation-name">${escapeHtml(gw.title || "")}</div>
+                        <span class="pill">${escapeHtml(gw.time_required || "")}</span>
+                    </div>
+                    <div class="hint">${escapeHtml(gw.type || "")}${gw.access ? ` · ${escapeHtml(gw.access)}` : ""}</div>
+                    <div class="hint" style="margin-top: 8px;"><strong>为什么从这开始：</strong>${escapeHtml(gw.why_start_here || "")}</div>
+                    ${Array.isArray(gw.what_to_notice) && gw.what_to_notice.length ? `
+                        <div style="margin-top: 10px;">
+                            <div class="master-section-title">看的时候注意</div>
+                            <ul style="margin-left: 18px; color: var(--muted);">
+                                ${gw.what_to_notice.map(x => `<li>${escapeHtml(x)}</li>`).join("")}
+                            </ul>
+                        </div>
+                    ` : ""}
+                    ${gw.homework ? `
+                        <div style="margin-top: 10px; padding: 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);">
+                            <div style="font-weight: 800; margin-bottom: 6px;">作业</div>
+                            ${gw.homework.observation ? `<div class="hint"><strong>观察：</strong>${escapeHtml(gw.homework.observation)}</div>` : ""}
+                            ${gw.homework.practice ? `<div class="hint" style="margin-top: 6px;"><strong>练习：</strong>${escapeHtml(gw.homework.practice)}</div>` : ""}
+                        </div>
+                    ` : ""}
+                </div>
+            </div>
+        ` : ""}
+
+        ${(Array.isArray(path.core_works) && path.core_works.length) ? `
+            <div class="result-card">
+                <h2>核心作品（按顺序）</h2>
+                ${path.core_works.map((w, idx) => `
+                    <div class="variation-card">
+                        <div class="variation-header">
+                            <div class="variation-name">${idx + 1}. ${escapeHtml(w.title || "")}</div>
+                            <span class="pill">${escapeHtml(w.type || "")}</span>
+                        </div>
+                        <div class="hint">${escapeHtml(w.why_important || "")}</div>
+                        ${Array.isArray(w.what_to_notice) && w.what_to_notice.length ? `
+                            <div class="hint" style="margin-top: 8px;"><strong>注意：</strong>${escapeHtml(w.what_to_notice.join("；"))}</div>
+                        ` : ""}
+                        ${w.builds_on ? `<div class="hint" style="margin-top: 6px;">承接：${escapeHtml(w.builds_on)}</div>` : ""}
+                        ${w.homework ? `<div class="hint" style="margin-top: 6px;"><strong>作业：</strong>${escapeHtml(w.homework)}</div>` : ""}
+                    </div>
+                `).join("")}
+            </div>
+        ` : ""}
+
+        ${(Array.isArray(path.hidden_gems) && path.hidden_gems.length) ? `
+            <div class="result-card">
+                <h2>隐藏宝藏</h2>
+                ${path.hidden_gems.map(g => `
+                    <div class="variation-card">
+                        <div class="variation-header">
+                            <div class="variation-name">${escapeHtml(g.title || "")}</div>
+                            <span class="pill warn">宝藏</span>
+                        </div>
+                        ${g.unique_value ? `<div class="hint"><strong>独特价值：</strong>${escapeHtml(g.unique_value)}</div>` : ""}
+                        ${g.why_underrated ? `<div class="hint" style="margin-top: 6px;"><strong>为何被低估：</strong>${escapeHtml(g.why_underrated)}</div>` : ""}
+                        ${g.who_should_see ? `<div class="hint" style="margin-top: 6px;"><strong>适合：</strong>${escapeHtml(g.who_should_see)}</div>` : ""}
+                    </div>
+                `).join("")}
+            </div>
+        ` : ""}
+
+        ${(Array.isArray(path.skip_list) && path.skip_list.length) ? `
+            <div class="result-card" style="opacity: 0.92;">
+                <h2>可跳过</h2>
+                ${path.skip_list.map(s => `
+                    <div class="variation-card">
+                        <div class="variation-header">
+                            <div class="variation-name">${escapeHtml(s.title || "")}</div>
+                            <span class="pill">skip</span>
+                        </div>
+                        <div class="hint">${escapeHtml(s.why_skip || "")}</div>
+                        ${s.when_to_revisit ? `<div class="hint" style="margin-top: 6px;">何时回看：${escapeHtml(s.when_to_revisit)}</div>` : ""}
+                    </div>
+                `).join("")}
+            </div>
+        ` : ""}
+
+        ${data?.milestone ? `
+            <div class="result-card">
+                <h2>里程碑</h2>
+                <div class="variation-card">
+                    ${data.milestone.after_gateway ? `<div class="hint"><strong>完成入门后：</strong>${escapeHtml(data.milestone.after_gateway)}</div>` : ""}
+                    ${data.milestone.after_core ? `<div class="hint" style="margin-top: 6px;"><strong>完成核心后：</strong>${escapeHtml(data.milestone.after_core)}</div>` : ""}
+                    ${data.milestone.mastery_sign ? `<div class="hint" style="margin-top: 6px;"><strong>学到位标志：</strong>${escapeHtml(data.milestone.mastery_sign)}</div>` : ""}
+                </div>
+            </div>
+        ` : ""}
     `;
+
     FLOW_updateAll();
 }
 
 function renderDiagnoseResults(data) {
     const container = document.getElementById("resultsSection");
+    const coords = data?.coordinate_analysis || {};
+    const diag = data?.diagnosis || {};
+    const rec = data?.recommendations || {};
+
+    const dimMeta = [
+        { key: "temperature", label: "温度", low: "冷", mid: "中", high: "热" },
+        { key: "density", label: "密度", low: "低", mid: "中", high: "高" },
+        { key: "aggression", label: "攻击性", low: "低", mid: "中", high: "高" },
+        { key: "structure", label: "结构感", low: "弱", mid: "中", high: "强" }
+    ];
+
+    const centerToPct = (centerValue) => {
+        const c = String(centerValue || "中");
+        if (c === "冷" || c === "低" || c === "弱") return 25;
+        if (c === "热" || c === "高" || c === "强") return 85;
+        return 55;
+    };
+
+    const dimCards = dimMeta.map(d => {
+        const dim = coords?.[d.key] || {};
+        const pct = centerToPct(dim.center_value);
+        const distribution = dim.distribution || "未知";
+        const spread = dim.spread || "未知";
+
+        return `
+            <div class="variation-card">
+                <div class="variation-header">
+                    <div class="variation-name">${escapeHtml(d.label)}</div>
+                    <span class="pill">${escapeHtml(distribution)} · ${escapeHtml(spread)}</span>
+                </div>
+                <div class="hint" style="display:flex; justify-content: space-between;">
+                    <span>${escapeHtml(d.low)}</span>
+                    <span>${escapeHtml(d.mid)}</span>
+                    <span>${escapeHtml(d.high)}</span>
+                </div>
+                <div style="margin-top: 8px; height: 8px; background: var(--border); border-radius: 6px; position: relative;">
+                    <div style="position:absolute; left:${pct}%; top:-3px; width: 14px; height: 14px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent2)); transform: translateX(-50%);"></div>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    const strengths = Array.isArray(diag.strengths) ? diag.strengths : [];
+    const blindSpots = Array.isArray(diag.blind_spots) ? diag.blind_spots : [];
+
     container.innerHTML = `
         <div class="result-card">
-            <h2>审美诊断</h2>
-            <p class="hint">${escapeHtml(data.pattern_summary || "")}</p>
+            <h2>审美诊断报告</h2>
+            <p class="hint">基于你收藏的 ${(data?.masters_analyzed || []).length} 位大师进行分析</p>
         </div>
+
+        <div class="result-card">
+            <h2>四维分布</h2>
+            <div class="grid grid-2" style="gap: 12px; margin-top: 12px;">
+                ${dimCards}
+            </div>
+        </div>
+
+        ${data?.pattern_summary ? `
+            <div class="result-card">
+                <h2>整体特征</h2>
+                <div class="variation-card">
+                    <div class="hint" style="font-size: 14px; line-height: 1.8;">${escapeHtml(data.pattern_summary)}</div>
+                </div>
+            </div>
+        ` : ""}
+
+        <div class="result-card">
+            <h2>优势与盲区</h2>
+            <div class="grid grid-2" style="gap: 12px; margin-top: 12px;">
+                <div class="variation-card" style="border-color: color-mix(in srgb, var(--good) 35%, transparent); background: color-mix(in srgb, var(--good) 10%, transparent);">
+                    <div style="font-weight: 800; color: var(--good); margin-bottom: 8px;">优势</div>
+                    ${strengths.length ? `<ul style="margin-left: 18px; color: var(--muted);">${strengths.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>` : `<div class="hint">未提供</div>`}
+                </div>
+                <div class="variation-card" style="border-color: color-mix(in srgb, var(--warn) 35%, transparent); background: color-mix(in srgb, var(--warn) 10%, transparent);">
+                    <div style="font-weight: 800; color: var(--warn); margin-bottom: 8px;">盲区</div>
+                    ${blindSpots.length ? `<ul style="margin-left: 18px; color: var(--muted);">${blindSpots.map(x => `<li>${escapeHtml(x)}</li>`).join("")}</ul>` : `<div class="hint">未明显偏科（或未提供）</div>`}
+                </div>
+            </div>
+
+            ${diag.imbalance_risk ? `<div class="hint" style="margin-top: 10px;"><strong>偏科风险：</strong>${escapeHtml(diag.imbalance_risk)}</div>` : ""}
+            ${diag.style_prediction ? `<div class="hint" style="margin-top: 6px;"><strong>风格预测：</strong>${escapeHtml(diag.style_prediction)}</div>` : ""}
+        </div>
+
+        ${(Array.isArray(rec.expand_boundary) && rec.expand_boundary.length) ? `
+            <div class="result-card">
+                <h2>拓展边界（补盲区）</h2>
+                ${rec.expand_boundary.map(r => `
+                    <div class="variation-card">
+                        <div class="variation-header">
+                            <div class="variation-name">${escapeHtml(r.suggested_master || "")}</div>
+                            <span class="pill accent">补盲区</span>
+                        </div>
+                        ${r.master_coordinates ? `<div class="hint"><strong>坐标：</strong>${escapeHtml(r.master_coordinates)}</div>` : ""}
+                        ${r.why_recommend ? `<div class="hint" style="margin-top: 6px;"><strong>为什么：</strong>${escapeHtml(r.why_recommend)}</div>` : ""}
+                        ${r.expected_gain ? `<div class="hint" style="margin-top: 6px;"><strong>收获：</strong>${escapeHtml(r.expected_gain)}</div>` : ""}
+                        ${r.entry_work ? `<div class="hint" style="margin-top: 6px;"><strong>入门作品：</strong>${escapeHtml(r.entry_work)}</div>` : ""}
+                        <div class="row" style="margin-top: 10px;">
+                            <button class="btn secondary diagnoseToSourceBtn" data-master="${escapeHtml(r.suggested_master || "")}" type="button">去源头探测</button>
+                            <button class="btn secondary diagnoseToNavigateBtn" data-master="${escapeHtml(r.suggested_master || "")}" type="button">做作品导航</button>
+                        </div>
+                    </div>
+                `).join("")}
+            </div>
+        ` : ""}
+
+        ${(Array.isArray(rec.deepen_strength) && rec.deepen_strength.length) ? `
+            <div class="result-card">
+                <h2>深化优势</h2>
+                ${rec.deepen_strength.map(r => `
+                    <div class="variation-card">
+                        <div class="variation-header">
+                            <div class="variation-name">${escapeHtml(r.suggested_master || "")}</div>
+                            <span class="pill good">强化</span>
+                        </div>
+                        ${r.why_recommend ? `<div class="hint"><strong>为什么：</strong>${escapeHtml(r.why_recommend)}</div>` : ""}
+                        ${r.what_to_focus ? `<div class="hint" style="margin-top: 6px;"><strong>关注点：</strong>${escapeHtml(r.what_to_focus)}</div>` : ""}
+                    </div>
+                `).join("")}
+            </div>
+        ` : ""}
+
+        ${data?.evolution_insight ? `
+            <div class="result-card">
+                <h2>演化建议</h2>
+                <div class="variation-card">
+                    <div class="hint" style="font-size: 14px; line-height: 1.8;">${escapeHtml(data.evolution_insight)}</div>
+                </div>
+            </div>
+        ` : ""}
     `;
-    const snap = { masters_count: (data.masters_analyzed || []).length, coordinate_analysis: data.coordinate_analysis || {}, blindspots: [] };
+
+    const snap = {
+        masters_count: (data?.masters_analyzed || []).length,
+        coordinate_analysis: coords,
+        blindspots: []
+    };
     saveCompassSnapshot(snap, "diagnose");
     updateCompassVisual(snap);
+
+    container.querySelectorAll(".diagnoseToSourceBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const m = btn.getAttribute("data-master") || "";
+            document.getElementById("mainInput").value = m;
+            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+            document.querySelector('[data-mode="source"]')?.classList.add("active");
+            AppState.currentMode = "source";
+            setModeUI(AppState.currentMode);
+            validateAndToggleSubmit();
+            FLOW_updateAll();
+        });
+    });
+
+    container.querySelectorAll(".diagnoseToNavigateBtn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const m = btn.getAttribute("data-master") || "";
+            document.getElementById("mainInput").value = m;
+            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+            document.querySelector('[data-mode="navigate"]')?.classList.add("active");
+            AppState.currentMode = "navigate";
+            setModeUI(AppState.currentMode);
+            validateAndToggleSubmit();
+            FLOW_updateAll();
+        });
+    });
+
     FLOW_updateAll();
 }
 
+async function runLastRequest() {
+    const req = AppState.lastRequest;
+    if (!req) return;
+
+    const s = aiModule.get_state();
+    if (!s.networking_enabled) {
+        showToast("请先开启联网", "error");
+        openAISettings();
+        return;
+    }
+
+    showLoading();
+    try {
+        const result = await aiModule.call_ai({ messages: req.messages });
+        let data = parseAIResponse(result.text);
+        data = normalizeResponseByMode(req.mode, data);
+        validateSchemaOrThrow(req.mode, data);
+
+        if (req.mode === "source") renderSourceResults(data);
+        else if (req.mode === "deconstruct") renderDeconstructResults(data);
+        else if (req.mode === "transfer") renderTransferResults(data);
+        else if (req.mode === "navigate") renderNavigateResults(data);
+        else if (req.mode === "diagnose") renderDiagnoseResults(data);
+        else renderFallbackAIResponse({ title: "重试成功", rawText: JSON.stringify(data, null, 2), errorText: "" });
+
+    } catch (err) {
+        const actionable = aiModule.get_actionable_error(err);
+        renderFallbackAIResponse({ title: "重试失败", rawText: "", errorText: actionable });
+    } finally {
+        FLOW_updateAll();
+    }
+}
+
+/* -----------------------------
+ * 12) Submit handler
+ * ----------------------------- */
 async function handleSubmit() {
     const mode = AppState.currentMode;
     const v = validateInputByMode(mode);
     if (!v.ok) { showToast(v.msg, "error"); return; }
 
     const state = aiModule.get_state();
-    if (!state.networking_enabled) { showToast("请先在 AI 设置里开启联网", "error"); openAISettings(); return; }
+    if (!state.networking_enabled) {
+        showToast("请先在 AI 设置里开启联网", "error");
+        openAISettings();
+        return;
+    }
 
     const input = String(document.getElementById("mainInput").value || "").trim();
     showLoading();
@@ -3023,22 +3379,58 @@ async function handleSubmit() {
         let messages = [];
 
         if (mode === "source") {
-            messages = [{ role: "system", content: PROMPTS.source.system }, { role: "user", content: PROMPTS.source.user(input) }];
+            messages = [
+                { role: "system", content: PROMPTS.source.system },
+                { role: "user", content: PROMPTS.source.user(input) }
+            ];
         } else if (mode === "deconstruct") {
-            messages = [{ role: "system", content: PROMPTS.deconstruct.system }, { role: "user", content: PROMPTS.deconstruct.user(input) }];
+            messages = [
+                { role: "system", content: PROMPTS.deconstruct.system },
+                { role: "user", content: PROMPTS.deconstruct.user(input, "") }
+            ];
         } else if (mode === "transfer") {
-            const scenario = String(document.getElementById("transferScenarioInput")?.value || "").trim();
-            const constraints = String(document.getElementById("transferConstraintsInput")?.value || "").trim();
             const techSel = document.getElementById("transferTechniqueSelect");
+            const masterSel = document.getElementById("transferMasterSelect");
+            const scenarioEl = document.getElementById("transferScenarioInput");
+            const constraintsEl = document.getElementById("transferConstraintsInput");
+
             const skills = Array.isArray(AppState.skills) ? AppState.skills : [];
-            const technique = (techSel && techSel.value !== "" && skills[Number(techSel.value)]) ? skills[Number(techSel.value)].name : input;
-            const master = AppState.masters?.[0]?.name || "鲁迅";
-            messages = [{ role: "system", content: PROMPTS.transfer.system }, { role: "user", content: PROMPTS.transfer.user(technique, master, scenario, constraints) }];
+            const masters = Array.isArray(AppState.masters) ? AppState.masters : [];
+
+            let technique = "";
+            if (techSel && techSel.value !== "" && skills[Number(techSel.value)]) {
+                technique = String(skills[Number(techSel.value)].name || "").trim();
+            } else {
+                const parsed = parseTransferQuickInput(input);
+                technique = parsed?.technique || input;
+            }
+
+            const scenario = String(scenarioEl?.value || "").trim();
+            const constraints = String(constraintsEl?.value || "").trim();
+
+            let master = "";
+            if (masterSel && masterSel.value !== "" && masters[Number(masterSel.value)]) {
+                master = String(masters[Number(masterSel.value)].name || "").trim();
+            } else {
+                const match = skills.find(s => String(s?.name || "").trim() === technique);
+                master = String(match?.from || "").trim() || (masters[0]?.name || "鲁迅");
+            }
+
+            messages = [
+                { role: "system", content: PROMPTS.transfer.system },
+                { role: "user", content: PROMPTS.transfer.user(technique, master, scenario, constraints) }
+            ];
         } else if (mode === "navigate") {
-            messages = [{ role: "system", content: PROMPTS.navigate.system }, { role: "user", content: PROMPTS.navigate.user(input, "不限", "入门") }];
+            messages = [
+                { role: "system", content: PROMPTS.navigate.system },
+                { role: "user", content: PROMPTS.navigate.user(input, "不限", "入门") }
+            ];
         } else if (mode === "diagnose") {
             const masterNames = AppState.masters.map(m => m.name);
-            messages = [{ role: "system", content: PROMPTS.diagnose.system }, { role: "user", content: PROMPTS.diagnose.user(masterNames, "内容创作") }];
+            messages = [
+                { role: "system", content: PROMPTS.diagnose.system },
+                { role: "user", content: PROMPTS.diagnose.user(masterNames, "内容创作") }
+            ];
         }
 
         AppState.setLastRequest({ mode, messages, input, at: new Date().toISOString() });
@@ -3051,7 +3443,11 @@ async function handleSubmit() {
             data = normalizeResponseByMode(mode, data);
             validateSchemaOrThrow(mode, data);
         } catch (e) {
-            renderFallbackAIResponse({ title: "AI 输出解析/结构失败（已降级）", rawText: result.text, errorText: String(e?.message || e) });
+            renderFallbackAIResponse({
+                title: "AI 输出解析/结构失败（已降级）",
+                rawText: result.text,
+                errorText: String(e?.message || e)
+            });
             return;
         }
 
@@ -3060,6 +3456,7 @@ async function handleSubmit() {
         else if (mode === "transfer") renderTransferResults(data);
         else if (mode === "navigate") renderNavigateResults(data);
         else if (mode === "diagnose") renderDiagnoseResults(data);
+
     } catch (err) {
         console.error(err);
         const actionable = aiModule.get_actionable_error(err);
@@ -3069,13 +3466,19 @@ async function handleSubmit() {
     }
 }
 
+/* -----------------------------
+ * 13) Checklist runners
+ * ----------------------------- */
 function getChecklistContextFromUI() {
     const domain = document.getElementById("checklistDomain")?.value || "通用写作";
     const constraints = String(document.getElementById("checklistConstraints")?.value || "").trim();
     return { user_domain: domain, constraints };
 }
 
-function getChecklistStateKey(domain) { return `${getLocalDateKey()}:${domain}`; }
+function getChecklistStateKey(domain) {
+    const day = new Date().toISOString().slice(0, 10);
+    return `${day}:${domain}`;
+}
 
 async function runChecklistLocal() {
     if (AppState.skills.length === 0) { showToast("请先保存至少 1 个技法", "error"); return; }
@@ -3087,25 +3490,54 @@ async function runChecklistLocal() {
 
 async function runChecklistAI() {
     if (AppState.skills.length === 0) { showToast("请先保存至少 1 个技法", "error"); return; }
+
     const s = aiModule.get_state();
     if (!s.networking_enabled) { showToast("请先开启联网", "error"); openAISettings(); return; }
 
     const { user_domain, constraints } = getChecklistContextFromUI();
-    const messages = [{ role: "system", content: PROMPTS.checklist.system }, { role: "user", content: PROMPTS.checklist.user({ user_domain, constraints, skills: AppState.skills }) }];
+    const messages = [
+        { role: "system", content: PROMPTS.checklist.system },
+        { role: "user", content: PROMPTS.checklist.user({ user_domain, constraints, skills: AppState.skills }) }
+    ];
 
     showLoading();
+
     try {
         const result = await aiModule.call_ai({ messages });
         let parsed = null;
         try { parsed = parseAIResponse(result.text); } catch { parsed = { _raw_text: result.text }; }
-        document.getElementById("resultsSection").innerHTML = `<div class="result-card"><h2>检查清单已生成</h2><p class="hint">请在右侧查看/复制。</p></div>`;
+
+        document.getElementById("resultsSection").innerHTML = `
+            <div class="result-card">
+                <h2>检查清单已生成</h2>
+                <p class="hint">请在右侧查看/复制/勾选。</p>
+            </div>
+        `;
+
         renderChecklistResults(parsed, { stateKey: getChecklistStateKey(user_domain) });
+
     } catch (err) {
+        console.error(err);
         const actionable = aiModule.get_actionable_error(err);
         showError(actionable);
     } finally {
         FLOW_updateAll();
     }
+}
+
+/* -----------------------------
+ * 14) Key status + theme (guarded)
+ * ----------------------------- */
+function applyTheme(mode) {
+    if (mode === "light") document.documentElement.dataset.theme = "light";
+    else if (mode === "dark") document.documentElement.dataset.theme = "dark";
+    else delete document.documentElement.dataset.theme;
+}
+
+function loadTheme() {
+    const mode = AppState.storage_ok ? (localStorage.getItem(STORAGE_KEYS.THEME) || "auto") : "auto";
+    document.getElementById("themeSelect").value = mode;
+    applyTheme(mode);
 }
 
 function updateKeyStatus() {
@@ -3128,18 +3560,9 @@ function updateKeyStatus() {
     else { pill.className = "pill bad"; pill.textContent = "未配置"; }
 }
 
-function applyTheme(mode) {
-    if (mode === "light") document.documentElement.dataset.theme = "light";
-    else if (mode === "dark") document.documentElement.dataset.theme = "dark";
-    else delete document.documentElement.dataset.theme;
-}
-
-function loadTheme() {
-    const mode = AppState.storage_ok ? (localStorage.getItem(STORAGE_KEYS.THEME) || "auto") : "auto";
-    document.getElementById("themeSelect").value = mode;
-    applyTheme(mode);
-}
-
+/* -----------------------------
+ * 15) Init (storage guard + AI module mount + stepper P0/P1)
+ * ----------------------------- */
 function init() {
     AppState.storage_ok = storageAvailable();
 
@@ -3166,16 +3589,18 @@ function init() {
 
     renderMasterList();
     renderSkillList();
+    refreshTransferAssistOptions();
 
     const snap = computeCompassFromMasters(AppState.masters);
     saveCompassSnapshot(snap, "init");
     updateCompassVisual(snap);
 
-    FLOW_setSessionBaseline();
-    FLOW_initObservers();
-
     updateMorningJournalUI();
     generateMorning({ force: false });
+
+    FLOW_setSessionBaseline();
+    FLOW_initObservers();
+    FLOW_updateAll();
 
     document.getElementById("themeSelect").addEventListener("change", (e) => {
         const mode = e.target.value;
@@ -3183,19 +3608,7 @@ function init() {
         applyTheme(mode);
     });
 
-    document.querySelectorAll(".mode-btn").forEach(btn => {
-        btn.addEventListener("click", () => {
-            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
-            btn.classList.add("active");
-            AppState.currentMode = btn.dataset.mode;
-            setModeUI(AppState.currentMode);
-            refreshTransferAssistOptions();
-            validateAndToggleSubmit();
-            FLOW_updateAll();
-        });
-    });
-
-    document.querySelectorAll(".quick-tag").forEach(tag => {
+    document.querySelectorAll(".quick-tag[data-query]").forEach(tag => {
         tag.addEventListener("click", () => {
             document.getElementById("mainInput").value = tag.dataset.query;
             validateAndToggleSubmit();
@@ -3203,13 +3616,28 @@ function init() {
         });
     });
 
-    document.getElementById("submitBtn").addEventListener("click", handleSubmit);
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            AppState.currentMode = btn.dataset.mode;
+
+            setModeUI(AppState.currentMode);
+            refreshTransferAssistOptions();
+            validateAndToggleSubmit();
+            FLOW_updateAll();
+        });
+    });
+
     document.getElementById("mainInput").addEventListener("input", () => {
         if (AppState.currentMode === "transfer") fillTransferAssistFromQuickInput();
         validateAndToggleSubmit();
         FLOW_updateAll();
     });
-    document.getElementById("mainInput").addEventListener("keypress", (e) => { if (e.key === "Enter") handleSubmit(); });
+
+    document.getElementById("mainInput").addEventListener("keypress", (e) => {
+        if (e.key === "Enter") handleSubmit();
+    });
 
     ["transferTechniqueSelect", "transferMasterSelect", "transferScenarioInput", "transferConstraintsInput"].forEach(id => {
         const el = document.getElementById(id);
@@ -3217,6 +3645,8 @@ function init() {
         el.addEventListener("input", () => { validateAndToggleSubmit(); FLOW_updateAll(); });
         el.addEventListener("change", () => { validateAndToggleSubmit(); FLOW_updateAll(); });
     });
+
+    document.getElementById("submitBtn").addEventListener("click", handleSubmit);
 
     document.getElementById("generateChecklistLocalBtn").addEventListener("click", runChecklistLocal);
     document.getElementById("generateChecklistAiBtn").addEventListener("click", runChecklistAI);
@@ -3240,16 +3670,14 @@ function init() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `origin-compass-${new Date().toISOString().slice(0,10)}.json`;
+        a.download = `origin-compass-${new Date().toISOString().slice(0, 10)}.json`;
         a.click();
         URL.revokeObjectURL(url);
         showToast("已导出");
     });
 
-    refreshTransferAssistOptions();
     setModeUI(AppState.currentMode);
     validateAndToggleSubmit();
-    FLOW_updateAll();
 }
 
 document.addEventListener("DOMContentLoaded", init);
