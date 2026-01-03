@@ -22,9 +22,7 @@
             --bad: #e11d48;
             --warn: #d97706;
             --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
-            --sans: ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "PingFang SC",
-        "Hiragino Sans GB", "Microsoft YaHei", "Noto Sans CJK SC", "Noto Sans SC",
-        Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
             --shadow: 0 10px 40px rgba(2, 6, 23, 0.08);
             --shadow-lg: 0 20px 60px rgba(2, 6, 23, 0.12);
         }
@@ -810,41 +808,20 @@
             background: color-mix(in srgb, var(--accent) 8%, transparent);
         }
 
-/* =========================
-   Responsive
-======================== */
-@media (max-width: 420px) {
-    #flowStepper .flow-step { min-width: 100%; }
-    .container { padding: 14px 12px 60px; }
-    header { padding: 16px; border-radius: 16px; }
-    .input-section { padding: 16px; border-radius: 16px; }
-    .mode-btn { min-width: 120px; padding: 12px; }
-    .input-box input { padding: 14px 14px; font-size: 15px; }
-    .toast { left: 12px; right: 12px; bottom: 14px; width: auto; }
-    #assetsDrawer { width: 100vw; }
-
-    /* ===== Mobile typography for results (safe scope) ===== */
-    #resultsSection {
-        font-size: 14px;
-        line-height: 1.75;
-    }
-
-    #resultsSection .result-card {
-        padding: 16px;
-        border-radius: 16px;
-    }
-
-    #resultsSection h2 {
-        font-size: 16px;
-        font-weight: 800; /* 避免 900 在小屏显得过重 */
-    }
-
-    #resultsSection .hint {
-        font-size: 12.5px; /* 比原先更可读 */
-        color: color-mix(in srgb, var(--text) 70%, var(--muted));
-    }
-}
-</style>
+        /* =========================
+           Responsive
+        ========================= */
+        @media (max-width: 420px) {
+            #flowStepper .flow-step { min-width: 100%; }
+            .container { padding: 14px 12px 60px; }
+            header { padding: 16px; border-radius: 16px; }
+            .input-section { padding: 16px; border-radius: 16px; }
+            .mode-btn { min-width: 120px; padding: 12px; }
+            .input-box input { padding: 14px 14px; font-size: 15px; }
+            .toast { left: 12px; right: 12px; bottom: 14px; width: auto; }
+            #assetsDrawer { width: 100vw; }
+        }
+    </style>
 </head>
 <body>
 <script type="application/json" id="tool_meta">
@@ -2213,20 +2190,12 @@ const LIMITS = {
     CHECKLIST_STATE_DAYS_MAX: 30
 };
 
-function formatUrlLabel(url, maxLen = 56) {
-    const u = String(url || "").trim();
-    if (!u) return "";
-    try {
-        const p = new URL(u);
-        const base = p.hostname;
-        const rest = (p.pathname || "") + (p.search ? "?" : "");
-        const room = Math.max(0, maxLen - base.length - 1);
-        const shortRest = rest.slice(0, room);
-        const label = shortRest ? `${base}${shortRest}` : base;
-        return label.length > maxLen ? label.slice(0, maxLen - 1) + "…" : label;
-    } catch {
-        return u.length > maxLen ? u.slice(0, maxLen - 1) + "…" : u;
-    }
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
 }
 
 function showToast(message, type = "success") {
@@ -2827,7 +2796,7 @@ function renderCitations(citations) {
         const used = String(c?.used_for || "").trim();
 
         const linkPart = url
-            ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(url)}">${escapeHtml(formatUrlLabel(url))}</a>`
+            ? `<a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a>`
             : `<span class="hint">（无链接）</span>`;
 
         const meta = [why ? `可信：${why}` : "", used ? `用途：${used}` : ""].filter(Boolean).join(" · ");
@@ -4330,7 +4299,7 @@ function renderReferencesGroup(references) {
                         ${why ? `<div class="hint"><strong>为何基础：</strong>${escapeHtml(why)}</div>` : ""}
                         ${learn ? `<div class="hint" style="margin-top: 6px;"><strong>学什么：</strong>${escapeHtml(learn)}</div>` : ""}
                         ${access ? `<div class="hint" style="margin-top: 6px;"><strong>获取：</strong>${escapeHtml(access)}</div>` : ""}
-                        ${url ? `<div class="hint" style="margin-top: 6px;"><strong>链接：</strong><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer" title="${escapeHtml(url)}">${escapeHtml(formatUrlLabel(url))}</a></div>` : ""}
+                        ${url ? `<div class="hint" style="margin-top: 6px;"><strong>链接：</strong><a href="${escapeHtml(url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(url)}</a></div>` : ""}
                     </div>
                 `;
             }).join("");
