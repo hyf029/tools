@@ -1,0 +1,3258 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>源流 Origin - 认知校准系统</title>
+    <style>
+        :root {
+            --bg: #f6f7fb;
+            --bg2: #ffffff;
+            --panel: rgba(255,255,255,0.86);
+            --panel2: rgba(255,255,255,0.72);
+            --text: #0f172a;
+            --muted: #475569;
+            --border: rgba(15,23,42,0.14);
+            --accent: #2563eb;
+            --accent2: #7c3aed;
+            --good: #059669;
+            --bad: #e11d48;
+            --warn: #d97706;
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            --sans: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+            --shadow: 0 10px 40px rgba(2,6,23,0.08);
+            --shadow-lg: 0 20px 60px rgba(2,6,23,0.12);
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f19;
+                --bg2: #0b1020;
+                --panel: rgba(17,24,39,0.86);
+                --panel2: rgba(15,23,42,0.72);
+                --text: #e5e7eb;
+                --muted: #9ca3af;
+                --border: rgba(255,255,255,0.14);
+                --accent: #60a5fa;
+                --accent2: #a78bfa;
+                --good: #34d399;
+                --bad: #fb7185;
+                --warn: #fbbf24;
+                --shadow: 0 10px 40px rgba(0,0,0,0.35);
+                --shadow-lg: 0 20px 60px rgba(0,0,0,0.5);
+            }
+        }
+        html[data-theme="light"] {
+            --bg: #f6f7fb; --bg2: #ffffff; --panel: rgba(255,255,255,0.86);
+            --panel2: rgba(255,255,255,0.72); --text: #0f172a; --muted: #475569;
+            --border: rgba(15,23,42,0.14); --accent: #2563eb; --accent2: #7c3aed;
+            --good: #059669; --bad: #e11d48; --warn: #d97706;
+            --shadow: 0 10px 40px rgba(2,6,23,0.08);
+        }
+        html[data-theme="dark"] {
+            --bg: #0b0f19; --bg2: #0b1020; --panel: rgba(17,24,39,0.86);
+            --panel2: rgba(15,23,42,0.72); --text: #e5e7eb; --muted: #9ca3af;
+            --border: rgba(255,255,255,0.14); --accent: #60a5fa; --accent2: #a78bfa;
+            --good: #34d399; --bad: #fb7185; --warn: #fbbf24;
+            --shadow: 0 10px 40px rgba(0,0,0,0.35);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: var(--sans);
+            color: var(--text);
+            background:
+                radial-gradient(ellipse 900px 600px at 20% 10%, color-mix(in srgb, var(--accent) 15%, transparent), transparent 60%),
+                radial-gradient(ellipse 800px 500px at 80% 5%, color-mix(in srgb, var(--accent2) 12%, transparent), transparent 55%),
+                radial-gradient(ellipse 600px 400px at 50% 90%, color-mix(in srgb, var(--good) 8%, transparent), transparent 50%),
+                var(--bg);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        a { color: var(--accent); text-decoration: none; }
+        a:hover { text-decoration: underline; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 20px 16px 80px; }
+
+        header {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px 24px;
+            margin-bottom: 20px;
+            backdrop-filter: blur(12px);
+            box-shadow: var(--shadow);
+        }
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+        .brand { display: flex; align-items: center; gap: 12px; }
+        .logo {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            color: white;
+            font-weight: 900;
+        }
+        .brand-text h1 {
+            font-size: 22px;
+            font-weight: 900;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .brand-text p { font-size: 13px; color: var(--muted); margin-top: 2px; }
+        .header-controls { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+        .btn {
+            background: color-mix(in srgb, var(--accent) 14%, transparent);
+            color: var(--text);
+            border: 1px solid color-mix(in srgb, var(--accent) 32%, transparent);
+            border-radius: 12px;
+            padding: 10px 16px;
+            cursor: pointer;
+            font-weight: 700;
+            font-size: 13px;
+            transition: all 0.2s ease;
+        }
+        .btn:hover { background: color-mix(in srgb, var(--accent) 22%, transparent); transform: translateY(-1px); }
+        .btn:active { transform: translateY(0); }
+        .btn.secondary { background: color-mix(in srgb, var(--text) 6%, transparent); border-color: var(--border); }
+        .btn.primary { background: linear-gradient(135deg, var(--accent), var(--accent2)); color: white; border: none; }
+        .btn.primary:hover { opacity: 0.9; }
+        .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+        .pill {
+            display: inline-flex;
+            gap: 6px;
+            align-items: center;
+            padding: 5px 12px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            font-size: 12px;
+            color: var(--muted);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+        }
+        .pill.good { border-color: color-mix(in srgb, var(--good) 40%, transparent); color: var(--good); background: color-mix(in srgb, var(--good) 10%, transparent); }
+        .pill.bad { border-color: color-mix(in srgb, var(--bad) 40%, transparent); color: var(--bad); background: color-mix(in srgb, var(--bad) 10%, transparent); }
+        .pill.warn { border-color: color-mix(in srgb, var(--warn) 40%, transparent); color: var(--warn); background: color-mix(in srgb, var(--warn) 10%, transparent); }
+        .pill.accent { border-color: color-mix(in srgb, var(--accent) 40%, transparent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+        select, input[type="text"], input[type="number"], textarea {
+            background: color-mix(in srgb, var(--bg2) 90%, transparent);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 14px;
+            outline: none;
+            font-size: 14px;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        select:focus, input:focus, textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 15%, transparent);
+        }
+        textarea {
+            width: 100%;
+            min-height: 100px;
+            font-family: var(--sans);
+            resize: vertical;
+        }
+
+        .card {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 20px;
+            box-shadow: var(--shadow);
+            backdrop-filter: blur(10px);
+        }
+        .card h2 {
+            font-size: 16px;
+            font-weight: 800;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hint { color: var(--muted); font-size: 12px; line-height: 1.5; }
+        .grid { display: grid; gap: 16px; }
+        .grid-2 { grid-template-columns: repeat(2, 1fr); }
+        .grid-3 { grid-template-columns: repeat(3, 1fr); }
+        @media (max-width: 900px) {
+            .grid-2, .grid-3 { grid-template-columns: 1fr; }
+        }
+
+        .field { display: flex; flex-direction: column; gap: 6px; }
+        .field label { font-size: 12px; font-weight: 600; color: var(--muted); }
+        .row { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; }
+
+        .log {
+            font-family: var(--mono);
+            font-size: 12px;
+            color: var(--muted);
+            background: color-mix(in srgb, var(--bg2) 60%, transparent);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 12px;
+            white-space: pre-wrap;
+            word-break: break-word;
+            max-height: 240px;
+            overflow-y: auto;
+        }
+
+        details {
+            border: 1px dashed color-mix(in srgb, var(--border) 80%, transparent);
+            border-radius: 14px;
+            padding: 12px 14px;
+            background: color-mix(in srgb, var(--bg2) 50%, transparent);
+        }
+        details summary { cursor: pointer; font-weight: 800; font-size: 14px; }
+        details[open] summary { margin-bottom: 12px; }
+
+        .main-grid { display: grid; grid-template-columns: 1fr 380px; gap: 20px; }
+        @media (max-width: 1000px) { .main-grid { grid-template-columns: 1fr; } }
+
+        .input-section {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            padding: 24px;
+            box-shadow: var(--shadow);
+        }
+        .input-box input {
+            width: 100%;
+            padding: 16px 20px;
+            font-size: 16px;
+            border-radius: 16px;
+            border: 2px solid var(--border);
+            background: var(--bg2);
+        }
+        .input-box input:focus { border-color: var(--accent); }
+
+        .quick-tags { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 12px; }
+        .quick-tag {
+            padding: 6px 14px;
+            border-radius: 20px;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--bg2) 80%, transparent);
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        .quick-tag:hover { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+
+        .mode-selector { display: flex; gap: 8px; margin: 16px 0; flex-wrap: wrap; }
+        .mode-btn {
+            flex: 1;
+            min-width: 140px;
+            padding: 14px 16px;
+            border-radius: 14px;
+            border: 2px solid var(--border);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+        }
+        .mode-btn:hover { border-color: color-mix(in srgb, var(--accent) 50%, transparent); }
+        .mode-btn.active { border-color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, transparent); }
+        .mode-btn .mode-icon { font-size: 16px; margin-bottom: 4px; font-weight: 900; }
+        .mode-btn .mode-title { font-weight: 700; font-size: 14px; }
+        .mode-btn .mode-desc { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        .results-section { margin-top: 20px; }
+        .result-card {
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border: 1px solid var(--border);
+            border-radius: 16px;
+            padding: 20px;
+            margin-bottom: 16px;
+            box-shadow: var(--shadow);
+        }
+        .result-card.master-card { border-left: 4px solid var(--accent); }
+
+        .master-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 12px; gap: 12px; flex-wrap: wrap; }
+        .master-name { font-size: 18px; font-weight: 800; }
+        .master-domain { font-size: 13px; color: var(--muted); margin-top: 2px; }
+        .master-coords { display: flex; gap: 6px; flex-wrap: wrap; }
+        .coord-tag {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: color-mix(in srgb, var(--accent) 12%, transparent);
+            color: var(--accent);
+        }
+        .master-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+        .master-section-title {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--muted);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        .master-works { display: flex; gap: 8px; flex-wrap: wrap; }
+        .work-tag {
+            padding: 6px 12px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--bg2) 80%, transparent);
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .anti-pattern-card {
+            background: color-mix(in srgb, var(--bad) 8%, transparent);
+            border: 1px solid color-mix(in srgb, var(--bad) 30%, transparent);
+            border-radius: 12px;
+            padding: 14px;
+            margin-top: 16px;
+        }
+        .anti-pattern-card h4 {
+            color: var(--bad);
+            font-size: 13px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .sidebar .card { margin-bottom: 16px; }
+        .compass-visual {
+            width: 100%;
+            aspect-ratio: 1;
+            background: color-mix(in srgb, var(--bg2) 60%, transparent);
+            border-radius: 16px;
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--muted);
+            font-size: 13px;
+            margin-bottom: 12px;
+            padding: 10px;
+        }
+        .master-list { display: flex; flex-direction: column; gap: 8px; }
+        .master-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+            border: 1px solid var(--border);
+            font-size: 13px;
+        }
+        .master-item-name { font-weight: 600; }
+        .master-item-source { font-size: 11px; color: var(--muted); }
+        .remove-btn {
+            background: none;
+            border: none;
+            color: var(--muted);
+            cursor: pointer;
+            padding: 4px;
+            font-size: 16px;
+        }
+        .remove-btn:hover { color: var(--bad); }
+
+        .skill-list { display: flex; flex-direction: column; gap: 6px; }
+        .skill-item {
+            padding: 10px 12px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+            border: 1px solid var(--border);
+        }
+        .skill-item-name { font-weight: 600; font-size: 13px; }
+        .skill-item-from { font-size: 11px; color: var(--muted); margin-top: 2px; }
+
+        .loading {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 40px;
+            color: var(--muted);
+        }
+        .loading-spinner {
+            width: 40px;
+            height: 40px;
+            border: 3px solid var(--border);
+            border-top-color: var(--accent);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-bottom: 12px;
+        }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        .layer-section {
+            margin-top: 16px;
+            padding: 16px;
+            border-radius: 14px;
+            background: color-mix(in srgb, var(--bg2) 50%, transparent);
+            border: 1px solid var(--border);
+        }
+        .layer-header { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; flex-wrap: wrap; }
+        .layer-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 800;
+            color: white;
+        }
+        .layer-badge.l1 { background: linear-gradient(135deg, #60a5fa, #3b82f6); }
+        .layer-badge.l2 { background: linear-gradient(135deg, #a78bfa, #8b5cf6); }
+        .layer-badge.l3 { background: linear-gradient(135deg, #f472b6, #ec4899); }
+        .layer-badge.l4 { background: linear-gradient(135deg, #fbbf24, #f59e0b); }
+        .layer-title { font-weight: 700; font-size: 14px; }
+        .layer-content { font-size: 13px; line-height: 1.7; }
+        .layer-content ul { margin-left: 20px; margin-top: 8px; }
+        .layer-content li { margin-bottom: 6px; }
+
+        .transfer-step {
+            display: flex;
+            gap: 14px;
+            padding: 14px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--bg2) 50%, transparent);
+            border: 1px solid var(--border);
+            margin-bottom: 12px;
+        }
+        .step-number {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+        .step-content { flex: 1; }
+        .step-title { font-weight: 700; font-size: 14px; margin-bottom: 4px; }
+        .step-desc { font-size: 13px; color: var(--muted); }
+
+        .variation-card {
+            padding: 14px;
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--bg2) 60%, transparent);
+            border: 1px solid var(--border);
+            margin-bottom: 10px;
+        }
+        .variation-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 8px;
+            flex-wrap: wrap;
+        }
+        .variation-name { font-weight: 700; font-size: 14px; }
+        .variation-distance {
+            font-size: 11px;
+            padding: 3px 8px;
+            border-radius: 6px;
+            background: color-mix(in srgb, var(--accent) 12%, transparent);
+            color: var(--accent);
+        }
+        .variation-example {
+            padding: 12px;
+            border-radius: 10px;
+            background: color-mix(in srgb, var(--text) 5%, transparent);
+            font-size: 13px;
+            line-height: 1.6;
+            margin-top: 8px;
+            border-left: 3px solid var(--accent);
+        }
+
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            background: var(--bg2);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            font-size: 14px;
+            font-weight: 600;
+            z-index: 1000;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+        .toast.show { transform: translateY(0); opacity: 1; }
+        .toast.success { border-color: var(--good); color: var(--good); }
+        .toast.error { border-color: var(--bad); color: var(--bad); }
+
+        /* Stepper scoped styles */
+        #flowStepper .flow-stepper { display: flex; gap: 10px; flex-wrap: wrap; align-items: stretch; }
+        #flowStepper .flow-step {
+            flex: 1;
+            min-width: 160px;
+            padding: 10px 12px;
+            border-radius: 14px;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+            display: flex;
+            gap: 10px;
+            align-items: flex-start;
+            cursor: pointer;
+        }
+        #flowStepper .flow-step-badge {
+            width: 28px;
+            height: 28px;
+            border-radius: 10px;
+            display: grid;
+            place-items: center;
+            font-weight: 900;
+            font-size: 12px;
+            background: color-mix(in srgb, var(--text) 8%, transparent);
+            border: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        #flowStepper .flow-step-title { font-weight: 800; font-size: 13px; line-height: 1.2; }
+        #flowStepper .flow-step-desc { margin-top: 4px; font-size: 12px; color: var(--muted); line-height: 1.4; }
+        #flowStepper .flow-step.is-active {
+            border-color: color-mix(in srgb, var(--accent) 55%, transparent);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+        }
+        #flowStepper .flow-step.is-active .flow-step-badge {
+            background: linear-gradient(135deg, var(--accent), var(--accent2));
+            color: white;
+            border: none;
+        }
+        #flowStepper .flow-step.is-done {
+            border-color: color-mix(in srgb, var(--good) 40%, transparent);
+            background: color-mix(in srgb, var(--good) 10%, transparent);
+        }
+        #flowStepper .flow-step.is-done .flow-step-badge {
+            background: color-mix(in srgb, var(--good) 25%, transparent);
+            color: var(--good);
+            border-color: color-mix(in srgb, var(--good) 35%, transparent);
+        }
+        #flowStepper .flow-step.is-blocked { opacity: 0.75; }
+        #flowStepper .flow-step.is-blocked .flow-step-badge {
+            background: color-mix(in srgb, var(--warn) 10%, transparent);
+            color: var(--warn);
+            border-color: color-mix(in srgb, var(--warn) 25%, transparent);
+        }
+
+        @media (max-width: 420px) {
+            #flowStepper .flow-step { min-width: 100%; }
+            .container { padding: 14px 12px 60px; }
+            header { padding: 16px; border-radius: 16px; }
+            .input-section { padding: 16px; border-radius: 16px; }
+            .mode-btn { min-width: 120px; padding: 12px; }
+            .input-box input { padding: 14px 14px; font-size: 15px; }
+            .toast { left: 12px; right: 12px; bottom: 14px; width: auto; }
+        }
+    </style>
+</head>
+<body>
+<script type="application/json" id="tool_meta">
+{
+    "tool_id": "origin-cognitive-calibration",
+    "tool_name": "源流 Origin - 认知校准系统",
+    "tool_version": "1.0.0",
+    "description": "从源头级大师学习，建立个人审美坐标系"
+}
+</script>
+
+<div class="container">
+    <header>
+        <div class="header-top">
+            <div class="brand">
+                <div class="logo">源</div>
+                <div class="brand-text">
+                    <h1>源流 Origin</h1>
+                    <p>超级个体的认知校准系统</p>
+                </div>
+            </div>
+            <div class="header-controls">
+                <span class="pill" id="keyStatusPill">检查中...</span>
+                <a href="key-manager.html" target="_blank" class="btn secondary">管理 API Key</a>
+                <select id="themeSelect" style="padding: 8px 12px;">
+                    <option value="auto">跟随系统</option>
+                    <option value="light">浅色</option>
+                    <option value="dark">深色</option>
+                </select>
+            </div>
+        </div>
+    </header>
+
+    <div class="main-grid">
+        <div class="main-content">
+            <div class="input-section">
+                <h2 style="margin-bottom: 16px; font-size: 18px;">你今天想探索什么？</h2>
+
+                <div class="input-box">
+                    <input type="text" id="mainInput" placeholder="输入技能、大师名、或你的问题..." />
+                </div>
+
+                <div id="flowStepper" style="margin-top: 12px;"></div>
+
+                <div id="modeHintBox" style="margin-top: 10px; padding: 10px 12px; border-radius: 14px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg2) 70%, transparent);">
+                    <div style="font-weight: 800; font-size: 12px; color: var(--muted); margin-bottom: 6px;">当前模式怎么用</div>
+                    <div class="hint" id="modeHintText"></div>
+                    <div class="quick-tags" id="modeHintExamples" style="margin-top: 10px;"></div>
+                </div>
+
+                <div class="quick-tags">
+                    <span class="quick-tag" data-query="文案写作">文案写作</span>
+                    <span class="quick-tag" data-query="短视频口播">短视频口播</span>
+                    <span class="quick-tag" data-query="视频剪辑">视频剪辑</span>
+                    <span class="quick-tag" data-query="公众演讲">公众演讲</span>
+                    <span class="quick-tag" data-query="产品设计">产品设计</span>
+                    <span class="quick-tag" data-query="商业思维">商业思维</span>
+                </div>
+
+                <div class="mode-selector">
+                    <div class="mode-btn active" data-mode="source">
+                        <div class="mode-icon">S</div>
+                        <div class="mode-title">源头探测</div>
+                        <div class="mode-desc">找到该领域的大师</div>
+                    </div>
+                    <div class="mode-btn" data-mode="deconstruct">
+                        <div class="mode-icon">D</div>
+                        <div class="mode-title">四层拆解</div>
+                        <div class="mode-desc">分析大师技法</div>
+                    </div>
+                    <div class="mode-btn" data-mode="transfer">
+                        <div class="mode-icon">T</div>
+                        <div class="mode-title">迁移实验室</div>
+                        <div class="mode-desc">把技法用到你的场景</div>
+                    </div>
+                    <div class="mode-btn" data-mode="navigate">
+                        <div class="mode-icon">N</div>
+                        <div class="mode-title">作品导航</div>
+                        <div class="mode-desc">设计学习路径</div>
+                    </div>
+                    <div class="mode-btn" data-mode="diagnose">
+                        <div class="mode-icon">C</div>
+                        <div class="mode-title">审美诊断</div>
+                        <div class="mode-desc">分析你的坐标系</div>
+                    </div>
+                </div>
+
+                <div id="transferAssist" style="display:none; margin-top: 12px; padding: 12px; border-radius: 16px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg2) 65%, transparent);">
+                    <div style="font-weight: 900; margin-bottom: 10px;">迁移输入（推荐）</div>
+
+                    <div class="grid grid-2" style="gap: 10px;">
+                        <div class="field">
+                            <label for="transferTechniqueSelect">技法（优先从已保存技法选）</label>
+                            <select id="transferTechniqueSelect"></select>
+                        </div>
+
+                        <div class="field">
+                            <label for="transferMasterSelect">来源大师（可选）</label>
+                            <select id="transferMasterSelect"></select>
+                        </div>
+                    </div>
+
+                    <div class="field" style="margin-top: 10px;">
+                        <label for="transferScenarioInput">目标场景（必填）</label>
+                        <input id="transferScenarioInput" type="text" placeholder="如：小红书笔记 / 60秒口播 / 产品发布稿..." />
+                    </div>
+
+                    <div class="field" style="margin-top: 10px;">
+                        <label for="transferConstraintsInput">约束（可选）</label>
+                        <input id="transferConstraintsInput" type="text" placeholder="如：500字以内 / 需要CTA / 口语化..." />
+                    </div>
+
+                    <div class="hint" style="margin-top: 10px;">
+                        也可在上方输入框用“技法 -> 场景”快速输入；表单会更稳定。
+                    </div>
+                </div>
+
+                <div class="row" style="margin-top: 16px;">
+                    <button class="btn primary" id="submitBtn" style="flex: 1;">开始探索</button>
+                </div>
+
+                <div id="aiSettingsMount" style="margin-top: 16px;"></div>
+            </div>
+
+            <div class="results-section" id="resultsSection">
+                <div class="empty-state">
+                    <div class="empty-state-title">溯源而上，找到大师</div>
+                    <p class="hint">输入你想学的技能，我帮你找到源头级大师</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar">
+            <div class="card">
+                <h2>我的审美坐标系</h2>
+                <div class="compass-visual" id="compassVisual"><span>探索更多大师来填充坐标系</span></div>
+                <div id="compassSummary" class="hint" style="margin: 10px 0 12px;"></div>
+                <div id="compassBlindspots" style="display:none; margin-bottom: 12px; padding: 10px 12px; border-radius: 12px; border: 1px solid var(--border); background: color-mix(in srgb, var(--warn) 10%, transparent);">
+                    <div style="font-weight: 800; font-size: 12px; color: var(--warn); margin-bottom: 6px;">盲区提示</div>
+                    <div class="hint" id="compassBlindspotsText"></div>
+                </div>
+                <div class="row" style="margin-bottom: 12px;">
+                    <span class="pill">温度</span>
+                    <span class="pill">密度</span>
+                    <span class="pill">攻击性</span>
+                    <span class="pill">结构感</span>
+                </div>
+                <button class="btn secondary" style="width: 100%;" id="exportCompassBtn">导出坐标系</button>
+            </div>
+
+            <div class="card" id="morningCard">
+                <h2>晨间校准</h2>
+                <div class="hint" id="morningMeta">每天一口好东西，30 秒即可。</div>
+                <div id="morningContent" style="margin-top: 12px;">
+                    <div class="empty-state" style="padding: 14px;"><p class="hint">正在准备今日校准…</p></div>
+                </div>
+                <div class="row" style="margin-top: 12px;">
+                    <button class="btn secondary" id="refreshMorningBtn" type="button" style="flex: 1;">刷新今日</button>
+                    <button class="btn primary" id="saveMorningBtn" type="button" style="flex: 1;" disabled>存入审美日记</button>
+                </div>
+                <div class="row" style="margin-top: 10px;">
+                    <button class="btn secondary" id="copyMorningBtn" type="button" style="width: 100%;" disabled>复制今日内容</button>
+                </div>
+                <details style="margin-top: 10px;">
+                    <summary>历史（日记）</summary>
+                    <div id="morningJournal" class="hint" style="margin-top: 10px;">暂无记录</div>
+                </details>
+            </div>
+
+            <div class="card">
+                <h2>我的大师图谱</h2>
+                <div class="master-list" id="masterList">
+                    <div class="empty-state" style="padding: 20px;">
+                        <p class="hint">还没有收藏大师<br/>探索后点击“保存”添加</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>已解锁的技法</h2>
+                <div class="skill-list" id="skillList">
+                    <div class="empty-state" style="padding: 20px;">
+                        <p class="hint">通过“四层拆解”解锁技法</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h2>创作检查清单</h2>
+                <div id="checklistSection">
+                    <div class="field">
+                        <label for="checklistDomain">创作载体</label>
+                        <select id="checklistDomain">
+                            <option value="公众号文章">公众号文章</option>
+                            <option value="小红书笔记">小红书笔记</option>
+                            <option value="短视频口播">短视频口播</option>
+                            <option value="演讲稿">演讲稿</option>
+                            <option value="产品文案">产品文案</option>
+                            <option value="通用写作">通用写作</option>
+                        </select>
+                    </div>
+                    <div class="field" style="margin-top: 10px;">
+                        <label for="checklistConstraints">约束（可选）</label>
+                        <input id="checklistConstraints" type="text" placeholder="如：500字以内 / 60秒口播 / 三段式 / 需含CTA" />
+                    </div>
+                    <div class="row" style="margin-top: 10px;">
+                        <button class="btn secondary" id="generateChecklistLocalBtn" type="button" style="flex: 1;">本地快速生成</button>
+                        <button class="btn primary" id="generateChecklistAiBtn" type="button" style="flex: 1;">AI 生成</button>
+                    </div>
+                    <div class="hint" style="margin-top: 8px;">本地生成不联网；AI 生成会基于你已保存的技法做个性化清单。</div>
+                    <div id="checklistOutput" style="margin-top: 12px;"></div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+/**
+ * AI Module v2 (原版完整)
+ */
+const AI_MODULE = (() => {
+    const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
+
+    const AI_PROVIDERS = {
+"siliconflow": {
+    name: "硅基流动 (SiliconFlow)",
+    keyName: "siliconflow_key",
+    baseUrl: "https://api.siliconflow.cn/v1",
+    models: [
+        { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
+        { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+        { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B (Fast)" },
+
+        { id: "Pro/zai-org/GLM-4.7", name: "GLM-4.7 (Pro)" },
+        { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2 Thinking (Pro)" },
+        { id: "Qwen/Qwen3-VL-32B-Thinking", name: "Qwen3 VL 32B Thinking" }
+    ]
+},
+"openrouter": {
+    name: "OpenRouter",
+    keyName: "openrouter_key",
+    baseUrl: "https://openrouter.ai/api/v1",
+    models: [
+        { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+        { id: "openai/gpt-4o", name: "GPT-4o" },
+        { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+
+        { id: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5" },
+        { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
+        { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" }
+    ]
+},
+        "deepseek": {
+            name: "DeepSeek Official",
+            keyName: "deepseek_key",
+            baseUrl: "https://api.deepseek.com",
+            models: [
+                { id: "deepseek-chat", name: "DeepSeek V3" },
+                { id: "deepseek-reasoner", name: "DeepSeek R1" }
+            ]
+        },
+        "custom": {
+            name: "自定义 / 本地（Ollama）",
+            keyName: "custom_key",
+            baseUrl: "http://localhost:11434/v1",
+            models: []
+        }
+    };
+
+    function safeJsonParse(str) {
+        try { return { ok: true, value: JSON.parse(str) }; }
+        catch (e) { return { ok: false, error: String(e) }; }
+    }
+
+    function getOverrides() {
+        const raw = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
+        if (!raw) return {};
+        const parsed = safeJsonParse(raw);
+        if (!parsed.ok || !parsed.value || typeof parsed.value !== "object") return {};
+        return parsed.value;
+    }
+
+    function normalizeBaseUrl(baseUrl) {
+        const s = String(baseUrl || "").trim();
+        return s.replace(/\/+$/, "");
+    }
+
+    function joinUrl(baseUrl, path) {
+        const b = normalizeBaseUrl(baseUrl);
+        const p = String(path || "").trim().replace(/^\/+/, "");
+        return `${b}/${p}`;
+    }
+
+    function getProvider(providerId) {
+        return AI_PROVIDERS[providerId];
+    }
+
+    function getMergedProviderConfig(providerId) {
+        const p = getProvider(providerId);
+        if (!p) throw new Error(`未知 provider_id: ${providerId}`);
+
+        const overrides = getOverrides();
+        const o = overrides[providerId] || {};
+
+        const customModels = Array.isArray(o.custom_models) ? o.custom_models : [];
+        const mergedModels = [
+            ...(Array.isArray(p.models) ? p.models : []),
+            ...customModels
+                .filter(m => m && typeof m === "object" && m.id)
+                .map(m => ({ id: String(m.id), name: m.name ? String(m.name) : String(m.id), _custom: true }))
+        ];
+
+        const baseUrl = o.base_url_override ? String(o.base_url_override) : p.baseUrl;
+        const modelId = o.model_id_override ? String(o.model_id_override) : (mergedModels[0]?.id || "");
+
+        return {
+            provider_id: providerId,
+            name: p.name,
+            key_name: p.keyName,
+            base_url_default: p.baseUrl,
+            base_url: baseUrl,
+            models: mergedModels,
+            model_id_default: mergedModels[0]?.id || "",
+            model_id: modelId
+        };
+    }
+
+    function getKeyStatus(providerId) {
+        const p = getProvider(providerId);
+        if (!p) return { ok: false, has_key: false, key_name: "" };
+        const keyName = p.keyName;
+        const key = localStorage.getItem(keyName);
+        return { ok: true, has_key: Boolean(key), key_name: keyName };
+    }
+
+    function classifyFetchError(err) {
+        const msg = String(err?.message || err || "");
+        const lower = msg.toLowerCase();
+        if (lower.includes("abort")) return { kind: "环境错误", msg: "请求超时/被取消（Abort）" };
+        if (lower.includes("failed to fetch") || lower.includes("network") || lower.includes("cors")) {
+            return { kind: "环境错误", msg: msg };
+        }
+        return { kind: "内部错误", msg: msg };
+    }
+
+    function actionableErrorMessage(kind, msg) {
+        if (kind === "用户输入错误") {
+            return `用户输入错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 Base URL / Model ID / 输入内容是否为空。`;
+        }
+        if (kind === "环境错误") {
+            return `环境错误：\n- 发生了什么：${msg}\n- 怎么修复：检查网络/CORS/是否 https 页面访问 http。`;
+        }
+        if (kind === "平台错误") {
+            return `平台错误：\n- 发生了什么：${msg}\n- 怎么修复：检查 key 是否有效、是否限流、模型 ID 是否存在。`;
+        }
+        return `内部错误：\n- 发生了什么：${msg}`;
+    }
+
+    function getHostname(url) {
+        try { return new URL(String(url || "").trim()).hostname; }
+        catch { return ""; }
+    }
+
+    function isDomainAllowed(hostname, allowlist) {
+        if (!hostname) return false;
+        return (allowlist || []).includes(hostname);
+    }
+
+    function ensureDomainConsentOrThrow(hostname, consentKey = "ai_domain_consent_v1") {
+        const raw = localStorage.getItem(consentKey) || "{}";
+        let obj = {};
+        try { obj = JSON.parse(raw); } catch { obj = {}; }
+
+        if (obj[hostname] === true) return true;
+
+        const ok = confirm(
+            `你即将把请求（包含密钥）发送到域名：${hostname}\n\n` +
+            `确认要允许吗？\n` +
+            `如果这个域名不是你信任的平台，请点取消。`
+        );
+        if (!ok) throw new Error("环境错误: 用户取消了域名授权");
+
+        obj[hostname] = true;
+        localStorage.setItem(consentKey, JSON.stringify(obj));
+        return true;
+    }
+
+    async function corsProbe(baseUrl, timeoutMs = 8000) {
+        const now = new Date().toISOString();
+        const url = String(baseUrl || "").trim();
+        if (!url) return { ok: false, kind: "用户输入错误", result: "空 URL", details: { now, url } };
+
+        let u;
+        try { u = new URL(url); }
+        catch (e) {
+            return { ok: false, kind: "用户输入错误", result: "URL 无效", details: { now, url, error: String(e) } };
+        }
+
+        if (location.protocol === "https:" && u.protocol === "http:") {
+            return { ok: false, kind: "环境错误", result: "混合内容（https 页面不能访问 http）", details: { now, url } };
+        }
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeoutMs);
+        try {
+            const resp = await fetch(url, { method: "GET", mode: "cors", cache: "no-store", signal: controller.signal });
+            return { ok: true, kind: "OK", result: "能拿到响应", details: { now, url, status: resp.status } };
+        } catch (e) {
+            const info = classifyFetchError(e);
+            return { ok: false, kind: info.kind, result: "可能被 CORS/网络拦截", details: { now, url, error: info.msg } };
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    async function call_llm_unified({
+        provider_id,
+        base_url,
+        api_key,
+        model_id,
+        messages,
+        temperature = 0.7,
+        max_tokens = 4096,
+        timeout_ms = 60000,
+        extra_headers = {},
+        extra_body = {}
+    }) {
+        if (!provider_id) throw new Error("用户输入错误: provider_id 为空");
+        if (!base_url) throw new Error("用户输入错误: base_url 为空");
+        if (!model_id) throw new Error("用户输入错误: model_id 为空");
+        if (!Array.isArray(messages) || messages.length === 0) throw new Error("用户输入错误: messages 为空");
+
+        if (!api_key) {
+            const e = new Error("平台错误: 缺少 API Key（请先在 key-manager.html 设置）");
+            e._kind = "平台错误";
+            throw e;
+        }
+
+        const url = joinUrl(base_url, "/chat/completions");
+        const headers = {
+            "Authorization": `Bearer ${api_key}`,
+            "Content-Type": "application/json",
+            ...extra_headers
+        };
+
+        const body = { model: model_id, messages, temperature, max_tokens, ...extra_body };
+
+        const controller = new AbortController();
+        const timer = setTimeout(() => controller.abort(), timeout_ms);
+
+        try {
+            const resp = await fetch(url, {
+                method: "POST",
+                mode: "cors",
+                headers: headers,
+                body: JSON.stringify(body),
+                signal: controller.signal
+            });
+
+            const text = await resp.text();
+            let json = null;
+            const parsed = safeJsonParse(text);
+            if (parsed.ok) json = parsed.value;
+
+            if (!resp.ok) {
+                const e = new Error(`平台错误: HTTP ${resp.status} ${resp.statusText}\n${text.slice(0, 800)}`);
+                e._kind = "平台错误";
+                throw e;
+            }
+
+            const outText = json?.choices?.[0]?.message?.content ?? "";
+            if (!outText) {
+                const e = new Error("平台错误: 响应中未找到可用文本");
+                e._kind = "平台错误";
+                throw e;
+            }
+
+            return { text: String(outText), raw: json };
+        } catch (e) {
+            if (e && e._kind) throw e;
+            const info = classifyFetchError(e);
+            const err = new Error(`${info.kind}: ${info.msg}`);
+            err._kind = info.kind;
+            throw err;
+        } finally {
+            clearTimeout(timer);
+        }
+    }
+
+    function render_ai_settings_html() {
+        const providerOptions = Object.keys(AI_PROVIDERS)
+            .map(pid => `<option value="${pid}">${AI_PROVIDERS[pid].name}</option>`)
+            .join("");
+
+        return `
+            <details id="aiSettings">
+                <summary style="font-weight:800;">AI 设置</summary>
+                <div style="margin-top:12px;">
+                    <div class="hint" style="margin-bottom: 12px;">
+                        默认不联网；需要先在 <a href="key-manager.html" target="_blank">key-manager.html</a> 设置密钥，然后勾选“允许联网”。
+                    </div>
+
+                    <div class="row" style="margin-bottom: 12px;">
+                        <span class="pill warn">
+                            <input id="aiNetworkingToggle" type="checkbox" style="transform: translateY(1px);" />
+                            <span>允许联网（默认关闭）</span>
+                        </span>
+                        <span class="pill" id="aiKeyStatusPill">密钥状态：未检查</span>
+                    </div>
+
+                    <div class="grid grid-2" style="gap: 12px;">
+                        <div class="field">
+                            <label for="aiProviderSelect">平台（Provider）</label>
+                            <select id="aiProviderSelect">${providerOptions}</select>
+                        </div>
+                        <div class="field">
+                            <label for="aiModelPresetSelect">模型</label>
+                            <select id="aiModelPresetSelect"></select>
+                        </div>
+                    </div>
+
+                    <details style="margin-top: 12px;">
+                        <summary>高级设置</summary>
+                        <div class="grid grid-2" style="gap: 12px; margin-top: 10px;">
+                            <div class="field">
+                                <label for="aiBaseUrlInput">Base URL</label>
+                                <input id="aiBaseUrlInput" type="text" placeholder="https://api.xxx.com/v1" />
+                            </div>
+                            <div class="field">
+                                <label for="aiModelIdInput">模型 ID</label>
+                                <input id="aiModelIdInput" type="text" placeholder="model-id" />
+                            </div>
+                            <div class="field">
+                                <label for="aiTemperature">Temperature</label>
+                                <input id="aiTemperature" type="text" value="0.7" />
+                            </div>
+                            <div class="field">
+                                <label for="aiMaxTokens">Max Tokens</label>
+                                <input id="aiMaxTokens" type="text" value="4096" />
+                            </div>
+                        </div>
+                    </details>
+
+                    <div class="row" style="margin-top: 12px;">
+                        <button class="btn secondary" id="aiSyncBtn" type="button">从 Key Manager 同步</button>
+                        <button class="btn secondary" id="aiCorsProbeBtn" type="button">CORS 探测</button>
+                    </div>
+
+                    <div class="log" id="aiLog" style="margin-top: 12px;">AI 模块就绪。</div>
+                </div>
+            </details>
+        `;
+    }
+
+    function mount_ai_settings({ mount_el, default_provider_id = "siliconflow", on_state_change = null }) {
+        if (!mount_el) throw new Error("mount_el is required");
+
+        mount_el.innerHTML = render_ai_settings_html();
+        const $ = (id) => mount_el.querySelector(id);
+
+        const aiNetworkingToggle = $("#aiNetworkingToggle");
+        const aiProviderSelect = $("#aiProviderSelect");
+        const aiBaseUrlInput = $("#aiBaseUrlInput");
+        const aiModelPresetSelect = $("#aiModelPresetSelect");
+        const aiModelIdInput = $("#aiModelIdInput");
+        const aiKeyStatusPill = $("#aiKeyStatusPill");
+        const aiTemperature = $("#aiTemperature");
+        const aiMaxTokens = $("#aiMaxTokens");
+        const aiLog = $("#aiLog");
+        const aiSyncBtn = $("#aiSyncBtn");
+        const aiCorsProbeBtn = $("#aiCorsProbeBtn");
+
+        const state = {
+            networking_enabled: false,
+            provider_id: default_provider_id,
+            base_url: "",
+            model_id: "",
+            temperature: 0.7,
+            max_tokens: 4096,
+            timeout_ms: 60000
+        };
+
+        function emit() { on_state_change && on_state_change(get_state()); }
+
+        function setKeyStatusPill(providerId) {
+            const ks = getKeyStatus(providerId);
+            if (!ks.ok) {
+                aiKeyStatusPill.className = "pill bad";
+                aiKeyStatusPill.textContent = "密钥状态：未知";
+                return;
+            }
+            if (ks.has_key) {
+                aiKeyStatusPill.className = "pill good";
+                aiKeyStatusPill.textContent = "密钥状态：已设置";
+            } else {
+                aiKeyStatusPill.className = "pill bad";
+                aiKeyStatusPill.textContent = "密钥状态：未设置";
+            }
+        }
+
+        function rebuildModelPresetOptions(providerId, preferModelId = "") {
+            const cfg = getMergedProviderConfig(providerId);
+            const models = cfg.models || [];
+            const options = [
+                ...models.map(m => `<option value="${String(m.id)}">${String(m.name || m.id)}${m._custom ? "（自定义）" : ""}</option>`),
+                `<option value="__custom__">手动输入模型 ID</option>`
+            ].join("");
+            aiModelPresetSelect.innerHTML = options;
+
+            const effectiveModelId = preferModelId || cfg.model_id || cfg.model_id_default || "";
+            const hasPreset = models.some(m => String(m.id) === String(effectiveModelId));
+            aiModelPresetSelect.value = hasPreset ? String(effectiveModelId) : "__custom__";
+        }
+
+        function syncFromKeyManager(providerId) {
+            const cfg = getMergedProviderConfig(providerId);
+            state.base_url = String(cfg.base_url || "");
+            state.model_id = String(cfg.model_id || "");
+            aiBaseUrlInput.value = state.base_url;
+            aiModelIdInput.value = state.model_id;
+
+            rebuildModelPresetOptions(providerId, state.model_id);
+            setKeyStatusPill(providerId);
+
+            aiLog.textContent = `已同步：${cfg.name}\nbase_url: ${state.base_url}\nmodel_id: ${state.model_id}`;
+            emit();
+        }
+
+        aiProviderSelect.value = default_provider_id;
+        syncFromKeyManager(default_provider_id);
+
+        aiNetworkingToggle.addEventListener("change", () => {
+            state.networking_enabled = Boolean(aiNetworkingToggle.checked);
+            aiLog.textContent = state.networking_enabled
+                ? "已允许联网：AI 功能可用。"
+                : "已关闭联网：不会发起任何 AI 请求。";
+            emit();
+        });
+
+        aiProviderSelect.addEventListener("change", () => {
+            state.provider_id = aiProviderSelect.value;
+            syncFromKeyManager(state.provider_id);
+        });
+
+        aiBaseUrlInput.addEventListener("change", () => { state.base_url = String(aiBaseUrlInput.value || "").trim(); emit(); });
+
+        aiModelPresetSelect.addEventListener("change", () => {
+            const chosen = aiModelPresetSelect.value;
+            if (chosen === "__custom__") { aiModelIdInput.focus(); return; }
+            aiModelIdInput.value = chosen;
+            state.model_id = chosen;
+            emit();
+        });
+
+        aiModelIdInput.addEventListener("change", () => { state.model_id = String(aiModelIdInput.value || "").trim(); emit(); });
+
+        aiTemperature.addEventListener("change", () => {
+            const v = Number(aiTemperature.value);
+            state.temperature = Number.isFinite(v) ? v : 0.7;
+            emit();
+        });
+
+        aiMaxTokens.addEventListener("change", () => {
+            const v = Number(aiMaxTokens.value);
+            state.max_tokens = Number.isFinite(v) ? Math.max(1, Math.floor(v)) : 4096;
+            emit();
+        });
+
+        aiSyncBtn.addEventListener("click", () => syncFromKeyManager(state.provider_id));
+
+        aiCorsProbeBtn.addEventListener("click", async () => {
+            const url = String(aiBaseUrlInput.value || "").trim();
+            aiLog.textContent = "CORS 探测中…";
+            const res = await corsProbe(url, 8000);
+            aiLog.textContent = JSON.stringify(res, null, 2);
+        });
+
+        function get_state() {
+            return { ...state, key_status: getKeyStatus(state.provider_id) };
+        }
+
+        async function call_ai({ messages }) {
+            const s = get_state();
+            if (!s.networking_enabled) {
+                const e = new Error("环境错误: 当前未允许联网（请勾选“允许联网”）");
+                e._kind = "环境错误";
+                throw e;
+            }
+
+            const hostname = getHostname(s.base_url);
+            const allowlist = ["api.siliconflow.cn", "openrouter.ai", "api.deepseek.com", "localhost"];
+            if (!isDomainAllowed(hostname, allowlist)) {
+                ensureDomainConsentOrThrow(hostname);
+            }
+
+            const p = getProvider(s.provider_id);
+            const apiKey = localStorage.getItem(p.keyName) || "";
+
+            return await call_llm_unified({
+                provider_id: s.provider_id,
+                base_url: s.base_url,
+                api_key: apiKey,
+                model_id: s.model_id,
+                messages,
+                temperature: s.temperature,
+                max_tokens: s.max_tokens,
+                timeout_ms: s.timeout_ms
+            });
+        }
+
+        function get_actionable_error(err) {
+            const kind = err?._kind || "内部错误";
+            const msg = String(err?.message || err || "");
+            return actionableErrorMessage(kind, msg);
+        }
+
+        return { get_state, call_ai, get_actionable_error, sync: () => syncFromKeyManager(state.provider_id) };
+    }
+
+    return {
+        AI_PROVIDERS,
+        mount_ai_settings,
+        getMergedProviderConfig,
+        getKeyStatus,
+        corsProbe,
+        call_llm_unified,
+        actionableErrorMessage
+    };
+})();
+
+function storageAvailable() {
+    try {
+        const k = "__origin_test__";
+        localStorage.setItem(k, "1");
+        localStorage.removeItem(k);
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+const STORAGE_KEYS = {
+    MASTERS: "origin_masters_v1",
+    SKILLS: "origin_skills_v1",
+    COMPASS: "origin_compass_v1",
+    THEME: "origin_theme_v1",
+
+    COMPASS_SNAPSHOT: "origin_compass_snapshot_v1",
+    COMPASS_HISTORY: "origin_compass_history_v1",
+
+    CHECKLIST_LAST: "origin_checklist_last_v1",
+    CHECKLIST_STATE: "origin_checklist_state_v1",
+
+    MORNING_TODAY: "origin_morning_today_v1",
+    MORNING_JOURNAL: "origin_morning_journal_v1"
+};
+
+const AppState = {
+    masters: [],
+    skills: [],
+    compass: { temperature: [], density: [], aggression: [], structure: [] },
+    currentMode: "source",
+    storage_ok: true,
+    lastRequest: null,
+    setLastRequest(req) { this.lastRequest = req; },
+
+    load() {
+        if (!this.storage_ok) return;
+        try {
+            const masters = localStorage.getItem(STORAGE_KEYS.MASTERS);
+            const skills = localStorage.getItem(STORAGE_KEYS.SKILLS);
+            const compass = localStorage.getItem(STORAGE_KEYS.COMPASS);
+
+            if (masters) this.masters = JSON.parse(masters);
+            if (skills) this.skills = JSON.parse(skills);
+            if (compass) this.compass = JSON.parse(compass);
+        } catch (e) {
+            console.error("Failed to load state:", e);
+        }
+    },
+
+    save() {
+        if (!this.storage_ok) return;
+        try {
+            localStorage.setItem(STORAGE_KEYS.MASTERS, JSON.stringify(this.masters));
+            localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(this.skills));
+            localStorage.setItem(STORAGE_KEYS.COMPASS, JSON.stringify(this.compass));
+        } catch (e) {
+            console.error("Failed to save state:", e);
+        }
+    },
+
+    addMaster(master) {
+        if (!this.masters.find(m => m.name === master.name)) {
+            this.masters.push(master);
+            this.save();
+
+            const snap = computeCompassFromMasters(this.masters);
+            saveCompassSnapshot(snap, "add_master");
+            updateCompassVisual(snap);
+
+            return true;
+        }
+        return false;
+    },
+
+    removeMaster(name) {
+        this.masters = this.masters.filter(m => m.name !== name);
+        this.save();
+
+        const snap = computeCompassFromMasters(this.masters);
+        saveCompassSnapshot(snap, "remove_master");
+        updateCompassVisual(snap);
+    },
+
+    addSkill(skill) {
+        if (!this.skills.find(s => s.name === skill.name && s.from === skill.from)) {
+            this.skills.push(skill);
+            this.save();
+            return true;
+        }
+        return false;
+    }
+};
+
+const PROMPTS = {
+    source: {
+        system: `你是“源流”系统的 AI 内核，一个专精于“源头学习法”的认知教练。
+
+【核心原则】
+1. 源头主义：只推荐经过时间验证的大师，严禁推荐网红、知识付费讲师、营销号
+2. 四维坐标：为每位大师标注审美坐标（温度/密度/攻击性/结构感）
+3. 可迁移性优先：不只是介绍大师，更要说明“学他什么”
+4. 诚实原则：不知道的就说不知道，不编造
+
+【源头级大师判断标准】
+1. 时间验证：作品经历 20 年以上考验仍被认可
+2. 同行公认：该领域专业人士提起会表示敬意
+3. 可学性：有足够的公开作品可供研究
+4. 独特性：有鲜明的、可识别的风格特征
+5. 影响力：对后来者产生了可追溯的影响
+
+【严禁推荐】
+- 网红、知识付费讲师、营销号
+- 只有流量没有作品沉淀的人
+- 作品未经时间验证的新锐
+- 二道贩子（转述他人方法论的人）
+
+【审美坐标系四维度定义】
+- 温度：冷/中/热
+- 密度：高/中/低
+- 攻击性：高/中/低
+- 结构感：强/中/弱
+
+【输出要求】
+必须使用 JSON 格式，严格遵循 Schema，便于前端解析。`,
+        user: (skill) => `用户想学的技能：${skill}
+
+【输出 JSON Schema】
+{
+  "skill": "用户输入的技能",
+  "masters": [
+    {
+      "name": "大师姓名",
+      "domain": "细分领域",
+      "era": "活跃年代",
+      "aesthetic_coordinates": {
+        "temperature": "冷/中/热",
+        "density": "高/中/低",
+        "aggression": "高/中/低",
+        "structure": "强/中/弱"
+      },
+      "why_source_level": "为什么是源头级（50字内）",
+      "core_contribution": "核心贡献（一句话）",
+      "learnability_score": 1,
+      "learnability_note": "可学性说明",
+      "masterpieces": ["代表作1", "代表作2", "代表作3"],
+      "learn_what": "具体学什么",
+      "learn_how": "怎么学（100字内）",
+      "quick_taste": "一句风格片段/金句"
+    }
+  ],
+  "anti_patterns": [
+    { "type": "噪音源类型", "why": "为什么规避", "examples": ["例1", "例2"] }
+  ],
+  "learning_strategy": "元建议",
+  "meta_insight": "一句话点破本质"
+}`
+    },
+
+    deconstruct: {
+        system: `你是“源流”系统的四层拆解引擎。
+
+【四层拆解框架】
+Layer 1 表层特征（可迁移性 2）
+Layer 2 结构模式（可迁移性 4）
+Layer 3 心理表征（可迁移性 5）
+Layer 4 元认知（可迁移性 3）
+
+【拆解原则】
+1. 必须打穿四层
+2. 每层要有示例 + 依据 evidence
+3. 诚实标注不确定
+4. 最后提炼可迁移能力模块
+
+【输出要求】
+必须是严格 JSON。`,
+        user: (master, focus = "") => `请对「${master}」进行四层拆解。
+${focus ? `聚焦：${focus}` : ""}
+
+【输出 JSON Schema】
+{
+  "master": "大师姓名",
+  "focus": "聚焦作品/领域",
+  "overview": "一句话概括",
+  "layers": {
+    "L1_surface": {
+      "title": "表层特征",
+      "features": [
+        { "feature": "特征", "example": "示例", "frequency": "常见/偶尔/标志性", "evidence": "依据" }
+      ],
+      "transferability": 2,
+      "transfer_warning": "风险",
+      "learning_advice": "建议"
+    },
+    "L2_structure": {
+      "title": "结构模式",
+      "patterns": [
+        { "pattern_name": "模式名", "description": "描述", "example": "示例", "applicable_scenarios": ["场景"], "evidence": "依据" }
+      ],
+      "transferability": 4,
+      "learning_advice": "建议"
+    },
+    "L3_mental": {
+      "title": "心理表征",
+      "representations": [
+        { "aspect": "方面", "content": "内容", "evidence": "依据", "confidence": "高/中/低" }
+      ],
+      "transferability": 5,
+      "learning_advice": "建议",
+      "self_check_questions": ["自检问题1", "自检问题2"]
+    },
+    "L4_meta": {
+      "title": "元认知",
+      "beliefs": [
+        { "belief_type": "类型", "content": "内容", "evidence": "依据", "confidence": "高/中/低" }
+      ],
+      "transferability": 3,
+      "learning_advice": "建议",
+      "reflection_prompt": "反思问题"
+    }
+  },
+  "extractable_skills": [
+    { "skill_name": "技法名", "from_layer": "L2", "description": "描述", "how_to_practice": "练习", "difficulty": "入门/进阶/高阶" }
+  ],
+  "synthesis": {
+    "one_sentence_essence": "一句话精华",
+    "biggest_misconception": "常见误解",
+    "learning_path_suggestion": "学习路径建议",
+    "related_masters": ["对照大师"]
+  },
+  "uncertainty_notes": "不确定说明"
+}`
+    },
+
+    transfer: {
+        system: `你是“源流”系统的迁移实验室教练。
+
+【迁移四步法】
+Step 1 抽象：提取原则
+Step 2 匹配：场景对应
+Step 3 变体：至少 3 种（近/中/远迁移）
+Step 4 实验：小测试 + 指标
+
+【要求】
+1. 每个变体必须给出具体示例（不少于 50 字）
+2. 必须说明适用与局限
+3. 诚实评估把握程度
+4. 输出必须严格 JSON。`,
+        user: (technique, master, scenario, constraints = "") => `【迁移任务】
+要迁移的技法：${technique}
+技法来源：${master}
+目标场景：${scenario}
+${constraints ? `场景约束：${constraints}` : ""}
+
+【输出 JSON Schema】
+{
+  "technique": "技法名称",
+  "source_master": "来源大师",
+  "target_scenario": "目标场景",
+  "constraints": "约束",
+  "steps": {
+    "step1_abstraction": {
+      "master_specific_example": "大师做法",
+      "abstracted_principle": "抽象原则",
+      "principle_essence": "本质"
+    },
+    "step2_mapping": {
+      "mapping_table": [
+        { "original_element": "原元素", "target_element": "目标元素", "adaptation_needed": "适配" }
+      ]
+    },
+    "step3_variations": {
+      "variations": [
+        { "variation_name": "变体名", "variation_type": "近迁移/中迁移/远迁移", "description": "描述", "concrete_example": "示例（>=50字）", "pros": ["优点"], "cons": ["缺点"] }
+      ]
+    },
+    "step4_experiment": {
+      "experiment_design": "实验设计",
+      "success_metrics": ["指标"]
+    }
+  },
+  "confidence_assessment": { "overall_confidence": "高/中/低" },
+  "anti_patterns": { "common_mistakes": ["错误"] },
+  "next_steps": "下一步"
+}`
+    },
+
+    navigate: {
+        system: `你是“源流”系统的作品导航引擎。
+
+原则：
+1. 推荐必须具体到作品名/章节/时间点
+2. 分层：入门首选/核心作品/隐藏宝藏/可跳过
+3. 路径化：说明顺序理由
+4. 每个推荐配“看的时候注意什么”和“作业”
+输出必须严格 JSON。`,
+        user: (master, timebudget = "不限", level = "入门") => `【导航请求】
+大师：${master}
+时间预算：${timebudget}
+用户水平：${level}
+
+【输出 JSON Schema】
+{
+  "master": "大师姓名",
+  "user_level": "用户水平",
+  "time_budget": "时间预算",
+  "total_works_overview": "作品概览",
+  "learning_path": {
+    "gateway_work": {
+      "title": "入门首选",
+      "type": "类型",
+      "access": "获取方式",
+      "why_start_here": "原因",
+      "time_required": "耗时",
+      "what_to_notice": ["注意1", "注意2"],
+      "homework": { "observation": "观察作业", "practice": "练习作业" }
+    },
+    "core_works": [
+      { "title": "作品名", "type": "类型", "why_important": "重要性", "what_to_notice": ["注意"], "builds_on": "承接", "homework": "作业" }
+    ],
+    "hidden_gems": [
+      { "title": "宝藏", "why_underrated": "被低估原因", "unique_value": "独特价值", "who_should_see": "适合谁" }
+    ],
+    "skip_list": [
+      { "title": "可跳过", "why_skip": "原因", "when_to_revisit": "何时回看" }
+    ]
+  },
+  "milestone": {
+    "after_gateway": "完成入门后你能…",
+    "after_core": "完成核心后你能…",
+    "mastery_sign": "学到位的标志"
+  },
+  "personalized_advice": "个性化建议"
+}`
+    },
+
+    diagnose: {
+        system: `你是“源流”系统的审美诊断引擎。
+
+四维度：
+- 温度：冷/中/热
+- 密度：高/中/低
+- 攻击性：高/中/低
+- 结构感：强/中/弱
+
+输出严格 JSON。`,
+        user: (masterNames, userDomain = "内容创作") => `【诊断请求】
+用户收藏大师：${masterNames.join("、")}
+用户创作领域：${userDomain}
+
+【输出 JSON Schema】
+{
+  "masters_analyzed": ["大师1"],
+  "user_domain": "领域",
+  "coordinate_analysis": {
+    "temperature": { "distribution": "偏冷/偏热/均衡", "center_value": "冷/中/热", "spread": "集中/分散", "masters_distribution": { "冷": [], "中": [], "热": [] } },
+    "density": { "distribution": "偏高/偏低/均衡", "center_value": "高/中/低", "spread": "集中/分散", "masters_distribution": { "高": [], "中": [], "低": [] } },
+    "aggression": { "distribution": "偏高/偏低/均衡", "center_value": "高/中/低", "spread": "集中/分散", "masters_distribution": { "高": [], "中": [], "低": [] } },
+    "structure": { "distribution": "偏强/偏弱/均衡", "center_value": "强/中/弱", "spread": "集中/分散", "masters_distribution": { "强": [], "中": [], "弱": [] } }
+  },
+  "pattern_summary": "整体特征",
+  "diagnosis": { "strengths": ["优势"], "blind_spots": ["盲区"], "imbalance_risk": "风险", "style_prediction": "预测" },
+  "recommendations": { "expand_boundary": [], "deepen_strength": [] },
+  "evolution_insight": "建议"
+}`
+    },
+
+    checklist: {
+        system: `你是“源流”系统的创作检查清单引擎。
+只使用用户提供的“已学技法”生成清单项；输出严格 JSON。`,
+        user: ({ user_domain, constraints, skills }) => {
+            const list = (skills || []).map(s => `- ${s.name}（来自：${s.from}）`).join("\n");
+            return `用户创作载体：${user_domain}
+约束：${constraints || "无"}
+用户已学技法：
+${list || "- （空）"}
+
+输出 JSON：
+{
+  "checklist_title": "清单标题",
+  "user_domain": "创作载体",
+  "constraints": "约束",
+  "sections": [
+    { "section_title": "章节", "items": [ { "item": "条目", "why": "原因", "from_skill": "技法名", "severity": "must/should/could", "quick_fix": "快修" } ] }
+  ]
+}`;
+        }
+    },
+
+    morning: {
+        system: `你是“源流”系统的晨间校准引擎。
+不要输出长篇引用；输出严格 JSON。`,
+        user: ({ date, master_names }) => `日期：${date}
+用户收藏大师：${(master_names || []).join("、") || "（空）"}
+
+输出 JSON：
+{
+  "date": "YYYY-MM-DD",
+  "source": { "master": "大师/来源", "work_hint": "作品指向", "note": "选择说明" },
+  "quote_or_scene": "极短引用或片段描述",
+  "what_to_notice": ["观察点1", "观察点2"],
+  "micro_practice": "30秒作业",
+  "coordinate_hint": { "temperature": "冷/中/热", "density": "高/中/低", "aggression": "高/中/低", "structure": "强/中/弱" }
+}`
+    }
+};
+
+const MODE_HELP = {
+    source: { placeholder: "输入技能，如：文案写作 / 短视频口播", hint: "输入技能，输出源头级大师、坐标与学习建议。", examples: ["文案写作", "短视频口播", "产品设计"] },
+    deconstruct: { placeholder: "输入大师名，如：鲁迅 / 诺兰 盗梦空间", hint: "输入大师名，输出四层拆解与可提取技法。", examples: ["鲁迅", "诺兰 盗梦空间", "赵本山 小品 节奏"] },
+    transfer: { placeholder: "可输入：技法 -> 场景；也可用表单", hint: "把某个技法迁移到你的场景。推荐用表单。", examples: ["短句节奏 -> 小红书笔记", "冷启动开头 -> 60秒口播"] },
+    navigate: { placeholder: "输入大师名，如：鲁迅 / 诺兰", hint: "输入大师名，输出学习路径与作业。", examples: ["鲁迅", "诺兰", "海明威"] },
+    diagnose: { placeholder: "无需输入，直接开始探索", hint: "基于收藏大师做审美诊断（至少 2 位）。", examples: [] }
+};
+
+function escapeHtml(str) {
+    return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+}
+
+function showToast(message, type = "success") {
+    const toast = document.getElementById("toast");
+    toast.textContent = message;
+    toast.className = `toast ${type} show`;
+    setTimeout(() => { toast.className = "toast"; }, 3000);
+}
+
+function safeJsonParseGlobal(str) {
+    try { return { ok: true, value: JSON.parse(str) }; }
+    catch (e) { return { ok: false, error: String(e) }; }
+}
+
+function flashElement(el) {
+    if (!el) return;
+    const old = el.style.boxShadow;
+    el.style.boxShadow = "0 0 0 3px " + "color-mix(in srgb, var(--accent) 25%, transparent)";
+    setTimeout(() => { el.style.boxShadow = old || ""; }, 900);
+}
+
+function setModeUI(mode) {
+    const input = document.getElementById("mainInput");
+    const hintText = document.getElementById("modeHintText");
+    const examples = document.getElementById("modeHintExamples");
+
+    const cfg = MODE_HELP[mode] || MODE_HELP.source;
+    if (input) input.placeholder = cfg.placeholder || "";
+    if (hintText) hintText.textContent = cfg.hint || "";
+
+    if (examples) {
+        examples.innerHTML = (cfg.examples || []).map(x =>
+            `<span class="quick-tag" data-modeexample="1" data-query="${escapeHtml(x)}">${escapeHtml(x)}</span>`
+        ).join("");
+
+        examples.querySelectorAll("[data-modeexample='1']").forEach(tag => {
+            tag.addEventListener("click", () => {
+                document.getElementById("mainInput").value = tag.getAttribute("data-query") || "";
+                validateAndToggleSubmit();
+                FLOW_updateAll();
+            });
+        });
+    }
+
+    const assist = document.getElementById("transferAssist");
+    if (assist) assist.style.display = (mode === "transfer") ? "block" : "none";
+}
+
+function isTooGeneric(s) {
+    const t = String(s || "").trim();
+    if (!t) return true;
+    const bad = ["学习", "不知道", "随便", "帮我", "怎么做", "提升", "变强", "写作", "视频"];
+    return bad.includes(t);
+}
+
+function parseTransferQuickInput(raw) {
+    const s = String(raw || "").trim();
+    if (!s) return null;
+    const parts = s.split(/\s*->\s*|\s*到\s*/);
+    if (parts.length < 2) return null;
+    return { technique: String(parts[0] || "").trim(), scenario: String(parts[1] || "").trim() };
+}
+
+function validateInputByMode(mode) {
+    const input = String(document.getElementById("mainInput")?.value || "").trim();
+
+    if (mode === "source") {
+        if (input.length < 2 || isTooGeneric(input)) return { ok: false, msg: "请输入更具体的技能（例如：文案写作/短视频口播/产品设计）" };
+        return { ok: true };
+    }
+    if (mode === "deconstruct") {
+        if (input.length < 2 || isTooGeneric(input)) return { ok: false, msg: "请输入大师名（可加作品/领域）" };
+        return { ok: true };
+    }
+    if (mode === "transfer") {
+        const scenario = String(document.getElementById("transferScenarioInput")?.value || "").trim();
+        let technique = "";
+        const techSel = document.getElementById("transferTechniqueSelect");
+        const skills = Array.isArray(AppState.skills) ? AppState.skills : [];
+
+        if (techSel && techSel.value !== "" && skills[Number(techSel.value)]) {
+            technique = String(skills[Number(techSel.value)].name || "").trim();
+        } else {
+            const parsed = parseTransferQuickInput(input);
+            technique = String(parsed?.technique || input || "").trim();
+        }
+
+        if (!technique || technique.length < 2) return { ok: false, msg: "请选择/输入要迁移的技法" };
+        if (!scenario || scenario.length < 2) return { ok: false, msg: "请填写目标场景（例如：小红书笔记/60秒口播）" };
+        return { ok: true };
+    }
+    if (mode === "navigate") {
+        if (input.length < 2 || isTooGeneric(input)) return { ok: false, msg: "请输入大师名（例如：鲁迅/诺兰/海明威）" };
+        return { ok: true };
+    }
+    if (mode === "diagnose") {
+        const count = (AppState.masters || []).length;
+        if (count < 2) return { ok: false, msg: "请先收藏至少 2 位大师再进行诊断" };
+        return { ok: true };
+    }
+    return { ok: true };
+}
+
+function validateAndToggleSubmit() {
+    const btn = document.getElementById("submitBtn");
+    const hint = document.getElementById("modeHintText");
+    if (!btn) return;
+
+    const v = validateInputByMode(AppState.currentMode);
+    btn.disabled = !v.ok;
+
+    if (hint && !v.ok) {
+        const cfg = MODE_HELP[AppState.currentMode] || MODE_HELP.source;
+        hint.textContent = `${v.msg}。${cfg.hint || ""}`;
+    } else if (hint && v.ok) {
+        const cfg = MODE_HELP[AppState.currentMode] || MODE_HELP.source;
+        hint.textContent = cfg.hint || "";
+    }
+}
+
+function refreshTransferAssistOptions() {
+    const techSel = document.getElementById("transferTechniqueSelect");
+    const masterSel = document.getElementById("transferMasterSelect");
+    if (!techSel || !masterSel) return;
+
+    const skills = Array.isArray(AppState.skills) ? AppState.skills : [];
+    const masters = Array.isArray(AppState.masters) ? AppState.masters : [];
+
+    if (skills.length === 0) techSel.innerHTML = `<option value="">（暂无已保存技法）</option>`;
+    else {
+        techSel.innerHTML = skills.map((s, idx) => {
+            const label = `${s.name}${s.from ? `（来自：${s.from}）` : ""}`;
+            return `<option value="${idx}">${escapeHtml(label)}</option>`;
+        }).join("");
+    }
+
+    const masterOptions = [`<option value="">（不指定）</option>`]
+        .concat(masters.map((m, idx) => `<option value="${idx}">${escapeHtml(m.name)}</option>`));
+    masterSel.innerHTML = masterOptions.join("");
+}
+
+function fillTransferAssistFromQuickInput() {
+    const input = document.getElementById("mainInput");
+    const scenario = document.getElementById("transferScenarioInput");
+    const techSel = document.getElementById("transferTechniqueSelect");
+    if (!input || !scenario || !techSel) return;
+
+    const parsed = parseTransferQuickInput(input.value);
+    if (!parsed) return;
+
+    if (parsed.scenario) scenario.value = parsed.scenario;
+    const skills = Array.isArray(AppState.skills) ? AppState.skills : [];
+    const idx = skills.findIndex(s => String(s?.name || "").trim() === parsed.technique);
+    if (idx >= 0) techSel.value = String(idx);
+}
+
+/* ===== Compass ===== */
+function getLocalDateKey() {
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    const dd = String(d.getDate()).padStart(2, "0");
+    return `${yyyy}-${mm}-${dd}`;
+}
+
+function normalizeCoordValue(dim, v) {
+    const s = String(v || "").trim();
+    if (!s) return "中";
+    const map = {
+        temperature: { low: ["冷", "偏冷"], mid: ["中", "适中", "均衡"], high: ["热", "偏热"] },
+        density: { low: ["低", "偏低"], mid: ["中", "适中", "均衡"], high: ["高", "偏高"] },
+        aggression: { low: ["低", "偏低"], mid: ["中", "适中", "均衡"], high: ["高", "偏高"] },
+        structure: { low: ["弱", "偏弱"], mid: ["中", "适中", "均衡"], high: ["强", "偏强"] }
+    };
+    const m = map[dim];
+    if (!m) return "中";
+    if (m.low.includes(s)) return m.low[0];
+    if (m.mid.includes(s)) return "中";
+    if (m.high.includes(s)) return m.high[0];
+    return "中";
+}
+
+function coordToScore(dim, normalized) {
+    const low = (dim === "temperature") ? "冷" : (dim === "structure" ? "弱" : "低");
+    const high = (dim === "temperature") ? "热" : (dim === "structure" ? "强" : "高");
+    if (normalized === low) return 1;
+    if (normalized === high) return 3;
+    return 2;
+}
+
+function scoreToCenterValue(dim, score) {
+    const low = (dim === "temperature") ? "冷" : (dim === "structure" ? "弱" : "低");
+    const high = (dim === "temperature") ? "热" : (dim === "structure" ? "强" : "高");
+    if (score <= 1.67) return low;
+    if (score >= 2.33) return high;
+    return "中";
+}
+
+function computeCompassFromMasters(masters) {
+    const dims = ["temperature", "density", "aggression", "structure"];
+    const out = {};
+    const list = Array.isArray(masters) ? masters : [];
+    const n = list.length;
+
+    dims.forEach(dim => {
+        const lowLabel = (dim === "temperature") ? "冷" : (dim === "structure" ? "弱" : "低");
+        const highLabel = (dim === "temperature") ? "热" : (dim === "structure" ? "强" : "高");
+
+        const buckets = { [lowLabel]: [], "中": [], [highLabel]: [] };
+        let sum = 0;
+        let count = 0;
+
+        list.forEach(m => {
+            const raw = m?.aesthetic_coordinates?.[dim];
+            const normalized = normalizeCoordValue(dim, raw);
+            const label = (normalized === "中") ? "中" : normalized;
+            buckets[label].push(m?.name || "未知");
+            sum += coordToScore(dim, normalized);
+            count += 1;
+        });
+
+        const avg = count ? (sum / count) : 2;
+        const centerValue = scoreToCenterValue(dim, avg);
+
+        const lowCount = buckets[lowLabel].length;
+        const midCount = buckets["中"].length;
+        const highCount = buckets[highLabel].length;
+
+        let distribution = "均衡";
+        const max = Math.max(lowCount, midCount, highCount);
+        if (count >= 2 && max / count >= 0.6) {
+            if (max === lowCount) distribution = `偏${lowLabel}`;
+            else if (max === highCount) distribution = `偏${highLabel}`;
+            else distribution = "偏中";
+        }
+
+        let spread = "集中";
+        const nonZero = [lowCount, midCount, highCount].filter(x => x > 0).length;
+        if (count >= 3 && nonZero >= 2) spread = "分散";
+
+        out[dim] = { distribution, center_value: centerValue, spread, masters_distribution: buckets };
+    });
+
+    const blindspots = [];
+    dims.forEach(dim => {
+        const buckets = out[dim]?.masters_distribution || {};
+        const nonZero = Object.values(buckets).filter(arr => Array.isArray(arr) && arr.length > 0).length;
+        if (n >= 2 && nonZero === 1) blindspots.push(dim);
+    });
+
+    return { masters_count: n, coordinate_analysis: out, blindspots };
+}
+
+function saveCompassSnapshot(snapshot, reason = "auto") {
+    if (!AppState.storage_ok) return;
+    try {
+        localStorage.setItem(STORAGE_KEYS.COMPASS_SNAPSHOT, JSON.stringify({ ...snapshot, reason, saved_at: new Date().toISOString() }));
+
+        const dayKey = getLocalDateKey();
+        const raw = localStorage.getItem(STORAGE_KEYS.COMPASS_HISTORY) || "[]";
+        let arr = [];
+        try { arr = JSON.parse(raw); } catch { arr = []; }
+        const exists = arr.some(x => x && x.day === dayKey);
+        if (!exists) {
+            arr.push({ day: dayKey, masters_count: snapshot.masters_count, coordinate_analysis: snapshot.coordinate_analysis });
+            localStorage.setItem(STORAGE_KEYS.COMPASS_HISTORY, JSON.stringify(arr));
+        }
+    } catch (e) {
+        console.warn("saveCompassSnapshot failed:", e);
+    }
+}
+
+function updateCompassVisual(input) {
+    const visual = document.getElementById("compassVisual");
+    const summaryEl = document.getElementById("compassSummary");
+    const blindBox = document.getElementById("compassBlindspots");
+    const blindText = document.getElementById("compassBlindspotsText");
+    if (!visual) return;
+
+    const coords = input?.coordinate_analysis ? input.coordinate_analysis : (input || {});
+    const mastersCount = input?.masters_count ?? AppState?.masters?.length ?? 0;
+    const blindspots = input?.blindspots || [];
+
+    const dims = ["temperature", "density", "aggression", "structure"];
+    const labels = ["温度", "密度", "攻击性", "结构"];
+    const valueToPct = (dim, center) => {
+        const c = String(center || "中");
+        if (c === "冷" || c === "低" || c === "弱") return 30;
+        if (c === "热" || c === "高" || c === "强") return 90;
+        return 60;
+    };
+    const values = dims.map((d) => valueToPct(d, coords?.[d]?.center_value || "中"));
+
+    if (summaryEl) {
+        const t = coords?.temperature?.center_value || "中";
+        const den = coords?.density?.center_value || "中";
+        const ag = coords?.aggression?.center_value || "中";
+        const st = coords?.structure?.center_value || "中";
+        const sampleHint = mastersCount < 2 ? "（样本偏少，仅供参考）" : "";
+        summaryEl.textContent = `当前倾向：温度${t} / 密度${den} / 攻击性${ag} / 结构${st} ${sampleHint}`;
+    }
+
+    if (blindBox && blindText) {
+        if (blindspots.length > 0) {
+            blindBox.style.display = "block";
+            blindText.textContent = "盲区：某些维度过于单一（建议补充相反象限）。";
+        } else {
+            blindBox.style.display = "none";
+            blindText.textContent = "";
+        }
+    }
+
+    const bars = labels.map((label, i) => `
+        <div style="width: 100%; display: flex; align-items: center; gap: 8px;">
+            <span style="width: 50px; font-size: 11px; text-align: right;">${label}</span>
+            <div style="flex: 1; height: 8px; background: var(--border); border-radius: 4px; overflow: hidden;">
+                <div style="width: ${values[i]}%; height: 100%; background: linear-gradient(90deg, var(--accent), var(--accent2)); border-radius: 4px;"></div>
+            </div>
+            <span style="width: 36px; font-size: 11px; color: var(--muted);">${values[i]}%</span>
+        </div>
+    `).join("");
+
+    visual.innerHTML = `<div style="width: 100%; height: 100%; display: grid; place-items: center; gap: 10px;"><div style="width:100%">${bars}</div></div>`;
+}
+
+/* ===== Checklist ===== */
+function loadChecklistState(key) {
+    try {
+        if (!AppState.storage_ok) return {};
+        const raw = localStorage.getItem(STORAGE_KEYS.CHECKLIST_STATE) || "{}";
+        const parsed = safeJsonParseGlobal(raw);
+        if (!parsed.ok || !parsed.value) return {};
+        return parsed.value[key] || {};
+    } catch {
+        return {};
+    }
+}
+
+function saveChecklistState(key, stateObj) {
+    try {
+        if (!AppState.storage_ok) return;
+        const raw = localStorage.getItem(STORAGE_KEYS.CHECKLIST_STATE) || "{}";
+        const parsed = safeJsonParseGlobal(raw);
+        const all = (parsed.ok && parsed.value && typeof parsed.value === "object") ? parsed.value : {};
+        all[key] = stateObj || {};
+        localStorage.setItem(STORAGE_KEYS.CHECKLIST_STATE, JSON.stringify(all));
+    } catch (e) {
+        console.warn("saveChecklistState failed:", e);
+    }
+}
+
+function checklistToMarkdown(data) {
+    const title = data?.checklist_title || "创作检查清单";
+    const domain = data?.user_domain || "";
+    const constraints = data?.constraints || "";
+    const sections = Array.isArray(data?.sections) ? data.sections : [];
+
+    let md = `# ${title}\n\n`;
+    if (domain) md += `* 载体：${domain}\n`;
+    if (constraints) md += `* 约束：${constraints}\n`;
+    md += `\n`;
+
+    sections.forEach(sec => {
+        md += `## ${sec.section_title || "未命名章节"}\n\n`;
+        const items = Array.isArray(sec.items) ? sec.items : [];
+        items.forEach(it => {
+            const from = it.from_skill ? `（来自：${it.from_skill}）` : "";
+            md += `- [ ] ${it.item || "（空）"}${from}\n`;
+            if (it.quick_fix) md += `    - 快修：${it.quick_fix}\n`;
+            if (it.why) md += `    - 原因：${it.why}\n`;
+        });
+        md += `\n`;
+    });
+    return md.trim();
+}
+
+function buildLocalChecklistData({ user_domain, constraints, skills }) {
+    const items = (skills || []).slice(0, 12).map(s => ({
+        item: `我是否用到了「${s.name}」`,
+        why: "这是你已学到的能力点",
+        from_skill: s.name,
+        severity: "should",
+        quick_fix: "回到对应大师示例，做一次最小模仿改写"
+    }));
+    return {
+        checklist_title: `${user_domain || "通用写作"}检查清单（本地生成）`,
+        user_domain: user_domain || "通用写作",
+        constraints: constraints || "",
+        sections: [{ section_title: "技法落实", items }]
+    };
+}
+
+function renderChecklistResults(data, { stateKey }) {
+    const container = document.getElementById("checklistOutput");
+    if (!container) return;
+
+    if (data && data._raw_text) {
+        container.innerHTML = `
+            <div class="result-card" style="margin: 0; border-left: 4px solid var(--warn);">
+                <div style="font-weight: 900; margin-bottom: 8px;">清单生成结果（未能解析为 JSON）</div>
+                <pre class="log" style="margin-top: 10px;">${escapeHtml(data._raw_text)}</pre>
+            </div>
+        `;
+        return;
+    }
+
+    const md = checklistToMarkdown(data);
+    const savedState = loadChecklistState(stateKey);
+
+    if (AppState.storage_ok) {
+        try {
+            localStorage.setItem(STORAGE_KEYS.CHECKLIST_LAST, JSON.stringify({ ...data, saved_at: new Date().toISOString(), state_key: stateKey }));
+        } catch {}
+    }
+
+    const sections = Array.isArray(data?.sections) ? data.sections : [];
+    container.innerHTML = `
+        <div class="result-card" style="margin: 0;">
+            <div style="display:flex; justify-content: space-between; gap: 10px; align-items: flex-start;">
+                <div>
+                    <div style="font-weight: 900;">${escapeHtml(data?.checklist_title || "创作检查清单")}</div>
+                    <div class="hint" style="margin-top: 4px;">载体：${escapeHtml(data?.user_domain || "")}</div>
+                </div>
+                <div class="row" style="gap: 8px;">
+                    <button class="btn secondary" id="copyChecklistMdBtn" type="button">复制 Markdown</button>
+                </div>
+            </div>
+            <div style="margin-top: 12px;">
+                ${sections.map((sec, secIdx) => {
+                    const items = Array.isArray(sec.items) ? sec.items : [];
+                    return `
+                        <div style="margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--border);">
+                            <div style="font-weight: 800; margin-bottom: 8px;">${escapeHtml(sec.section_title || "未命名章节")}</div>
+                            <div style="display:flex; flex-direction: column; gap: 8px;">
+                                ${items.map((it, itemIdx) => {
+                                    const id = `chk_${secIdx}_${itemIdx}`;
+                                    const checked = savedState[id] === true;
+                                    return `
+                                        <label style="display:flex; gap: 10px; align-items: flex-start; padding: 10px 12px; border: 1px solid var(--border); border-radius: 12px; background: color-mix(in srgb, var(--bg2) 70%, transparent);">
+                                            <input type="checkbox" data-statekey="${escapeHtml(stateKey)}" data-checkid="${escapeHtml(id)}" ${checked ? "checked" : ""} style="transform: translateY(3px);" />
+                                            <div style="flex: 1;">
+                                                <div style="font-weight: 700;">${escapeHtml(it.item || "")}</div>
+                                                <div class="hint" style="margin-top: 4px;">来自：${escapeHtml(it.from_skill || "")}</div>
+                                                <div class="hint" style="margin-top: 4px;">快修：${escapeHtml(it.quick_fix || "")}</div>
+                                            </div>
+                                        </label>
+                                    `;
+                                }).join("")}
+                            </div>
+                        </div>
+                    `;
+                }).join("")}
+            </div>
+        </div>
+    `;
+
+    const copyBtn = document.getElementById("copyChecklistMdBtn");
+    if (copyBtn) {
+        copyBtn.addEventListener("click", async () => {
+            try { await navigator.clipboard.writeText(md); showToast("已复制"); }
+            catch { showToast("复制失败", "error"); }
+        });
+    }
+
+    container.querySelectorAll("input[type='checkbox'][data-checkid]").forEach(cb => {
+        cb.addEventListener("change", () => {
+            if (!AppState.storage_ok) return;
+            const k = cb.getAttribute("data-statekey") || stateKey;
+            const id = cb.getAttribute("data-checkid");
+            const next = loadChecklistState(k);
+            next[id] = cb.checked === true;
+            saveChecklistState(k, next);
+            FLOW_updateAll();
+        });
+    });
+}
+
+/* ===== Morning ===== */
+let MorningState = { today: null };
+
+function safeLoadJson(key, fallback) {
+    try {
+        if (!AppState.storage_ok) return fallback;
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = safeJsonParseGlobal(raw);
+        if (!parsed.ok) return fallback;
+        return parsed.value;
+    } catch {
+        return fallback;
+    }
+}
+
+function safeSaveJson(key, value) {
+    try {
+        if (!AppState.storage_ok) return false;
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function pickFromArray(arr) {
+    if (!Array.isArray(arr) || arr.length === 0) return null;
+    return arr[Math.floor(Math.random() * arr.length)];
+}
+
+function pickMorningMasterName() {
+    const names = (AppState.masters || []).map(m => m?.name).filter(Boolean);
+    return pickFromArray(names);
+}
+
+function buildMorningFallback(date) {
+    const fallbackPool = [
+        {
+            source: { master: "鲁迅", work_hint: "杂文（片段描述）", note: "用锋利的语言做一次清醒校准" },
+            quote_or_scene: "把一句话删到只剩骨头（片段描述）",
+            what_to_notice: ["短句的节奏", "反讽的落点"],
+            micro_practice: "把你昨天写的一句删掉 50%",
+            coordinate_hint: { temperature: "冷", density: "高", aggression: "高", structure: "强" }
+        },
+        {
+            source: { master: "诺兰", work_hint: "叙事结构（片段描述）", note: "用结构感校准“好看但不散”" },
+            quote_or_scene: "把信息分三次给（片段描述）",
+            what_to_notice: ["信息延迟", "因果回扣"],
+            micro_practice: "把内容拆成“铺垫/揭示/回扣”",
+            coordinate_hint: { temperature: "冷", density: "高", aggression: "中", structure: "强" }
+        }
+    ];
+    const base = pickFromArray(fallbackPool) || fallbackPool[0];
+    return { date, ...base, _generated_by: "local_fallback" };
+}
+
+function renderMorning(data) {
+    const content = document.getElementById("morningContent");
+    const meta = document.getElementById("morningMeta");
+    const saveBtn = document.getElementById("saveMorningBtn");
+    const copyBtn = document.getElementById("copyMorningBtn");
+    if (!content) return;
+
+    MorningState.today = data || null;
+
+    if (!data) {
+        if (meta) meta.textContent = "每天一口好东西，30 秒即可。";
+        content.innerHTML = `<div class="empty-state" style="padding: 14px;"><p class="hint">今日校准不可用</p></div>`;
+        if (saveBtn) saveBtn.disabled = true;
+        if (copyBtn) copyBtn.disabled = true;
+        return;
+    }
+
+    const src = data.source || {};
+    if (meta) meta.textContent = `${escapeHtml(data.date || "")} · 来源：${escapeHtml(src.master || "未知")}${src.note ? ` · ${escapeHtml(src.note)}` : ""}`;
+
+    content.innerHTML = `
+        <div style="padding: 12px; border-radius: 14px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg2) 70%, transparent);">
+            <div style="font-weight: 800; margin-bottom: 6px;">今日一口</div>
+            <div style="color: var(--muted); line-height: 1.8;">${escapeHtml(data.quote_or_scene || "")}</div>
+            <div style="margin-top: 12px;">
+                <div style="font-weight: 800; margin-bottom: 6px;">看的时候注意</div>
+                <ul style="margin-left: 18px; color: var(--muted);">
+                    ${(data.what_to_notice || []).map(x => `<li>${escapeHtml(x)}</li>`).join("")}
+                </ul>
+            </div>
+            <div style="margin-top: 12px; padding: 10px 12px; border-radius: 12px; background: color-mix(in srgb, var(--accent) 10%, transparent); border: 1px solid color-mix(in srgb, var(--accent) 25%, transparent);">
+                <div style="font-weight: 800; margin-bottom: 4px;">30 秒微作业</div>
+                <div class="hint" style="color: var(--text);">${escapeHtml(data.micro_practice || "")}</div>
+            </div>
+        </div>
+    `;
+
+    if (saveBtn) saveBtn.disabled = false;
+    if (copyBtn) copyBtn.disabled = false;
+}
+
+function loadMorningToday() {
+    const day = getLocalDateKey();
+    const cached = safeLoadJson(STORAGE_KEYS.MORNING_TODAY, null);
+    if (cached && cached.date === day) return cached;
+    return null;
+}
+
+function saveMorningToday(data) { return safeSaveJson(STORAGE_KEYS.MORNING_TODAY, data); }
+
+function loadMorningJournal() {
+    const arr = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+    return Array.isArray(arr) ? arr : [];
+}
+
+function saveMorningJournal(arr) { return safeSaveJson(STORAGE_KEYS.MORNING_JOURNAL, arr); }
+
+function updateMorningJournalUI() {
+    const el = document.getElementById("morningJournal");
+    if (!el) return;
+
+    const arr = loadMorningJournal();
+    if (!arr.length) { el.textContent = "暂无记录"; return; }
+
+    const last = arr.slice(-5).reverse();
+    el.innerHTML = last.map(x => {
+        const t = x?.saved_at ? new Date(x.saved_at).toLocaleString() : "";
+        const src = x?.data?.source?.master || "未知";
+        const line = x?.data?.quote_or_scene || "";
+        return `<div style="padding: 8px 0; border-top: 1px solid var(--border);">
+            <div style="font-weight: 700;">${escapeHtml(x?.data?.date || "")} · ${escapeHtml(src)}</div>
+            <div class="hint" style="margin-top: 4px;">${escapeHtml(line)}</div>
+            <div class="hint" style="margin-top: 4px;">${escapeHtml(t)}</div>
+        </div>`;
+    }).join("");
+}
+
+async function generateMorning({ force = false } = {}) {
+    const day = getLocalDateKey();
+    if (!force) {
+        const cached = loadMorningToday();
+        if (cached) { renderMorning(cached); FLOW_updateAll(); return; }
+    }
+
+    const fallback = buildMorningFallback(day);
+    const picked = pickMorningMasterName();
+    if (picked) {
+        fallback.source = fallback.source || {};
+        fallback.source.master = picked;
+        fallback.source.note = "从你收藏的大师里抽一口";
+    }
+
+    saveMorningToday(fallback);
+    renderMorning(fallback);
+    FLOW_updateAll();
+}
+
+async function generateMorningWithAI() {
+    const day = getLocalDateKey();
+    const s = aiModule.get_state();
+    if (!s.networking_enabled) {
+        showToast("未开启联网，已使用离线校准", "warn");
+        await generateMorning({ force: true });
+        return;
+    }
+
+    const masterNames = (AppState.masters || []).map(m => m?.name).filter(Boolean);
+    const messages = [
+        { role: "system", content: PROMPTS.morning.system },
+        { role: "user", content: PROMPTS.morning.user({ date: day, master_names: masterNames }) }
+    ];
+
+    const content = document.getElementById("morningContent");
+    if (content) content.innerHTML = `<div class="hint">正在生成今日校准…</div>`;
+
+    try {
+        const result = await aiModule.call_ai({ messages });
+        let parsed = null;
+        try { parsed = parseAIResponse(result.text); } catch { parsed = { _raw_text: result.text }; }
+
+        const data = parsed?._raw_text
+            ? { date: day, source: { master: "AI 输出", note: "未能解析为 JSON" }, quote_or_scene: parsed._raw_text, what_to_notice: [], micro_practice: "", coordinate_hint: {}, _generated_by: "ai_raw" }
+            : { ...parsed, _generated_by: "ai_json" };
+
+        saveMorningToday(data);
+        renderMorning(data);
+        FLOW_updateAll();
+    } catch (err) {
+        console.error(err);
+        showToast("生成失败，已回退离线校准", "warn");
+        await generateMorning({ force: true });
+    }
+}
+
+async function saveMorningToJournal() {
+    if (!AppState.storage_ok) { showToast("本地存储不可用，无法存档", "error"); return; }
+    const data = MorningState.today;
+    if (!data) return;
+
+    const arr = loadMorningJournal();
+    arr.push({ saved_at: new Date().toISOString(), data });
+    saveMorningJournal(arr);
+    updateMorningJournalUI();
+    showToast("已存入审美日记");
+    FLOW_updateAll();
+}
+
+async function copyMorningToday() {
+    const data = MorningState.today;
+    if (!data) return;
+
+    const src = data?.source?.master ? `来源：${data.source.master}\n` : "";
+    const text = `${data.date || ""}\n${src}\n今日一口：${data.quote_or_scene || ""}\n\n注意：${(data.what_to_notice || []).join("；")}\n微作业：${data.micro_practice || ""}`.trim();
+
+    try { await navigator.clipboard.writeText(text); showToast("已复制"); }
+    catch { showToast("复制失败", "error"); }
+}
+
+/* ===== AI parsing & errors ===== */
+function extractJsonFromCodeFence(text) {
+    const s = String(text || "");
+    const m = s.match(/```json\s*([\s\S]*?)\s*```/i);
+    return m ? m[1] : null;
+}
+
+function extractJsonByBraces(text) {
+    const s = String(text || "");
+    const start = s.indexOf("{");
+    const end = s.lastIndexOf("}");
+    if (start === -1 || end === -1 || end <= start) return null;
+    return s.slice(start, end + 1);
+}
+
+function lightJsonFixups(candidate) {
+    let s = String(candidate || "").trim();
+    s = s.replace(/[“”]/g, '"').replace(/[‘’]/g, "'");
+    s = s.replace(/,\s*([}\]])/g, "$1");
+    return s;
+}
+
+function tryParseJson(candidate) {
+    const raw = String(candidate || "").trim();
+    if (!raw) return { ok: false, error: "empty" };
+    try { return { ok: true, value: JSON.parse(raw), fixed: false }; }
+    catch {
+        try { return { ok: true, value: JSON.parse(lightJsonFixups(raw)), fixed: true }; }
+        catch (e2) { return { ok: false, error: String(e2) }; }
+    }
+}
+
+function parseAIResponse(text) {
+    const original = String(text || "").trim();
+    if (!original) throw new Error("AI 返回为空");
+    const candidates = [];
+    const fenced = extractJsonFromCodeFence(original);
+    if (fenced) candidates.push(fenced);
+    const braced = extractJsonByBraces(original);
+    if (braced) candidates.push(braced);
+    candidates.push(original);
+    for (const c of candidates) {
+        const r = tryParseJson(c);
+        if (r.ok) return r.value;
+    }
+    throw new Error("无法解析 AI 响应为 JSON");
+}
+
+const REQUIRED_FIELDS = {
+    source: ["skill", "masters"],
+    deconstruct: ["master", "layers"],
+    transfer: ["technique", "source_master", "target_scenario", "steps"],
+    navigate: ["master", "learning_path"],
+    diagnose: ["coordinate_analysis"]
+};
+
+function validateSchemaOrThrow(mode, data) {
+    const req = REQUIRED_FIELDS[mode];
+    if (!req) return true;
+    if (!data || typeof data !== "object") throw new Error("AI 输出不是对象");
+    const missing = req.filter(k => !(k in data));
+    if (missing.length) throw new Error(`AI 输出结构不匹配，缺少字段：${missing.join(", ")}`);
+    if (mode === "source" && !Array.isArray(data.masters)) throw new Error("AI 输出结构不匹配：masters 不是数组");
+    return true;
+}
+
+function normalizeResponseByMode(mode, data) {
+    if (!data || typeof data !== "object") return data;
+    if (mode === "source") {
+        if (!data.learning_strategy && data.meta_advice) data.learning_strategy = data.meta_advice;
+        data.masters = Array.isArray(data.masters) ? data.masters : [];
+        data.masters.forEach(m => { if (!m.learn_how && m.how_to_learn) m.learn_how = m.how_to_learn; });
+        return data;
+    }
+    if (mode === "deconstruct") {
+        const l3 = data?.layers?.L3_mental;
+        if (l3 && !l3.self_check_questions && l3.self_check) l3.self_check_questions = [String(l3.self_check)];
+        return data;
+    }
+    return data;
+}
+
+function openAISettings() {
+    const aiSettings = document.getElementById("aiSettings");
+    if (aiSettings) aiSettings.open = true;
+    const mount = document.getElementById("aiSettingsMount");
+    if (mount) mount.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function renderFallbackAIResponse({ title, rawText, errorText }) {
+    const container = document.getElementById("resultsSection");
+    const safeRaw = escapeHtml(String(rawText || "").slice(0, 12000));
+    const safeErr = escapeHtml(String(errorText || ""));
+
+    container.innerHTML = `
+        <div class="result-card" style="border-left: 4px solid var(--warn);">
+            <h2 style="color: var(--warn);">${escapeHtml(title || "解析失败")}</h2>
+            <p class="hint" style="margin-top: 6px;">${safeErr}</p>
+            <pre class="log" style="margin-top: 12px;">${safeRaw}</pre>
+            <div class="row" style="margin-top: 12px;">
+                <button class="btn secondary" id="retryLastBtn" type="button">重试</button>
+                <button class="btn secondary" id="openAiSettingsBtn" type="button">打开 AI 设置</button>
+                <button class="btn secondary" id="copyRawBtn" type="button">复制原文</button>
+            </div>
+        </div>
+    `;
+
+    const retryBtn = document.getElementById("retryLastBtn");
+    if (retryBtn) retryBtn.addEventListener("click", async () => {
+        if (!AppState.lastRequest) { showToast("没有可重试的请求", "error"); return; }
+        await runLastRequest();
+    });
+
+    const openBtn = document.getElementById("openAiSettingsBtn");
+    if (openBtn) openBtn.addEventListener("click", openAISettings);
+
+    const copyBtn = document.getElementById("copyRawBtn");
+    if (copyBtn) copyBtn.addEventListener("click", async () => {
+        try { await navigator.clipboard.writeText(String(rawText || "")); showToast("已复制"); }
+        catch { showToast("复制失败", "error"); }
+    });
+
+    FLOW_updateAll();
+}
+
+async function runLastRequest() {
+    const req = AppState.lastRequest;
+    if (!req) return;
+
+    const s = aiModule.get_state();
+    if (!s.networking_enabled) {
+        showToast("请先开启联网", "error");
+        openAISettings();
+        return;
+    }
+
+    showLoading();
+    try {
+        const result = await aiModule.call_ai({ messages: req.messages });
+        let data = parseAIResponse(result.text);
+        data = normalizeResponseByMode(req.mode, data);
+        validateSchemaOrThrow(req.mode, data);
+
+        if (req.mode === "source") renderSourceResults(data);
+        else if (req.mode === "deconstruct") renderDeconstructResults(data);
+        else if (req.mode === "transfer") renderTransferResults(data);
+        else if (req.mode === "navigate") renderNavigateResults(data);
+        else if (req.mode === "diagnose") renderDiagnoseResults(data);
+        else renderFallbackAIResponse({ title: "已重试，但该模式不在主区渲染", rawText: JSON.stringify(data, null, 2), errorText: "请在对应模块查看结果。" });
+    } catch (err) {
+        const actionable = aiModule.get_actionable_error(err);
+        renderFallbackAIResponse({ title: "重试失败", rawText: "", errorText: actionable });
+    } finally {
+        FLOW_updateAll();
+    }
+}
+
+/* ===== Stepper with P0→P1 fixes ===== */
+const FLOW_STATE = {
+    produced: false,
+    session_started_at: null,
+    baseline: { masters_count: 0, skills_count: 0, journal_count: 0, checklist_saved_at: "" },
+    _updating: false,
+    _rafPending: false
+};
+
+function FLOW_safeGetLocalJson(key, fallback) {
+    try {
+        if (!AppState.storage_ok) return fallback;
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = safeJsonParseGlobal(raw);
+        return parsed.ok ? parsed.value : fallback;
+    } catch { return fallback; }
+}
+
+function FLOW_getChecklistLastSavedAt() {
+    try {
+        if (!AppState.storage_ok) return "";
+        const raw = localStorage.getItem(STORAGE_KEYS.CHECKLIST_LAST);
+        if (!raw) return "";
+        const parsed = safeJsonParseGlobal(raw);
+        if (!parsed.ok || !parsed.value) return "";
+        return String(parsed.value.saved_at || "");
+    } catch { return ""; }
+}
+
+function FLOW_setSessionBaseline() {
+    FLOW_STATE.session_started_at = new Date().toISOString();
+    const journal = FLOW_safeGetLocalJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+    const journalCount = Array.isArray(journal) ? journal.length : 0;
+    FLOW_STATE.baseline = {
+        masters_count: (AppState.masters || []).length,
+        skills_count: (AppState.skills || []).length,
+        journal_count: journalCount,
+        checklist_saved_at: FLOW_getChecklistLastSavedAt()
+    };
+}
+
+function FLOW_hasArchivedThisSession() {
+    const nowMasters = (AppState.masters || []).length;
+    const nowSkills = (AppState.skills || []).length;
+    const journal = FLOW_safeGetLocalJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+    const nowJournal = Array.isArray(journal) ? journal.length : 0;
+    const nowChecklistAt = FLOW_getChecklistLastSavedAt();
+
+    const b = FLOW_STATE.baseline || {};
+    const mastersIncreased = (nowMasters > (b.masters_count || 0));
+    const skillsIncreased = (nowSkills > (b.skills_count || 0));
+    const journalIncreased = (nowJournal > (b.journal_count || 0));
+    const checklistGenerated = Boolean(nowChecklistAt) && (nowChecklistAt !== String(b.checklist_saved_at || ""));
+
+    return mastersIncreased || skillsIncreased || journalIncreased || checklistGenerated;
+}
+
+function FLOW_hasMorningToday() {
+    const today = getLocalDateKey();
+    if (MorningState && MorningState.today && MorningState.today.date === today) return true;
+    const cached = FLOW_safeGetLocalJson(STORAGE_KEYS.MORNING_TODAY, null);
+    return Boolean(cached && cached.date === today);
+}
+
+function FLOW_isProduced() {
+    if (FLOW_STATE.produced) return true;
+    const rs = document.getElementById("resultsSection");
+    if (!rs) return false;
+    const hasResultCard = rs.querySelector(".result-card") != null;
+    const hasEmpty = rs.querySelector(".empty-state") != null;
+    return hasResultCard && !hasEmpty;
+}
+
+function FLOW_getSnapshot() {
+    const mode = AppState.currentMode;
+    const validation = validateInputByMode(mode);
+    return { mode, input_ok: Boolean(validation?.ok), has_morning_today: FLOW_hasMorningToday(), has_produced: FLOW_isProduced() };
+}
+
+function FLOW_computeSteps(snapshot) {
+    const done0 = snapshot.has_morning_today;
+    const done1 = snapshot.input_ok;
+    const done2 = snapshot.has_produced;
+    const done3 = FLOW_hasArchivedThisSession();
+    const done = [done0, done1, done2, done3];
+    let active = done.findIndex(x => x === false);
+    if (active === -1) active = 3;
+    const blocked = [false, false, !done1, !done2];
+    return { done, active, blocked };
+}
+
+function FLOW_stepLabel(i) {
+    if (i === 0) return { title: "0 校准", desc: "先看一口好东西" };
+    if (i === 1) return { title: "1 选任务", desc: "选择模式并补齐输入" };
+    if (i === 2) return { title: "2 产出", desc: "获取结构化结果" };
+    return { title: "3 存档", desc: "保存到资产库" };
+}
+
+function FLOW_renderStepper(computed) {
+    const mount = document.getElementById("flowStepper");
+    if (!mount) return;
+
+    const stepsHtml = [0, 1, 2, 3].map(i => {
+        const s = FLOW_stepLabel(i);
+        const isDone = computed.done[i];
+        const isActive = computed.active === i;
+        const isBlocked = computed.blocked[i] && !isDone;
+        const cls = ["flow-step", isDone ? "is-done" : "", isActive ? "is-active" : "", isBlocked ? "is-blocked" : ""].filter(Boolean).join(" ");
+        const badgeText = isDone ? "✓" : String(i);
+        return `
+            <div class="${cls}" data-flow-step="${i}">
+                <div class="flow-step-badge">${escapeHtml(badgeText)}</div>
+                <div class="flow-step-body">
+                    <div class="flow-step-title">${escapeHtml(s.title)}</div>
+                    <div class="flow-step-desc">${escapeHtml(s.desc)}</div>
+                </div>
+            </div>
+        `;
+    }).join("");
+
+    mount.innerHTML = `<div class="flow-stepper">${stepsHtml}</div>`;
+
+    mount.querySelectorAll("[data-flow-step]").forEach(el => {
+        el.addEventListener("click", () => {
+            const i = Number(el.getAttribute("data-flow-step"));
+            if (i === 0) document.getElementById("morningCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+            else if (i === 1) document.getElementById("mainInput")?.focus();
+            else if (i === 2) document.getElementById("submitBtn")?.scrollIntoView({ behavior: "smooth", block: "center" });
+            else document.getElementById("masterList")?.scrollIntoView({ behavior: "smooth", block: "start" });
+        });
+    });
+}
+
+function FLOW_ensureNextActionBar() {
+    const rs = document.getElementById("resultsSection");
+    if (!rs) return null;
+    let bar = document.getElementById("nextActionBar");
+    if (bar) return bar;
+    bar = document.createElement("div");
+    bar.id = "nextActionBar";
+    bar.style.marginTop = "16px";
+    bar.style.marginBottom = "16px";
+    bar.innerHTML = `
+        <div style="padding: 12px 14px; border-radius: 16px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg2) 70%, transparent);">
+            <div style="font-weight: 900; margin-bottom: 6px;">下一步建议</div>
+            <div class="hint" id="nextActionHint">按当前状态给出建议。</div>
+            <div class="row" id="nextActionButtons" style="margin-top: 10px;"></div>
+        </div>
+    `;
+    rs.prepend(bar);
+    return bar;
+}
+
+function FLOW_updateNextActions(snapshot) {
+    const existing = document.getElementById("nextActionBar");
+    if (!snapshot.has_produced) {
+        if (existing) existing.style.display = "none";
+        return;
+    }
+
+    const bar = FLOW_ensureNextActionBar();
+    if (!bar) return;
+    bar.style.display = "block";
+
+    const hintEl = document.getElementById("nextActionHint");
+    const btnsEl = document.getElementById("nextActionButtons");
+    if (!hintEl || !btnsEl) return;
+
+    hintEl.textContent = "推荐你做下一步动作（不会自动发请求）。";
+    btnsEl.innerHTML = `
+        <button class="btn secondary" type="button" id="nextActScrollMorning">去晨间校准</button>
+        <button class="btn secondary" type="button" id="nextActFocusInput">回到输入区</button>
+    `;
+    document.getElementById("nextActScrollMorning")?.addEventListener("click", () => document.getElementById("morningCard")?.scrollIntoView({ behavior: "smooth", block: "start" }));
+    document.getElementById("nextActFocusInput")?.addEventListener("click", () => document.getElementById("mainInput")?.focus());
+}
+
+function FLOW_updateAll() {
+    if (FLOW_STATE._rafPending) return;
+    FLOW_STATE._rafPending = true;
+
+    requestAnimationFrame(() => {
+        FLOW_STATE._rafPending = false;
+        if (FLOW_STATE._updating) return;
+        FLOW_STATE._updating = true;
+        try {
+            const snap = FLOW_getSnapshot();
+            const computed = FLOW_computeSteps(snap);
+            FLOW_renderStepper(computed);
+            FLOW_updateNextActions(snap);
+        } catch (e) {
+            console.warn("FLOW_updateAll failed:", e);
+        } finally {
+            FLOW_STATE._updating = false;
+        }
+    });
+}
+
+function FLOW_initObservers() {
+    const rs = document.getElementById("resultsSection");
+    if (!rs) return;
+
+    const obs = new MutationObserver(() => {
+        const hasResultCard = rs.querySelector(".result-card") != null;
+        const hasEmpty = rs.querySelector(".empty-state") != null;
+        if (hasResultCard && !hasEmpty) FLOW_STATE.produced = true;
+        FLOW_updateAll();
+    });
+
+    /* P0-1：subtree:false 防止自激循环 */
+    obs.observe(rs, { childList: true, subtree: false });
+}
+
+/* ===== 渲染与提交（略去部分 UI 细节，保持功能完整） ===== */
+let aiModule = null;
+let __lastSourceMasters = [];
+let __lastDeconstructSkills = [];
+
+function showLoading() {
+    document.getElementById("resultsSection").innerHTML = `
+        <div class="loading">
+            <div class="loading-spinner"></div>
+            <p>正在生成结果…</p>
+        </div>
+    `;
+}
+
+function showError(message) {
+    const container = document.getElementById("resultsSection");
+    container.innerHTML = `
+        <div class="result-card" style="border-left: 4px solid var(--bad);">
+            <h2 style="color: var(--bad);">出错了</h2>
+            <pre class="log" style="margin-top: 12px;">${escapeHtml(message)}</pre>
+            <div class="row" style="margin-top: 12px;">
+                <button class="btn secondary" id="retryLastBtn2" type="button">重试</button>
+                <button class="btn secondary" id="openAiSettingsBtn2" type="button">打开 AI 设置</button>
+            </div>
+        </div>
+    `;
+    document.getElementById("retryLastBtn2")?.addEventListener("click", async () => { await runLastRequest(); });
+    document.getElementById("openAiSettingsBtn2")?.addEventListener("click", openAISettings);
+    FLOW_updateAll();
+}
+
+function renderMasterList() {
+    const container = document.getElementById("masterList");
+    if (AppState.masters.length === 0) {
+        container.innerHTML = `<div class="empty-state" style="padding: 20px;"><p class="hint">还没有收藏大师</p></div>`;
+        return;
+    }
+
+    container.innerHTML = AppState.masters.map(m => `
+        <div class="master-item">
+            <div>
+                <div class="master-item-name">${escapeHtml(m.name)}</div>
+                <div class="master-item-source">${escapeHtml(m.domain || "")}</div>
+            </div>
+            <button class="remove-btn" data-name="${escapeHtml(m.name)}" aria-label="remove">×</button>
+        </div>
+    `).join("");
+
+    container.querySelectorAll(".remove-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            AppState.removeMaster(btn.dataset.name);
+            renderMasterList();
+            refreshTransferAssistOptions();
+            validateAndToggleSubmit();
+            FLOW_updateAll();
+        });
+    });
+}
+
+function renderSkillList() {
+    const container = document.getElementById("skillList");
+    if (AppState.skills.length === 0) {
+        container.innerHTML = `<div class="empty-state" style="padding: 20px;"><p class="hint">还没有技法</p></div>`;
+        return;
+    }
+    container.innerHTML = AppState.skills.slice(0, 5).map(s => `
+        <div class="skill-item">
+            <div class="skill-item-name">${escapeHtml(s.name)}</div>
+            <div class="skill-item-from">来自 ${escapeHtml(s.from)}</div>
+        </div>
+    `).join("");
+}
+
+function renderSourceResults(data) {
+    const container = document.getElementById("resultsSection");
+    __lastSourceMasters = Array.isArray(data.masters) ? data.masters : [];
+
+    let html = `
+        <div class="result-card">
+            <h2>${escapeHtml(data.skill)} 的源头大师</h2>
+            <p class="hint" style="margin-bottom: 16px;">${escapeHtml(data.learning_strategy || "")}</p>
+        </div>
+    `;
+
+    __lastSourceMasters.forEach((m, idx) => {
+        const coords = m.aesthetic_coordinates || {};
+        html += `
+            <div class="result-card master-card">
+                <div class="master-header">
+                    <div>
+                        <div class="master-name">${escapeHtml(m.name)}</div>
+                        <div class="master-domain">${escapeHtml(m.domain || "")} · ${escapeHtml(m.era || "")}</div>
+                    </div>
+                    <div class="master-coords">
+                        <span class="coord-tag">温度: ${escapeHtml(coords.temperature || "中")}</span>
+                        <span class="coord-tag">密度: ${escapeHtml(coords.density || "中")}</span>
+                        <span class="coord-tag">攻击性: ${escapeHtml(coords.aggression || "中")}</span>
+                        <span class="coord-tag">结构: ${escapeHtml(coords.structure || "中")}</span>
+                    </div>
+                </div>
+                <p style="margin: 12px 0; font-size: 14px;">${escapeHtml(m.why_source_level || "")}</p>
+                <div class="row" style="margin-top: 16px;">
+                    <button class="btn secondary save-master-btn" data-idx="${idx}">保存到图谱</button>
+                    <button class="btn secondary deconstruct-btn" data-name="${escapeHtml(m.name)}">深度拆解</button>
+                </div>
+            </div>
+        `;
+    });
+
+    container.innerHTML = html;
+
+    container.querySelectorAll(".save-master-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.idx);
+            const master = __lastSourceMasters[idx];
+            if (!master) return;
+            if (AppState.addMaster(master)) {
+                btn.textContent = "已保存";
+                btn.disabled = true;
+                renderMasterList();
+                const snap = computeCompassFromMasters(AppState.masters);
+                saveCompassSnapshot(snap, "add_master");
+                updateCompassVisual(snap);
+            }
+            FLOW_updateAll();
+        });
+    });
+
+    container.querySelectorAll(".deconstruct-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.getElementById("mainInput").value = btn.dataset.name;
+            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+            document.querySelector('[data-mode="deconstruct"]').classList.add("active");
+            AppState.currentMode = "deconstruct";
+            setModeUI(AppState.currentMode);
+            validateAndToggleSubmit();
+            FLOW_updateAll();
+            handleSubmit();
+        });
+    });
+
+    FLOW_updateAll();
+}
+
+function renderDeconstructResults(data) {
+    const container = document.getElementById("resultsSection");
+    const layers = data.layers || {};
+    __lastDeconstructSkills = Array.isArray(data.extractable_skills) ? data.extractable_skills : [];
+
+    let html = `
+        <div class="result-card">
+            <h2>「${escapeHtml(data.master)}」四层拆解</h2>
+            <p class="hint">${escapeHtml(data.overview || "")}</p>
+        </div>
+    `;
+    if (__lastDeconstructSkills.length > 0) {
+        html += `
+            <div class="result-card">
+                <h2>可提取技法</h2>
+                ${__lastDeconstructSkills.map((s, idx) => `
+                    <div class="variation-card">
+                        <div class="variation-header">
+                            <div class="variation-name">${escapeHtml(s.skill_name || "")}</div>
+                            <span class="variation-distance">${escapeHtml(s.from_layer || "")}</span>
+                        </div>
+                        <p class="hint">${escapeHtml(s.description || "")}</p>
+                        <button class="btn secondary save-skill-btn" data-idx="${idx}">保存技法</button>
+                    </div>
+                `).join("")}
+            </div>
+        `;
+    }
+
+    container.innerHTML = html;
+
+    container.querySelectorAll(".save-skill-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const idx = Number(btn.dataset.idx);
+            const s = __lastDeconstructSkills[idx];
+            if (!s) return;
+            const skill = { name: String(s.skill_name || "").trim(), from: String(data.master || "").trim(), description: String(s.description || "") };
+            if (AppState.addSkill(skill)) {
+                btn.textContent = "已保存";
+                btn.disabled = true;
+                renderSkillList();
+                refreshTransferAssistOptions();
+            }
+            FLOW_updateAll();
+        });
+    });
+
+    FLOW_updateAll();
+}
+
+function renderTransferResults(data) {
+    const container = document.getElementById("resultsSection");
+    container.innerHTML = `
+        <div class="result-card">
+            <h2>迁移实验室</h2>
+            <p class="hint">技法：${escapeHtml(data.technique || "")} · 场景：${escapeHtml(data.target_scenario || "")}</p>
+        </div>
+    `;
+    FLOW_updateAll();
+}
+
+function renderNavigateResults(data) {
+    const container = document.getElementById("resultsSection");
+    container.innerHTML = `
+        <div class="result-card">
+            <h2>「${escapeHtml(data.master)}」学习路径</h2>
+            <p class="hint">${escapeHtml(data.total_works_overview || "")}</p>
+        </div>
+    `;
+    FLOW_updateAll();
+}
+
+function renderDiagnoseResults(data) {
+    const container = document.getElementById("resultsSection");
+    container.innerHTML = `
+        <div class="result-card">
+            <h2>审美诊断</h2>
+            <p class="hint">${escapeHtml(data.pattern_summary || "")}</p>
+        </div>
+    `;
+    const snap = { masters_count: (data.masters_analyzed || []).length, coordinate_analysis: data.coordinate_analysis || {}, blindspots: [] };
+    saveCompassSnapshot(snap, "diagnose");
+    updateCompassVisual(snap);
+    FLOW_updateAll();
+}
+
+async function handleSubmit() {
+    const mode = AppState.currentMode;
+    const v = validateInputByMode(mode);
+    if (!v.ok) { showToast(v.msg, "error"); return; }
+
+    const state = aiModule.get_state();
+    if (!state.networking_enabled) { showToast("请先在 AI 设置里开启联网", "error"); openAISettings(); return; }
+
+    const input = String(document.getElementById("mainInput").value || "").trim();
+    showLoading();
+
+    try {
+        let messages = [];
+
+        if (mode === "source") {
+            messages = [{ role: "system", content: PROMPTS.source.system }, { role: "user", content: PROMPTS.source.user(input) }];
+        } else if (mode === "deconstruct") {
+            messages = [{ role: "system", content: PROMPTS.deconstruct.system }, { role: "user", content: PROMPTS.deconstruct.user(input) }];
+        } else if (mode === "transfer") {
+            const scenario = String(document.getElementById("transferScenarioInput")?.value || "").trim();
+            const constraints = String(document.getElementById("transferConstraintsInput")?.value || "").trim();
+            const techSel = document.getElementById("transferTechniqueSelect");
+            const skills = Array.isArray(AppState.skills) ? AppState.skills : [];
+            const technique = (techSel && techSel.value !== "" && skills[Number(techSel.value)]) ? skills[Number(techSel.value)].name : input;
+            const master = AppState.masters?.[0]?.name || "鲁迅";
+            messages = [{ role: "system", content: PROMPTS.transfer.system }, { role: "user", content: PROMPTS.transfer.user(technique, master, scenario, constraints) }];
+        } else if (mode === "navigate") {
+            messages = [{ role: "system", content: PROMPTS.navigate.system }, { role: "user", content: PROMPTS.navigate.user(input, "不限", "入门") }];
+        } else if (mode === "diagnose") {
+            const masterNames = AppState.masters.map(m => m.name);
+            messages = [{ role: "system", content: PROMPTS.diagnose.system }, { role: "user", content: PROMPTS.diagnose.user(masterNames, "内容创作") }];
+        }
+
+        AppState.setLastRequest({ mode, messages, input, at: new Date().toISOString() });
+
+        const result = await aiModule.call_ai({ messages });
+
+        let data = null;
+        try {
+            data = parseAIResponse(result.text);
+            data = normalizeResponseByMode(mode, data);
+            validateSchemaOrThrow(mode, data);
+        } catch (e) {
+            renderFallbackAIResponse({ title: "AI 输出解析/结构失败（已降级）", rawText: result.text, errorText: String(e?.message || e) });
+            return;
+        }
+
+        if (mode === "source") renderSourceResults(data);
+        else if (mode === "deconstruct") renderDeconstructResults(data);
+        else if (mode === "transfer") renderTransferResults(data);
+        else if (mode === "navigate") renderNavigateResults(data);
+        else if (mode === "diagnose") renderDiagnoseResults(data);
+    } catch (err) {
+        console.error(err);
+        const actionable = aiModule.get_actionable_error(err);
+        showError(actionable);
+    } finally {
+        FLOW_updateAll();
+    }
+}
+
+function getChecklistContextFromUI() {
+    const domain = document.getElementById("checklistDomain")?.value || "通用写作";
+    const constraints = String(document.getElementById("checklistConstraints")?.value || "").trim();
+    return { user_domain: domain, constraints };
+}
+
+function getChecklistStateKey(domain) { return `${getLocalDateKey()}:${domain}`; }
+
+async function runChecklistLocal() {
+    if (AppState.skills.length === 0) { showToast("请先保存至少 1 个技法", "error"); return; }
+    const { user_domain, constraints } = getChecklistContextFromUI();
+    const data = buildLocalChecklistData({ user_domain, constraints, skills: AppState.skills });
+    renderChecklistResults(data, { stateKey: getChecklistStateKey(user_domain) });
+    FLOW_updateAll();
+}
+
+async function runChecklistAI() {
+    if (AppState.skills.length === 0) { showToast("请先保存至少 1 个技法", "error"); return; }
+    const s = aiModule.get_state();
+    if (!s.networking_enabled) { showToast("请先开启联网", "error"); openAISettings(); return; }
+
+    const { user_domain, constraints } = getChecklistContextFromUI();
+    const messages = [{ role: "system", content: PROMPTS.checklist.system }, { role: "user", content: PROMPTS.checklist.user({ user_domain, constraints, skills: AppState.skills }) }];
+
+    showLoading();
+    try {
+        const result = await aiModule.call_ai({ messages });
+        let parsed = null;
+        try { parsed = parseAIResponse(result.text); } catch { parsed = { _raw_text: result.text }; }
+        document.getElementById("resultsSection").innerHTML = `<div class="result-card"><h2>检查清单已生成</h2><p class="hint">请在右侧查看/复制。</p></div>`;
+        renderChecklistResults(parsed, { stateKey: getChecklistStateKey(user_domain) });
+    } catch (err) {
+        const actionable = aiModule.get_actionable_error(err);
+        showError(actionable);
+    } finally {
+        FLOW_updateAll();
+    }
+}
+
+function updateKeyStatus() {
+    const pill = document.getElementById("keyStatusPill");
+    if (!pill) return;
+
+    if (!AppState.storage_ok) {
+        pill.className = "pill warn";
+        pill.textContent = "本地存储不可用";
+        return;
+    }
+
+    let hasAnyKey = false;
+    for (const pid of Object.keys(AI_MODULE.AI_PROVIDERS)) {
+        const status = AI_MODULE.getKeyStatus(pid);
+        if (status.has_key) { hasAnyKey = true; break; }
+    }
+
+    if (hasAnyKey) { pill.className = "pill good"; pill.textContent = "已配置"; }
+    else { pill.className = "pill bad"; pill.textContent = "未配置"; }
+}
+
+function applyTheme(mode) {
+    if (mode === "light") document.documentElement.dataset.theme = "light";
+    else if (mode === "dark") document.documentElement.dataset.theme = "dark";
+    else delete document.documentElement.dataset.theme;
+}
+
+function loadTheme() {
+    const mode = AppState.storage_ok ? (localStorage.getItem(STORAGE_KEYS.THEME) || "auto") : "auto";
+    document.getElementById("themeSelect").value = mode;
+    applyTheme(mode);
+}
+
+function init() {
+    AppState.storage_ok = storageAvailable();
+
+    if (!AppState.storage_ok) {
+        showToast("检测到本地存储不可用：将以临时模式运行（无法保存/导出/AI）", "warn");
+        ["exportCompassBtn", "generateChecklistLocalBtn", "generateChecklistAiBtn", "saveMorningBtn"].forEach(id => {
+            const el = document.getElementById(id);
+            if (el) el.disabled = true;
+        });
+        const mount = document.getElementById("aiSettingsMount");
+        if (mount) mount.innerHTML = `<div class="hint">本地存储不可用：无法加载/保存 Key 与 AI 设置。</div>`;
+        aiModule = {
+            get_state: () => ({ networking_enabled: false }),
+            call_ai: async () => { throw new Error("环境错误: 本地存储不可用"); },
+            get_actionable_error: () => "环境错误：本地存储不可用（无法读取 API Key）。"
+        };
+    } else {
+        aiModule = AI_MODULE.mount_ai_settings({ mount_el: document.getElementById("aiSettingsMount"), default_provider_id: "siliconflow" });
+    }
+
+    AppState.load();
+    loadTheme();
+    updateKeyStatus();
+
+    renderMasterList();
+    renderSkillList();
+
+    const snap = computeCompassFromMasters(AppState.masters);
+    saveCompassSnapshot(snap, "init");
+    updateCompassVisual(snap);
+
+    FLOW_setSessionBaseline();
+    FLOW_initObservers();
+
+    updateMorningJournalUI();
+    generateMorning({ force: false });
+
+    document.getElementById("themeSelect").addEventListener("change", (e) => {
+        const mode = e.target.value;
+        if (AppState.storage_ok) localStorage.setItem(STORAGE_KEYS.THEME, mode);
+        applyTheme(mode);
+    });
+
+    document.querySelectorAll(".mode-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+            btn.classList.add("active");
+            AppState.currentMode = btn.dataset.mode;
+            setModeUI(AppState.currentMode);
+            refreshTransferAssistOptions();
+            validateAndToggleSubmit();
+            FLOW_updateAll();
+        });
+    });
+
+    document.querySelectorAll(".quick-tag").forEach(tag => {
+        tag.addEventListener("click", () => {
+            document.getElementById("mainInput").value = tag.dataset.query;
+            validateAndToggleSubmit();
+            FLOW_updateAll();
+        });
+    });
+
+    document.getElementById("submitBtn").addEventListener("click", handleSubmit);
+    document.getElementById("mainInput").addEventListener("input", () => {
+        if (AppState.currentMode === "transfer") fillTransferAssistFromQuickInput();
+        validateAndToggleSubmit();
+        FLOW_updateAll();
+    });
+    document.getElementById("mainInput").addEventListener("keypress", (e) => { if (e.key === "Enter") handleSubmit(); });
+
+    ["transferTechniqueSelect", "transferMasterSelect", "transferScenarioInput", "transferConstraintsInput"].forEach(id => {
+        const el = document.getElementById(id);
+        if (!el) return;
+        el.addEventListener("input", () => { validateAndToggleSubmit(); FLOW_updateAll(); });
+        el.addEventListener("change", () => { validateAndToggleSubmit(); FLOW_updateAll(); });
+    });
+
+    document.getElementById("generateChecklistLocalBtn").addEventListener("click", runChecklistLocal);
+    document.getElementById("generateChecklistAiBtn").addEventListener("click", runChecklistAI);
+
+    document.getElementById("refreshMorningBtn").addEventListener("click", () => generateMorningWithAI());
+    document.getElementById("saveMorningBtn").addEventListener("click", saveMorningToJournal);
+    document.getElementById("copyMorningBtn").addEventListener("click", copyMorningToday);
+
+    document.getElementById("exportCompassBtn").addEventListener("click", () => {
+        if (!AppState.storage_ok) { showToast("本地存储不可用，无法导出", "error"); return; }
+        const snapRaw = localStorage.getItem(STORAGE_KEYS.COMPASS_SNAPSHOT);
+        const historyRaw = localStorage.getItem(STORAGE_KEYS.COMPASS_HISTORY);
+        const data = {
+            masters: AppState.masters,
+            skills: AppState.skills,
+            compass_snapshot: snapRaw ? JSON.parse(snapRaw) : null,
+            compass_history: historyRaw ? JSON.parse(historyRaw) : [],
+            exported_at: new Date().toISOString()
+        };
+        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = `origin-compass-${new Date().toISOString().slice(0,10)}.json`;
+        a.click();
+        URL.revokeObjectURL(url);
+        showToast("已导出");
+    });
+
+    refreshTransferAssistOptions();
+    setModeUI(AppState.currentMode);
+    validateAndToggleSubmit();
+    FLOW_updateAll();
+}
+
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
