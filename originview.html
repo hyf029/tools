@@ -362,15 +362,6 @@
             letter-spacing: 0.5px;
         }
 
-        .master-works { display: flex; gap: 8px; flex-wrap: wrap; }
-        .work-tag {
-            padding: 6px 12px;
-            border-radius: 10px;
-            background: color-mix(in srgb, var(--bg2) 80%, transparent);
-            border: 1px solid var(--border);
-            font-size: 13px;
-        }
-
         .variation-card {
             padding: 14px;
             border-radius: 12px;
@@ -655,6 +646,169 @@
         }
 
         /* =========================
+           Results action bar (Export/Copy)
+        ========================= */
+        #resultsActionBar {
+            margin-bottom: 12px;
+        }
+
+        /* =========================
+           Assets Drawer (Phase 2)
+        ========================= */
+        #assetsOverlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.35);
+            backdrop-filter: blur(2px);
+            z-index: 1200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s ease;
+        }
+        #assetsOverlay.is-open {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        #assetsDrawer {
+            position: fixed;
+            top: 0;
+            right: 0;
+            height: 100vh;
+            width: min(420px, 92vw);
+            z-index: 1300;
+
+            background: linear-gradient(180deg, var(--panel), var(--panel2));
+            border-left: 1px solid var(--border);
+            box-shadow: var(--shadow-lg);
+            backdrop-filter: blur(12px);
+
+            transform: translateX(110%);
+            transition: transform 0.22s ease;
+            display: flex;
+            flex-direction: column;
+        }
+        #assetsDrawer.is-open {
+            transform: translateX(0);
+        }
+
+        #assetsDrawer .drawer-header {
+            padding: 16px 16px 12px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 10px;
+        }
+        #assetsDrawer .drawer-title {
+            font-weight: 900;
+            font-size: 16px;
+        }
+        #assetsDrawer .drawer-subtitle {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        #assetsDrawer .drawer-close {
+            background: none;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            width: 34px;
+            height: 34px;
+            cursor: pointer;
+            color: var(--muted);
+            font-weight: 900;
+        }
+        #assetsDrawer .drawer-close:hover {
+            border-color: color-mix(in srgb, var(--accent) 45%, transparent);
+            color: var(--text);
+        }
+
+        #assetsDrawer .drawer-tabs {
+            padding: 10px 12px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+        }
+        #assetsDrawer .assets-tab {
+            padding: 7px 10px;
+            border-radius: 999px;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+            font-size: 12px;
+            cursor: pointer;
+            user-select: none;
+            color: var(--muted);
+            font-weight: 800;
+        }
+        #assetsDrawer .assets-tab.is-active {
+            border-color: var(--accent);
+            background: color-mix(in srgb, var(--accent) 10%, transparent);
+            color: var(--text);
+        }
+
+        #assetsDrawer .drawer-body {
+            padding: 12px 12px 10px;
+            overflow: auto;
+            flex: 1;
+        }
+
+        #assetsDrawer .drawer-footer {
+            padding: 12px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        #assetsDrawer .asset-search {
+            width: 100%;
+            margin-bottom: 10px;
+        }
+
+        #assetsDrawer .asset-section {
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid var(--border);
+        }
+
+        #assetsDrawer .asset-item {
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            background: color-mix(in srgb, var(--bg2) 70%, transparent);
+            margin-bottom: 10px;
+        }
+        #assetsDrawer .asset-item-title {
+            font-weight: 900;
+            font-size: 13px;
+            color: var(--text);
+        }
+        #assetsDrawer .asset-item-meta {
+            margin-top: 4px;
+            font-size: 12px;
+            color: var(--muted);
+        }
+        #assetsDrawer .asset-actions {
+            margin-top: 10px;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+        #assetsDrawer .asset-actions .btn {
+            padding: 8px 12px;
+        }
+
+        #assetsDrawer .drawer-note {
+            margin-top: 10px;
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border);
+            background: color-mix(in srgb, var(--accent) 8%, transparent);
+        }
+
+        /* =========================
            Responsive
         ========================= */
         @media (max-width: 420px) {
@@ -665,6 +819,7 @@
             .mode-btn { min-width: 120px; padding: 12px; }
             .input-box input { padding: 14px 14px; font-size: 15px; }
             .toast { left: 12px; right: 12px; bottom: 14px; width: auto; }
+            #assetsDrawer { width: 100vw; }
         }
     </style>
 </head>
@@ -673,8 +828,8 @@
 {
     "tool_id": "origin-cognitive-calibration",
     "tool_name": "源流 Origin - 认知校准系统",
-    "tool_version": "1.0.0",
-    "description": "从源头级大师学习，建立个人审美坐标系"
+    "tool_version": "1.1.0",
+    "description": "从源头级大师学习，建立个人审美坐标系（本地资产化：可导出/导入/Markdown/PDF打印）"
 }
 </script>
 
@@ -690,6 +845,9 @@
             </div>
             <div class="header-controls">
                 <span class="pill" id="keyStatusPill">检查中...</span>
+
+                <button class="btn secondary" id="openAssetsBtn" type="button">我的资产</button>
+
                 <a href="key-manager.html" target="_blank" class="btn secondary">管理 API Key</a>
                 <select id="themeSelect" style="padding: 8px 12px;">
                     <option value="auto">跟随系统</option>
@@ -889,6 +1047,32 @@
     </div>
 </div>
 
+<!-- Drawer overlay + drawer -->
+<div id="assetsOverlay"></div>
+<aside id="assetsDrawer" aria-hidden="true">
+    <div class="drawer-header">
+        <div>
+            <div class="drawer-title">我的资产</div>
+            <div class="drawer-subtitle" id="assetsSubtitle">本地存储：检查中…</div>
+        </div>
+        <button class="drawer-close" id="closeAssetsBtn" type="button" aria-label="close">×</button>
+    </div>
+
+    <div class="drawer-tabs" id="assetsTabs"></div>
+
+    <div class="drawer-body">
+        <input class="asset-search" id="assetsSearchInput" type="text" placeholder="搜索（大师/技法/日记）…" />
+        <div id="assetsBody"></div>
+        <div class="drawer-note hint" id="assetsNote">
+            本工具不使用后台数据库：数据默认保存在本地浏览器（localStorage）。建议在“备份”中导出 JSON 以防清缓存丢失。
+        </div>
+    </div>
+
+    <div class="drawer-footer" id="assetsFooter"></div>
+
+    <input id="assetsImportFile" type="file" accept="application/json" style="display:none;" />
+</aside>
+
 <div class="toast" id="toast"></div>
 
 <script>
@@ -907,7 +1091,7 @@ function storageAvailable() {
 }
 
 /* -----------------------------
- * 1) AI Module (full) + model list optimization
+ * 1) AI Module (unchanged from last fixed version)
  * ----------------------------- */
 const AI_MODULE = (() => {
     const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
@@ -980,9 +1164,7 @@ const AI_MODULE = (() => {
         return `${b}/${p}`;
     }
 
-    function getProvider(providerId) {
-        return AI_PROVIDERS[providerId];
-    }
+    function getProvider(providerId) { return AI_PROVIDERS[providerId]; }
 
     function getMergedProviderConfig(providerId) {
         const p = getProvider(providerId);
@@ -1148,8 +1330,7 @@ const AI_MODULE = (() => {
 
             const text = await resp.text();
             let json = null;
-            const parsed = safeJsonParse(text);
-            if (parsed.ok) json = parsed.value;
+            try { json = JSON.parse(text); } catch {}
 
             if (!resp.ok) {
                 const e = new Error(`平台错误: HTTP ${resp.status} ${resp.statusText}\n${text.slice(0, 800)}`);
@@ -1422,7 +1603,7 @@ const AI_MODULE = (() => {
 })();
 
 /* -----------------------------
- * 2) App state & helpers
+ * 2) App state & helpers + new storage keys (Phase 2/3)
  * ----------------------------- */
 const STORAGE_KEYS = {
     MASTERS: "origin_masters_v1",
@@ -1433,7 +1614,17 @@ const STORAGE_KEYS = {
     CHECKLIST_LAST: "origin_checklist_last_v1",
     CHECKLIST_STATE: "origin_checklist_state_v1",
     MORNING_TODAY: "origin_morning_today_v1",
-    MORNING_JOURNAL: "origin_morning_journal_v1"
+    MORNING_JOURNAL: "origin_morning_journal_v1",
+
+    AUDIT_LOG: "origin_audit_log_v1",
+    ASSET_BUNDLE_LAST: "origin_asset_bundle_last_v1",
+    RESULTS_CACHE: "origin_results_cache_v1"
+};
+
+const LIMITS = {
+    AUDIT_LOG_MAX: 300,
+    MORNING_JOURNAL_MAX: 200,
+    CHECKLIST_STATE_DAYS_MAX: 30
 };
 
 function escapeHtml(str) {
@@ -1448,7 +1639,7 @@ function showToast(message, type = "success") {
     const toast = document.getElementById("toast");
     toast.textContent = message;
     toast.className = `toast ${type} show`;
-    setTimeout(() => { toast.className = "toast"; }, 3000);
+    setTimeout(() => { toast.className = "toast"; }, 2800);
 }
 
 function safeJsonParseGlobal(str) {
@@ -1456,6 +1647,192 @@ function safeJsonParseGlobal(str) {
     catch (e) { return { ok: false, error: String(e) }; }
 }
 
+function safeLoadJson(key, fallback) {
+    try {
+        if (!AppState.storage_ok) return fallback;
+        const raw = localStorage.getItem(key);
+        if (!raw) return fallback;
+        const parsed = safeJsonParseGlobal(raw);
+        if (!parsed.ok) return fallback;
+        return parsed.value;
+    } catch {
+        return fallback;
+    }
+}
+
+function safeSaveJson(key, value) {
+    try {
+        if (!AppState.storage_ok) return false;
+        localStorage.setItem(key, JSON.stringify(value));
+        return true;
+    } catch {
+        return false;
+    }
+}
+
+function nowISO() { return new Date().toISOString(); }
+
+function highlightElementById(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    const old = el.style.boxShadow;
+    el.style.boxShadow = "0 0 0 3px " + "color-mix(in srgb, var(--accent) 25%, transparent)";
+    setTimeout(() => { el.style.boxShadow = old || ""; }, 900);
+}
+
+/* -----------------------------
+ * 2.1) Audit log (Phase 1/2)
+ * ----------------------------- */
+function auditLogAdd(evt) {
+    if (!AppState.storage_ok) return false;
+    const entry = {
+        at: nowISO(),
+        ...evt
+    };
+    const arr = safeLoadJson(STORAGE_KEYS.AUDIT_LOG, []);
+    const next = Array.isArray(arr) ? arr : [];
+    next.push(entry);
+    const trimmed = next.slice(-LIMITS.AUDIT_LOG_MAX);
+    return safeSaveJson(STORAGE_KEYS.AUDIT_LOG, trimmed);
+}
+
+function toastSaved({ where, count, extra = "" }) {
+    const tail = (typeof count === "number") ? ` · 当前 ${count}` : "";
+    const ex = extra ? ` · ${extra}` : "";
+    showToast(`已保存到「${where}」${tail}${ex}`, "success");
+}
+
+function toastDeleted({ what, count }) {
+    const tail = (typeof count === "number") ? ` · 当前 ${count}` : "";
+    showToast(`已删除：${what}${tail}`, "warn");
+}
+
+/* -----------------------------
+ * 2.2) Copy / Download helpers (Phase 3)
+ * ----------------------------- */
+async function copyTextWithFallback(text) {
+    const s = String(text || "");
+    try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+            await navigator.clipboard.writeText(s);
+            showToast("已复制", "success");
+            return true;
+        }
+    } catch {}
+    // fallback
+    try {
+        const ta = document.createElement("textarea");
+        ta.value = s;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        ta.style.top = "0";
+        document.body.appendChild(ta);
+        ta.focus();
+        ta.select();
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        showToast(ok ? "已复制" : "复制失败", ok ? "success" : "error");
+        return ok;
+    } catch {
+        showToast("复制失败", "error");
+        return false;
+    }
+}
+
+function downloadTextFile(filename, text, mime = "text/plain;charset=utf-8") {
+    try {
+        const blob = new Blob([String(text || "")], { type: mime });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement("a");
+        a.href = url;
+        a.download = filename;
+        a.click();
+        URL.revokeObjectURL(url);
+        return true;
+    } catch (e) {
+        console.warn("downloadTextFile failed:", e);
+        return false;
+    }
+}
+
+function downloadJsonFile(filename, obj) {
+    return downloadTextFile(filename, JSON.stringify(obj, null, 2), "application/json;charset=utf-8");
+}
+
+function openPrintView({ title, contentText }) {
+    const t = String(title || "导出");
+    const bodyText = String(contentText || "");
+    const w = window.open("", "_blank");
+    if (!w) {
+        showToast("弹窗被拦截：请允许弹窗后重试", "error");
+        return false;
+    }
+    const html = `
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>${escapeHtml(t)}</title>
+<style>
+    @page { margin: 16mm; }
+    body { font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif; color:#111; background:#fff; }
+    h1 { font-size: 18px; margin: 0 0 10px; }
+    .meta { color:#555; font-size:12px; margin-bottom: 12px; }
+    pre { white-space: pre-wrap; word-break: break-word; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace; font-size: 12px; line-height: 1.6; }
+</style>
+</head>
+<body>
+    <h1>${escapeHtml(t)}</h1>
+    <div class="meta">导出时间：${escapeHtml(nowISO())}（请在系统打印对话框选择“另存为 PDF”）</div>
+    <pre>${escapeHtml(bodyText)}</pre>
+    <script>
+        setTimeout(() => { window.print(); }, 200);
+    <\/script>
+</body>
+</html>`;
+    w.document.open();
+    w.document.write(html);
+    w.document.close();
+    return true;
+}
+
+/* -----------------------------
+ * 2.3) Last result cache (Phase 3)
+ * ----------------------------- */
+const LastResult = {
+    mode: "",
+    data: null,
+    at: "",
+    set(mode, data) {
+        this.mode = String(mode || "");
+        this.data = data;
+        this.at = nowISO();
+        if (AppState.storage_ok) {
+            const payload = { mode: this.mode, at: this.at, data: data };
+            // avoid huge cache
+            const text = JSON.stringify(payload);
+            if (text.length <= 180000) {
+                safeSaveJson(STORAGE_KEYS.RESULTS_CACHE, payload);
+            } else {
+                safeSaveJson(STORAGE_KEYS.RESULTS_CACHE, { mode: this.mode, at: this.at, data: { _raw_text: "结果过大，未缓存。" } });
+            }
+        }
+        updateResultsActionBar();
+    },
+    loadFromStorage() {
+        const cached = safeLoadJson(STORAGE_KEYS.RESULTS_CACHE, null);
+        if (cached && typeof cached === "object" && cached.mode) {
+            this.mode = cached.mode;
+            this.at = cached.at || "";
+            this.data = cached.data ?? null;
+        }
+    }
+};
+
+/* -----------------------------
+ * 2.4) AppState (add removeSkill) + state save audit
+ * ----------------------------- */
 const AppState = {
     masters: [],
     skills: [],
@@ -1481,7 +1858,9 @@ const AppState = {
         try {
             localStorage.setItem(STORAGE_KEYS.MASTERS, JSON.stringify(this.masters));
             localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(this.skills));
+            auditLogAdd({ type: "save", entity: "app_state", ok: true, key: "MASTERS/SKILLS" });
         } catch (e) {
+            auditLogAdd({ type: "save", entity: "app_state", ok: false, key: "MASTERS/SKILLS", error: String(e) });
             console.error("Failed to save state:", e);
         }
     },
@@ -1507,11 +1886,19 @@ const AppState = {
             return true;
         }
         return false;
+    },
+
+    removeSkill(name, from) {
+        const before = this.skills.length;
+        this.skills = this.skills.filter(s => !(s.name === name && s.from === from));
+        const after = this.skills.length;
+        if (after !== before) this.save();
+        return after !== before;
     }
 };
 
 /* -----------------------------
- * 3) PROMPTS v2 (PROMPTS_JSON + adapter)
+ * 3) PROMPTS v2 (same as before) + MODE_HELP
  * ----------------------------- */
 const PROMPTS_JSON = {
     "source": {
@@ -1553,62 +1940,19 @@ function tpl(str, vars) {
 }
 
 const PROMPTS = {
-    source: {
-        system: PROMPTS_JSON.source.system,
-        user: (skill) => tpl(PROMPTS_JSON.source.user_template, { skill })
-    },
-    deconstruct: {
-        system: PROMPTS_JSON.deconstruct.system,
-        user: (master, focus = "") => tpl(PROMPTS_JSON.deconstruct.user_template, {
-            master,
-            focus_line: focus ? `聚焦：${focus}` : ""
-        })
-    },
-    transfer: {
-        system: PROMPTS_JSON.transfer.system,
-        user: (technique, master, scenario, constraints = "") => tpl(PROMPTS_JSON.transfer.user_template, {
-            technique,
-            master,
-            scenario,
-            constraints_line: constraints ? `场景约束：${constraints}` : ""
-        })
-    },
-    navigate: {
-        system: PROMPTS_JSON.navigate.system,
-        user: (master, time_budget = "不限", level = "入门") => tpl(PROMPTS_JSON.navigate.user_template, {
-            master,
-            time_budget,
-            level
-        })
-    },
-    diagnose: {
-        system: PROMPTS_JSON.diagnose.system,
-        user: (masterNames, user_domain = "内容创作") => tpl(PROMPTS_JSON.diagnose.user_template, {
-            masters_joined: (masterNames || []).join("、"),
-            user_domain
-        })
-    },
+    source: { system: PROMPTS_JSON.source.system, user: (skill) => tpl(PROMPTS_JSON.source.user_template, { skill }) },
+    deconstruct: { system: PROMPTS_JSON.deconstruct.system, user: (master, focus = "") => tpl(PROMPTS_JSON.deconstruct.user_template, { master, focus_line: focus ? `聚焦：${focus}` : "" }) },
+    transfer: { system: PROMPTS_JSON.transfer.system, user: (technique, master, scenario, constraints = "") => tpl(PROMPTS_JSON.transfer.user_template, { technique, master, scenario, constraints_line: constraints ? `场景约束：${constraints}` : "" }) },
+    navigate: { system: PROMPTS_JSON.navigate.system, user: (master, time_budget = "不限", level = "入门") => tpl(PROMPTS_JSON.navigate.user_template, { master, time_budget, level }) },
+    diagnose: { system: PROMPTS_JSON.diagnose.system, user: (masterNames, user_domain = "内容创作") => tpl(PROMPTS_JSON.diagnose.user_template, { masters_joined: (masterNames || []).join("、"), user_domain }) },
     checklist: {
         system: PROMPTS_JSON.checklist.system,
         user: ({ user_domain, constraints, skills }) => {
-            const bullets = (skills || [])
-                .map(s => `- ${s.name}（来自：${s.from}）`)
-                .join("\n") || "- （空）";
-            return tpl(PROMPTS_JSON.checklist.user_template, {
-                user_domain: user_domain || "通用写作",
-                constraints: constraints || "无",
-                skills_bullets: bullets
-            });
+            const bullets = (skills || []).map(s => `- ${s.name}（来自：${s.from}）`).join("\n") || "- （空）";
+            return tpl(PROMPTS_JSON.checklist.user_template, { user_domain: user_domain || "通用写作", constraints: constraints || "无", skills_bullets: bullets });
         }
     },
-    morning: {
-        system: PROMPTS_JSON.morning.system,
-        user: ({ date, master_names, mode_hint }) => tpl(PROMPTS_JSON.morning.user_template, {
-            date,
-            masters_joined: (master_names || []).join("、") || "（空）",
-            mode_hint: mode_hint || "均衡"
-        })
-    }
+    morning: { system: PROMPTS_JSON.morning.system, user: ({ date, master_names, mode_hint }) => tpl(PROMPTS_JSON.morning.user_template, { date, masters_joined: (master_names || []).join("、") || "（空）", mode_hint: mode_hint || "均衡" }) }
 };
 
 const MODE_HELP = {
@@ -1647,7 +1991,7 @@ function setModeUI(mode) {
 }
 
 /* -----------------------------
- * 4) Validation (mode-aware)
+ * 4) Validation
  * ----------------------------- */
 function isTooGeneric(s) {
     const t = String(s || "").trim();
@@ -1766,7 +2110,7 @@ function fillTransferAssistFromQuickInput() {
 }
 
 /* -----------------------------
- * 6) Compass (P7)
+ * 6) Compass (same as before)
  * ----------------------------- */
 function normalizeCoordValue(dim, v) {
     const s = String(v || "").trim();
@@ -1860,7 +2204,7 @@ function computeCompassFromMasters(masters) {
 function saveCompassSnapshot(snapshot, reason = "auto") {
     if (!AppState.storage_ok) return;
     try {
-        localStorage.setItem(STORAGE_KEYS.COMPASS_SNAPSHOT, JSON.stringify({ ...snapshot, reason, saved_at: new Date().toISOString() }));
+        localStorage.setItem(STORAGE_KEYS.COMPASS_SNAPSHOT, JSON.stringify({ ...snapshot, reason, saved_at: nowISO() }));
 
         const dayKey = new Date().toISOString().slice(0, 10);
         const raw = localStorage.getItem(STORAGE_KEYS.COMPASS_HISTORY) || "[]";
@@ -1871,8 +2215,9 @@ function saveCompassSnapshot(snapshot, reason = "auto") {
             arr.push({ day: dayKey, masters_count: snapshot.masters_count, coordinate_analysis: snapshot.coordinate_analysis });
             localStorage.setItem(STORAGE_KEYS.COMPASS_HISTORY, JSON.stringify(arr));
         }
+        auditLogAdd({ type: "save", entity: "compass_snapshot", ok: true, key: "COMPASS_SNAPSHOT/COMPASS_HISTORY", meta: { reason } });
     } catch (e) {
-        console.warn("saveCompassSnapshot failed:", e);
+        auditLogAdd({ type: "save", entity: "compass_snapshot", ok: false, key: "COMPASS_SNAPSHOT/COMPASS_HISTORY", error: String(e) });
     }
 }
 
@@ -1931,7 +2276,7 @@ function updateCompassVisual(input) {
 }
 
 /* -----------------------------
- * 7) Checklist (P8)
+ * 7) Checklist (same core) + cleanup old states (Phase 1/3)
  * ----------------------------- */
 function loadChecklistState(key) {
     try {
@@ -1953,8 +2298,35 @@ function saveChecklistState(key, stateObj) {
         const all = (parsed.ok && parsed.value && typeof parsed.value === "object") ? parsed.value : {};
         all[key] = stateObj || {};
         localStorage.setItem(STORAGE_KEYS.CHECKLIST_STATE, JSON.stringify(all));
+        auditLogAdd({ type: "save", entity: "checklist_state", ok: true, key: "CHECKLIST_STATE", meta: { state_key: key } });
     } catch (e) {
-        console.warn("saveChecklistState failed:", e);
+        auditLogAdd({ type: "save", entity: "checklist_state", ok: false, key: "CHECKLIST_STATE", error: String(e) });
+    }
+}
+
+function pruneChecklistStateDays(maxDays = LIMITS.CHECKLIST_STATE_DAYS_MAX) {
+    try {
+        if (!AppState.storage_ok) return false;
+        const raw = localStorage.getItem(STORAGE_KEYS.CHECKLIST_STATE) || "{}";
+        const parsed = safeJsonParseGlobal(raw);
+        const all = (parsed.ok && parsed.value && typeof parsed.value === "object") ? parsed.value : {};
+        const keys = Object.keys(all);
+        if (keys.length === 0) return true;
+
+        const cutoff = new Date(Date.now() - maxDays * 86400000);
+        const kept = {};
+        keys.forEach(k => {
+            const day = String(k).split(":")[0] || "";
+            const dt = new Date(day);
+            if (!isNaN(dt.getTime()) && dt >= cutoff) {
+                kept[k] = all[k];
+            }
+        });
+
+        localStorage.setItem(STORAGE_KEYS.CHECKLIST_STATE, JSON.stringify(kept));
+        return true;
+    } catch {
+        return false;
     }
 }
 
@@ -2024,8 +2396,11 @@ function renderChecklistResults(data, { stateKey }) {
 
     if (AppState.storage_ok) {
         try {
-            localStorage.setItem(STORAGE_KEYS.CHECKLIST_LAST, JSON.stringify({ ...data, saved_at: new Date().toISOString(), state_key: stateKey }));
-        } catch {}
+            localStorage.setItem(STORAGE_KEYS.CHECKLIST_LAST, JSON.stringify({ ...data, saved_at: nowISO(), state_key: stateKey }));
+            auditLogAdd({ type: "save", entity: "checklist_last", ok: true, key: "CHECKLIST_LAST", meta: { state_key: stateKey } });
+        } catch (e) {
+            auditLogAdd({ type: "save", entity: "checklist_last", ok: false, key: "CHECKLIST_LAST", error: String(e) });
+        }
     }
 
     container.innerHTML = `
@@ -2078,8 +2453,7 @@ function renderChecklistResults(data, { stateKey }) {
     `;
 
     document.getElementById("copyChecklistMdBtn")?.addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(md); showToast("已复制"); }
-        catch { showToast("复制失败", "error"); }
+        await copyTextWithFallback(md);
     });
 
     container.querySelectorAll("input[type='checkbox'][data-checkid]").forEach(cb => {
@@ -2091,37 +2465,18 @@ function renderChecklistResults(data, { stateKey }) {
             next[id] = cb.checked === true;
             saveChecklistState(k, next);
             FLOW_updateAll();
+            updateAssetsButtonLabel();
         });
     });
+
+    // cache last result for exports
+    LastResult.set("checklist", data);
 }
 
 /* -----------------------------
- * 8) Morning (P9)
+ * 8) Morning (P9) + journal trim
  * ----------------------------- */
 let MorningState = { today: null };
-
-function safeLoadJson(key, fallback) {
-    try {
-        if (!AppState.storage_ok) return fallback;
-        const raw = localStorage.getItem(key);
-        if (!raw) return fallback;
-        const parsed = safeJsonParseGlobal(raw);
-        if (!parsed.ok) return fallback;
-        return parsed.value;
-    } catch {
-        return fallback;
-    }
-}
-
-function safeSaveJson(key, value) {
-    try {
-        if (!AppState.storage_ok) return false;
-        localStorage.setItem(key, JSON.stringify(value));
-        return true;
-    } catch {
-        return false;
-    }
-}
 
 function pickFromArray(arr) {
     if (!Array.isArray(arr) || arr.length === 0) return null;
@@ -2223,6 +2578,8 @@ function renderMorning(data) {
 
     if (saveBtn) saveBtn.disabled = false;
     if (copyBtn) copyBtn.disabled = false;
+
+    LastResult.set("morning", data);
 }
 
 function updateMorningJournalUI() {
@@ -2276,6 +2633,16 @@ function updateMorningJournalUI() {
     }).join("");
 }
 
+function trimMorningJournal(maxN = LIMITS.MORNING_JOURNAL_MAX) {
+    const arr = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+    if (!Array.isArray(arr)) return false;
+    if (arr.length <= maxN) return true;
+    const trimmed = arr.slice(-maxN);
+    const ok = safeSaveJson(STORAGE_KEYS.MORNING_JOURNAL, trimmed);
+    auditLogAdd({ type: "trim", entity: "morning_journal", ok, key: "MORNING_JOURNAL", meta: { maxN } });
+    return ok;
+}
+
 async function generateMorning({ force = false } = {}) {
     const day = new Date().toISOString().slice(0, 10);
     if (!force) {
@@ -2296,6 +2663,7 @@ async function generateMorning({ force = false } = {}) {
     }
 
     safeSaveJson(STORAGE_KEYS.MORNING_TODAY, fallback);
+    auditLogAdd({ type: "save", entity: "morning_today", ok: true, key: "MORNING_TODAY", meta: { generated_by: fallback._generated_by } });
     renderMorning(fallback);
     FLOW_updateAll();
 }
@@ -2328,6 +2696,7 @@ async function generateMorningWithAI() {
             : { ...parsed, _generated_by: "ai_json" };
 
         safeSaveJson(STORAGE_KEYS.MORNING_TODAY, data);
+        auditLogAdd({ type: "save", entity: "morning_today", ok: true, key: "MORNING_TODAY", meta: { generated_by: data._generated_by } });
         renderMorning(data);
         FLOW_updateAll();
     } catch (err) {
@@ -2344,10 +2713,21 @@ async function saveMorningToJournal() {
 
     const arr = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
     const next = Array.isArray(arr) ? arr : [];
-    next.push({ saved_at: new Date().toISOString(), data });
-    safeSaveJson(STORAGE_KEYS.MORNING_JOURNAL, next);
-    updateMorningJournalUI();
-    showToast("已存入审美日记");
+    next.push({ saved_at: nowISO(), data });
+    const ok = safeSaveJson(STORAGE_KEYS.MORNING_JOURNAL, next);
+    trimMorningJournal();
+    auditLogAdd({ type: "save", entity: "morning_journal", ok, key: "MORNING_JOURNAL" });
+
+    if (ok) {
+        toastSaved({ where: "审美日记", count: next.length, extra: "可在“我的资产→日记”查看" });
+        const detailsEl = document.querySelector("#morningCard details");
+        if (detailsEl) detailsEl.open = true;
+        updateMorningJournalUI();
+        highlightElementById("morningJournal");
+        updateAssetsButtonLabel();
+    } else {
+        showToast("存档失败（可能是存储空间不足）", "error");
+    }
     FLOW_updateAll();
 }
 
@@ -2357,13 +2737,11 @@ async function copyMorningToday() {
 
     const src = data?.source?.master ? `来源：${data.source.master}\n` : "";
     const text = `${data.date || ""}\n${src}\n今日一口：${data.quote_or_scene || ""}\n\n注意：${(data.what_to_notice || []).join("；")}\n微作业：${data.micro_practice || ""}`.trim();
-
-    try { await navigator.clipboard.writeText(text); showToast("已复制"); }
-    catch { showToast("复制失败", "error"); }
+    await copyTextWithFallback(text);
 }
 
 /* -----------------------------
- * 9) AI parsing + error handling
+ * 9) AI parsing + schema checks (same)
  * ----------------------------- */
 function extractJsonFromCodeFence(text) {
     const s = String(text || "");
@@ -2462,65 +2840,8 @@ function showLoading() {
     `;
 }
 
-function renderFallbackAIResponse({ title, rawText, errorText }) {
-    const container = document.getElementById("resultsSection");
-    const safeRaw = escapeHtml(String(rawText || "").slice(0, 12000));
-    const safeErr = escapeHtml(String(errorText || ""));
-
-    container.innerHTML = `
-        <div class="result-card" style="border-left: 4px solid var(--warn);">
-            <h2 style="color: var(--warn);">${escapeHtml(title || "解析失败")}</h2>
-            <p class="hint" style="margin-top: 6px;">${safeErr}</p>
-            <pre class="log" style="margin-top: 12px;">${safeRaw}</pre>
-            <div class="row" style="margin-top: 12px;">
-                <button class="btn secondary" id="retryLastBtn" type="button">重试</button>
-                <button class="btn secondary" id="openAiSettingsBtn" type="button">打开 AI 设置</button>
-                <button class="btn secondary" id="copyRawBtn" type="button">复制原文</button>
-            </div>
-        </div>
-    `;
-
-    document.getElementById("retryLastBtn")?.addEventListener("click", async () => {
-        if (!AppState.lastRequest) { showToast("没有可重试的请求", "error"); return; }
-        await runLastRequest();
-    });
-    document.getElementById("openAiSettingsBtn")?.addEventListener("click", openAISettings);
-    document.getElementById("copyRawBtn")?.addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(String(rawText || "")); showToast("已复制"); }
-        catch { showToast("复制失败", "error"); }
-    });
-
-    FLOW_updateAll();
-}
-
-function showError(message) {
-    const container = document.getElementById("resultsSection");
-    container.innerHTML = `
-        <div class="result-card" style="border-left: 4px solid var(--bad);">
-            <h2 style="color: var(--bad);">出错了</h2>
-            <pre class="log" style="margin-top: 12px;">${escapeHtml(message)}</pre>
-            <div class="row" style="margin-top: 12px;">
-                <button class="btn secondary" id="retryLastBtn2" type="button">重试</button>
-                <button class="btn secondary" id="openAiSettingsBtn2" type="button">打开 AI 设置</button>
-                <button class="btn secondary" id="copyErrBtn2" type="button">复制错误</button>
-            </div>
-        </div>
-    `;
-    document.getElementById("retryLastBtn2")?.addEventListener("click", async () => {
-        if (!AppState.lastRequest) { showToast("没有可重试的请求", "error"); return; }
-        await runLastRequest();
-    });
-    document.getElementById("openAiSettingsBtn2")?.addEventListener("click", openAISettings);
-    document.getElementById("copyErrBtn2")?.addEventListener("click", async () => {
-        try { await navigator.clipboard.writeText(String(message || "")); showToast("已复制"); }
-        catch { showToast("复制失败", "error"); }
-    });
-
-    FLOW_updateAll();
-}
-
 /* -----------------------------
- * 10) Stepper (B档) with P0→P1 fixes
+ * 10) Stepper (unchanged core)
  * ----------------------------- */
 const FLOW_STATE = {
     produced: false,
@@ -2552,7 +2873,7 @@ function FLOW_getChecklistLastSavedAt() {
 }
 
 function FLOW_setSessionBaseline() {
-    FLOW_STATE.session_started_at = new Date().toISOString();
+    FLOW_STATE.session_started_at = nowISO();
     const journal = FLOW_safeGetLocalJson(STORAGE_KEYS.MORNING_JOURNAL, []);
     const journalCount = Array.isArray(journal) ? journal.length : 0;
     FLOW_STATE.baseline = {
@@ -2694,9 +3015,11 @@ function FLOW_updateNextActions(snapshot) {
     btnsEl.innerHTML = `
         <button class="btn secondary" type="button" id="nextActScrollMorning">去晨间校准</button>
         <button class="btn secondary" type="button" id="nextActFocusInput">回到输入区</button>
+        <button class="btn secondary" type="button" id="nextActOpenAssets">打开资产中心</button>
     `;
     document.getElementById("nextActScrollMorning")?.addEventListener("click", () => document.getElementById("morningCard")?.scrollIntoView({ behavior: "smooth", block: "start" }));
     document.getElementById("nextActFocusInput")?.addEventListener("click", () => document.getElementById("mainInput")?.focus());
+    document.getElementById("nextActOpenAssets")?.addEventListener("click", () => toggleAssetsDrawer(true));
 }
 
 function FLOW_updateAll() {
@@ -2729,13 +3052,958 @@ function FLOW_initObservers() {
         const hasEmpty = rs.querySelector(".empty-state") != null;
         if (hasResultCard && !hasEmpty) FLOW_STATE.produced = true;
         FLOW_updateAll();
+        updateResultsActionBar();
     });
 
     obs.observe(rs, { childList: true, subtree: false });
 }
 
 /* -----------------------------
- * 11) Rendering + run
+ * 11) Cross-module navigation helper (Phase 4)
+ * ----------------------------- */
+function setActiveModeButton(mode) {
+    document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
+    const btn = document.querySelector(`.mode-btn[data-mode="${mode}"]`);
+    if (btn) btn.classList.add("active");
+}
+
+function goToMode(mode, { inputValue = "", autoSubmit = false, focusId = "mainInput", transferSkillName = "", transferFromMaster = "" } = {}) {
+    AppState.currentMode = mode;
+    setActiveModeButton(mode);
+    setModeUI(mode);
+    refreshTransferAssistOptions();
+    validateAndToggleSubmit();
+    FLOW_updateAll();
+
+    if (typeof inputValue === "string") {
+        const input = document.getElementById("mainInput");
+        if (inputValue && input) input.value = inputValue;
+    }
+
+    if (mode === "transfer") {
+        const techSel = document.getElementById("transferTechniqueSelect");
+        const masterSel = document.getElementById("transferMasterSelect");
+        if (transferSkillName) {
+            const idx = AppState.skills.findIndex(s => s.name === transferSkillName && (transferFromMaster ? s.from === transferFromMaster : true));
+            if (idx >= 0 && techSel) techSel.value = String(idx);
+        }
+        if (transferFromMaster && masterSel) {
+            const midx = AppState.masters.findIndex(m => m.name === transferFromMaster);
+            if (midx >= 0) masterSel.value = String(midx);
+        }
+    }
+
+    // focus
+    const f = document.getElementById(focusId);
+    if (f) f.focus();
+
+    if (autoSubmit === true) {
+        // As confirmed: default false. Keep here for future switch.
+        handleSubmit();
+    }
+}
+
+/* -----------------------------
+ * 12) Results action bar (Phase 3)
+ * ----------------------------- */
+function ensureResultsActionBar() {
+    const rs = document.getElementById("resultsSection");
+    if (!rs) return null;
+    let bar = document.getElementById("resultsActionBar");
+    if (bar) return bar;
+    bar = document.createElement("div");
+    bar.id = "resultsActionBar";
+    bar.innerHTML = `
+        <div style="padding: 12px 14px; border-radius: 16px; border: 1px solid var(--border); background: color-mix(in srgb, var(--bg2) 70%, transparent);">
+            <div style="display:flex; justify-content: space-between; gap: 10px; align-items: flex-start;">
+                <div>
+                    <div style="font-weight: 900;">结果导出</div>
+                    <div class="hint" id="resultsActionMeta">—</div>
+                </div>
+                <div class="row" id="resultsActionBtns" style="gap: 8px;"></div>
+            </div>
+        </div>
+    `;
+    const nextBar = document.getElementById("nextActionBar");
+    if (nextBar && nextBar.nextSibling) rs.insertBefore(bar, nextBar.nextSibling);
+    else rs.prepend(bar);
+    return bar;
+}
+
+function toMarkdown(mode, data) {
+    const m = String(mode || "");
+    const d = data || {};
+    const date = (new Date()).toISOString().slice(0, 10);
+
+    const header = (title) => `# ${title}\n\n* 导出日期：${date}\n* 模式：${m}\n\n`;
+
+    if (m === "source") {
+        const masters = Array.isArray(d.masters) ? d.masters : [];
+        let md = header(`源头探测：${d.skill || ""}`);
+        if (d.learning_strategy) md += `> ${d.learning_strategy}\n\n`;
+        masters.forEach((x, i) => {
+            md += `## ${i + 1}. ${x.name || ""}\n\n`;
+            md += `* 领域：${x.domain || ""}\n`;
+            md += `* 年代：${x.era || ""}\n`;
+            if (x.aesthetic_coordinates) {
+                const c = x.aesthetic_coordinates;
+                md += `* 坐标：温度${c.temperature || "中"} / 密度${c.density || "中"} / 攻击性${c.aggression || "中"} / 结构${c.structure || "中"}\n`;
+            }
+            if (x.why_source_level) md += `* 为什么源头：${x.why_source_level}\n`;
+            if (x.learnability_score) md += `* 可学性：${x.learnability_score}（${x.learnability_note || ""}）\n`;
+            if (x.masterpieces && Array.isArray(x.masterpieces) && x.masterpieces.length) {
+                md += `\n代表作：\n`;
+                x.masterpieces.forEach(w => md += `* ${w}\n`);
+            }
+            if (x.learn_what) md += `\n学什么：${x.learn_what}\n`;
+            if (x.learn_how) md += `\n怎么学：${x.learn_how}\n`;
+            md += `\n`;
+        });
+        if (Array.isArray(d.anti_patterns) && d.anti_patterns.length) {
+            md += `---\n\n## 需要规避的噪音源\n\n`;
+            d.anti_patterns.forEach(p => {
+                if (typeof p === "string") md += `* ${p}\n`;
+                else md += `* ${p.type || ""}：${p.why || ""}\n`;
+            });
+            md += `\n`;
+        }
+        if (d.meta_insight) md += `> 本质：${d.meta_insight}\n`;
+        return md.trim();
+    }
+
+    if (m === "deconstruct") {
+        let md = header(`四层拆解：${d.master || ""}`);
+        if (d.overview) md += `> ${d.overview}\n\n`;
+        const layers = d.layers || {};
+        const l1 = layers.L1_surface || {};
+        const l2 = layers.L2_structure || {};
+        const l3 = layers.L3_mental || {};
+        const l4 = layers.L4_meta || {};
+
+        const listFeatures = (arr) => (Array.isArray(arr) ? arr : []).map(x => `* ${x.feature || ""}（例：${x.example || ""}）`).join("\n");
+        const listPatterns = (arr) => (Array.isArray(arr) ? arr : []).map(x => `* ${x.pattern_name || ""}：${x.description || ""}\n    * 例：${x.example || ""}`).join("\n");
+        const listReps = (arr) => (Array.isArray(arr) ? arr : []).map(x => `* ${x.aspect || ""}：${x.content || ""}（置信：${x.confidence || ""}）`).join("\n");
+        const listBeliefs = (arr) => (Array.isArray(arr) ? arr : []).map(x => `* ${x.belief_type || ""}：${x.content || ""}（置信：${x.confidence || ""}）`).join("\n");
+
+        md += `## L1 表层特征\n\n${listFeatures(l1.features)}\n\n`;
+        md += `## L2 结构模式\n\n${listPatterns(l2.patterns)}\n\n`;
+        md += `## L3 心理表征\n\n${listReps(l3.representations)}\n\n`;
+        if (Array.isArray(l3.self_check_questions) && l3.self_check_questions.length) {
+            md += `自检问题：\n`;
+            l3.self_check_questions.forEach(q => md += `* ${q}\n`);
+            md += `\n`;
+        }
+        md += `## L4 元认知\n\n${listBeliefs(l4.beliefs)}\n\n`;
+
+        if (Array.isArray(d.extractable_skills) && d.extractable_skills.length) {
+            md += `---\n\n## 可提取技法\n\n`;
+            d.extractable_skills.forEach(s => {
+                md += `### ${s.skill_name || ""}（${s.from_layer || ""}）\n\n`;
+                if (s.description) md += `${s.description}\n\n`;
+                if (s.how_to_practice) md += `* 练习：${s.how_to_practice}\n`;
+                if (s.difficulty) md += `* 难度：${s.difficulty}\n`;
+                md += `\n`;
+            });
+        }
+
+        if (d.synthesis) {
+            md += `---\n\n## 总结\n\n`;
+            if (d.synthesis.one_sentence_essence) md += `* 一句话精华：${d.synthesis.one_sentence_essence}\n`;
+            if (d.synthesis.biggest_misconception) md += `* 常见误解：${d.synthesis.biggest_misconception}\n`;
+            if (d.synthesis.learning_path_suggestion) md += `* 学习路径：${d.synthesis.learning_path_suggestion}\n`;
+        }
+        return md.trim();
+    }
+
+    if (m === "transfer") {
+        let md = header(`迁移实验室：${d.technique || ""}`);
+        md += `* 来源：${d.source_master || ""}\n`;
+        md += `* 目标场景：${d.target_scenario || ""}\n`;
+        if (d.constraints) md += `* 约束：${d.constraints}\n`;
+        if (d.confidence_assessment?.overall_confidence) md += `* 把握：${d.confidence_assessment.overall_confidence}\n`;
+        md += `\n`;
+
+        const steps = d.steps || {};
+        const s1 = steps.step1_abstraction || {};
+        const s2 = steps.step2_mapping || {};
+        const s3 = steps.step3_variations || {};
+        const s4 = steps.step4_experiment || {};
+
+        md += `## Step 1 抽象\n\n`;
+        if (s1.master_specific_example) md += `* 大师做法：${s1.master_specific_example}\n`;
+        if (s1.abstracted_principle) md += `* 抽象原则：${s1.abstracted_principle}\n`;
+        if (s1.principle_formula) md += `* 公式：${s1.principle_formula}\n`;
+        if (s1.principle_essence) md += `* 本质：${s1.principle_essence}\n`;
+        md += `\n`;
+
+        md += `## Step 2 匹配\n\n`;
+        const mapTable = Array.isArray(s2.mapping_table) ? s2.mapping_table : [];
+        mapTable.forEach(row => {
+            md += `* ${row.original_element || ""} → ${row.target_element || ""}（适配：${row.adaptation_needed || ""}）\n`;
+        });
+        if (s2.unmappable_elements) md += `\n无法映射：${s2.unmappable_elements}\n`;
+        if (s2.constraint_impact) md += `\n约束影响：${s2.constraint_impact}\n`;
+        md += `\n`;
+
+        md += `## Step 3 变体\n\n`;
+        const vars = Array.isArray(s3.variations) ? s3.variations : [];
+        vars.forEach((v, i) => {
+            md += `### ${i + 1}. ${v.variation_name || ""}（${v.variation_type || ""}）\n\n`;
+            if (v.description) md += `${v.description}\n\n`;
+            if (v.concrete_example) md += `示例：\n\n${v.concrete_example}\n\n`;
+            if (Array.isArray(v.pros) && v.pros.length) md += `* 优点：${v.pros.join("、")}\n`;
+            if (Array.isArray(v.cons) && v.cons.length) md += `* 缺点：${v.cons.join("、")}\n`;
+            if (v.best_for) md += `* 适用：${v.best_for}\n`;
+            if (v.risk) md += `* 风险：${v.risk}\n`;
+            md += `\n`;
+        });
+
+        md += `## Step 4 实验\n\n`;
+        if (s4.experiment_design) md += `* 实验设计：${s4.experiment_design}\n`;
+        if (Array.isArray(s4.success_metrics) && s4.success_metrics.length) md += `* 成功指标：${s4.success_metrics.join("、")}\n`;
+        if (s4.minimum_sample) md += `* 最小样本：${s4.minimum_sample}\n`;
+        if (s4.iteration_guide) md += `* 迭代建议：${s4.iteration_guide}\n`;
+        md += `\n`;
+
+        if (d.next_steps) md += `---\n\n下一步：${d.next_steps}\n`;
+        return md.trim();
+    }
+
+    if (m === "navigate") {
+        let md = header(`作品导航：${d.master || ""}`);
+        if (d.total_works_overview) md += `> ${d.total_works_overview}\n\n`;
+
+        const path = d.learning_path || {};
+        const gw = path.gateway_work || null;
+
+        if (gw) {
+            md += `## 入门首选：${gw.title || ""}\n\n`;
+            if (gw.type) md += `* 类型：${gw.type}\n`;
+            if (gw.access) md += `* 获取：${gw.access}\n`;
+            if (gw.time_required) md += `* 耗时：${gw.time_required}\n`;
+            if (gw.why_start_here) md += `\n为什么从这里开始：${gw.why_start_here}\n\n`;
+            if (Array.isArray(gw.what_to_notice) && gw.what_to_notice.length) {
+                md += `看的时候注意：\n`;
+                gw.what_to_notice.forEach(x => md += `* ${x}\n`);
+                md += `\n`;
+            }
+            if (gw.homework) {
+                md += `作业：\n`;
+                if (gw.homework.observation) md += `* 观察：${gw.homework.observation}\n`;
+                if (gw.homework.practice) md += `* 练习：${gw.homework.practice}\n`;
+                md += `\n`;
+            }
+        }
+
+        const core = Array.isArray(path.core_works) ? path.core_works : [];
+        if (core.length) {
+            md += `---\n\n## 核心作品（按顺序）\n\n`;
+            core.forEach((w, i) => {
+                md += `### ${i + 1}. ${w.title || ""}\n\n`;
+                if (w.type) md += `* 类型：${w.type}\n`;
+                if (w.why_important) md += `* 重要性：${w.why_important}\n`;
+                if (Array.isArray(w.what_to_notice) && w.what_to_notice.length) md += `* 注意：${w.what_to_notice.join("；")}\n`;
+                if (w.builds_on) md += `* 承接：${w.builds_on}\n`;
+                if (w.homework) md += `* 作业：${w.homework}\n`;
+                md += `\n`;
+            });
+        }
+
+        const gems = Array.isArray(path.hidden_gems) ? path.hidden_gems : [];
+        if (gems.length) {
+            md += `---\n\n## 隐藏宝藏\n\n`;
+            gems.forEach(g => {
+                md += `* ${g.title || ""}：${g.unique_value || ""}\n`;
+            });
+            md += `\n`;
+        }
+
+        const skip = Array.isArray(path.skip_list) ? path.skip_list : [];
+        if (skip.length) {
+            md += `---\n\n## 可跳过\n\n`;
+            skip.forEach(s => {
+                md += `* ${s.title || ""}：${s.why_skip || ""}\n`;
+            });
+            md += `\n`;
+        }
+
+        if (d.milestone) {
+            md += `---\n\n## 里程碑\n\n`;
+            if (d.milestone.after_gateway) md += `* 完成入门后：${d.milestone.after_gateway}\n`;
+            if (d.milestone.after_core) md += `* 完成核心后：${d.milestone.after_core}\n`;
+            if (d.milestone.mastery_sign) md += `* 学到位标志：${d.milestone.mastery_sign}\n`;
+            md += `\n`;
+        }
+
+        if (d.personalized_advice) md += `> 个性化建议：${d.personalized_advice}\n`;
+        return md.trim();
+    }
+
+    if (m === "diagnose") {
+        let md = header(`审美诊断报告`);
+        md += `* 分析大师数：${Array.isArray(d.masters_analyzed) ? d.masters_analyzed.length : 0}\n`;
+        md += `* 领域：${d.user_domain || ""}\n\n`;
+
+        if (d.pattern_summary) md += `> ${d.pattern_summary}\n\n`;
+
+        const coords = d.coordinate_analysis || {};
+        const lines = [
+            ["温度", coords.temperature],
+            ["密度", coords.density],
+            ["攻击性", coords.aggression],
+            ["结构感", coords.structure]
+        ];
+        md += `## 四维分布\n\n`;
+        lines.forEach(([label, obj]) => {
+            const o = obj || {};
+            md += `* ${label}：${o.distribution || ""}（中心：${o.center_value || ""}，${o.spread || ""}）\n`;
+        });
+        md += `\n`;
+
+        const diag = d.diagnosis || {};
+        if (Array.isArray(diag.strengths) && diag.strengths.length) {
+            md += `## 优势\n\n`;
+            diag.strengths.forEach(x => md += `* ${x}\n`);
+            md += `\n`;
+        }
+        if (Array.isArray(diag.blind_spots) && diag.blind_spots.length) {
+            md += `## 盲区\n\n`;
+            diag.blind_spots.forEach(x => md += `* ${x}\n`);
+            md += `\n`;
+        }
+        if (diag.imbalance_risk) md += `偏科风险：${diag.imbalance_risk}\n\n`;
+        if (diag.style_prediction) md += `风格预测：${diag.style_prediction}\n\n`;
+
+        const rec = d.recommendations || {};
+        const exp = Array.isArray(rec.expand_boundary) ? rec.expand_boundary : [];
+        if (exp.length) {
+            md += `---\n\n## 拓展边界（补盲区）\n\n`;
+            exp.forEach(r => md += `* ${r.suggested_master || ""}：${r.why_recommend || ""}\n`);
+            md += `\n`;
+        }
+        const deep = Array.isArray(rec.deepen_strength) ? rec.deepen_strength : [];
+        if (deep.length) {
+            md += `---\n\n## 深化优势\n\n`;
+            deep.forEach(r => md += `* ${r.suggested_master || ""}：${r.why_recommend || ""}\n`);
+            md += `\n`;
+        }
+
+        if (d.evolution_insight) md += `> 演化建议：${d.evolution_insight}\n`;
+        return md.trim();
+    }
+
+    if (m === "morning") {
+        let md = header(`晨间校准`);
+        md += `* 日期：${d.date || ""}\n`;
+        md += `* 来源：${d.source?.master || ""}\n`;
+        if (d.source?.work_hint) md += `* 作品指向：${d.source.work_hint}\n`;
+        if (d.source?.note) md += `* 备注：${d.source.note}\n`;
+        md += `\n`;
+        md += `## 今日一口\n\n${d.quote_or_scene || ""}\n\n`;
+        md += `## 看的时候注意\n\n`;
+        (Array.isArray(d.what_to_notice) ? d.what_to_notice : []).forEach(x => md += `* ${x}\n`);
+        md += `\n## 30 秒微作业\n\n${d.micro_practice || ""}\n`;
+        return md.trim();
+    }
+
+    if (m === "checklist") {
+        return checklistToMarkdown(d);
+    }
+
+    // fallback
+    return header("结果") + "（当前模式未实现 Markdown 转换）";
+}
+
+function updateResultsActionBar() {
+    const rs = document.getElementById("resultsSection");
+    if (!rs) return;
+    const hasEmpty = rs.querySelector(".empty-state") != null;
+    const hasResultCard = rs.querySelector(".result-card") != null;
+    if (!hasResultCard || hasEmpty) {
+        const existing = document.getElementById("resultsActionBar");
+        if (existing) existing.style.display = "none";
+        return;
+    }
+
+    const bar = ensureResultsActionBar();
+    if (!bar) return;
+    bar.style.display = "block";
+
+    const meta = document.getElementById("resultsActionMeta");
+    const btns = document.getElementById("resultsActionBtns");
+    if (!meta || !btns) return;
+
+    const mode = LastResult.mode || AppState.currentMode;
+    meta.textContent = LastResult.at ? `最近结果：${mode} · ${LastResult.at}` : `最近结果：${mode}`;
+
+    btns.innerHTML = `
+        <button class="btn secondary" id="copyMdBtn" type="button">复制 Markdown</button>
+        <button class="btn secondary" id="downloadMdBtn" type="button">下载 .md</button>
+        <button class="btn secondary" id="printPdfBtn" type="button">导出 PDF（打印）</button>
+    `;
+
+    document.getElementById("copyMdBtn")?.addEventListener("click", async () => {
+        const md = toMarkdown(mode, LastResult.data || {});
+        await copyTextWithFallback(md);
+    });
+
+    document.getElementById("downloadMdBtn")?.addEventListener("click", () => {
+        const md = toMarkdown(mode, LastResult.data || {});
+        const day = new Date().toISOString().slice(0, 10);
+        const filename = `origin-${day}-${mode}.md`;
+        const ok = downloadTextFile(filename, md, "text/markdown;charset=utf-8");
+        if (ok) showToast("已下载", "success");
+        else showToast("下载失败", "error");
+    });
+
+    document.getElementById("printPdfBtn")?.addEventListener("click", () => {
+        const md = toMarkdown(mode, LastResult.data || {});
+        openPrintView({ title: `源流导出：${mode}`, contentText: md });
+    });
+}
+
+/* -----------------------------
+ * 13) Assets drawer (Phase 2/3)
+ * Tabs: 概览/大师/技法/清单/日记/坐标/备份
+ * ----------------------------- */
+const AssetsUI = {
+    open: false,
+    tab: "overview",
+    query: ""
+};
+
+const ASSET_TABS = [
+    { id: "overview", label: "概览" },
+    { id: "masters", label: "大师" },
+    { id: "skills", label: "技法" },
+    { id: "checklist", label: "清单" },
+    { id: "journal", label: "日记" },
+    { id: "compass", label: "坐标" },
+    { id: "backup", label: "备份" }
+];
+
+function toggleAssetsDrawer(open) {
+    AssetsUI.open = Boolean(open);
+    const drawer = document.getElementById("assetsDrawer");
+    const overlay = document.getElementById("assetsOverlay");
+    if (!drawer || !overlay) return;
+
+    if (AssetsUI.open) {
+        drawer.classList.add("is-open");
+        overlay.classList.add("is-open");
+        drawer.setAttribute("aria-hidden", "false");
+        renderAssetsDrawer();
+        setTimeout(() => document.getElementById("assetsSearchInput")?.focus(), 120);
+    } else {
+        drawer.classList.remove("is-open");
+        overlay.classList.remove("is-open");
+        drawer.setAttribute("aria-hidden", "true");
+    }
+}
+
+function setAssetsTab(tabId) {
+    AssetsUI.tab = String(tabId || "overview");
+    renderAssetsDrawer();
+}
+
+function setAssetsQuery(q) {
+    AssetsUI.query = String(q || "");
+    renderAssetsDrawer();
+}
+
+function getAssetCounts() {
+    const journal = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+    const audit = safeLoadJson(STORAGE_KEYS.AUDIT_LOG, []);
+    return {
+        masters: (AppState.masters || []).length,
+        skills: (AppState.skills || []).length,
+        journal: Array.isArray(journal) ? journal.length : 0,
+        audit: Array.isArray(audit) ? audit.length : 0
+    };
+}
+
+function updateAssetsButtonLabel() {
+    const btn = document.getElementById("openAssetsBtn");
+    if (!btn) return;
+    const c = getAssetCounts();
+    btn.textContent = `我的资产（${c.masters} 大师 / ${c.skills} 技法 / ${c.journal} 日记）`;
+}
+
+function renderAssetsTabs() {
+    const tabs = document.getElementById("assetsTabs");
+    if (!tabs) return;
+    tabs.innerHTML = ASSET_TABS.map(t => `
+        <div class="assets-tab ${AssetsUI.tab === t.id ? "is-active" : ""}" data-asset-tab="${t.id}">
+            ${escapeHtml(t.label)}
+        </div>
+    `).join("");
+    tabs.querySelectorAll("[data-asset-tab]").forEach(el => {
+        el.addEventListener("click", () => setAssetsTab(el.getAttribute("data-asset-tab")));
+    });
+}
+
+function renderAssetsOverview() {
+    const c = getAssetCounts();
+    const snap = safeLoadJson(STORAGE_KEYS.COMPASS_SNAPSHOT, null);
+    const lastChecklist = safeLoadJson(STORAGE_KEYS.CHECKLIST_LAST, null);
+    const lastBackup = safeLoadJson(STORAGE_KEYS.ASSET_BUNDLE_LAST, null);
+    const storageText = AppState.storage_ok ? "可用" : "不可用";
+
+    return `
+        <div class="asset-item">
+            <div class="asset-item-title">资产概览</div>
+            <div class="asset-item-meta">
+                本地存储：${escapeHtml(storageText)} · 大师 ${c.masters} · 技法 ${c.skills} · 日记 ${c.journal}
+            </div>
+            <div class="asset-actions">
+                <button class="btn secondary" type="button" id="assetsGoMorningBtn">去晨间校准</button>
+                <button class="btn secondary" type="button" id="assetsGoDiagnoseBtn">做审美诊断</button>
+            </div>
+        </div>
+
+        <div class="asset-item">
+            <div class="asset-item-title">最近派生资产</div>
+            <div class="asset-item-meta">
+                坐标快照：${snap?.saved_at ? escapeHtml(snap.saved_at) : "暂无"} · 清单：${lastChecklist?.saved_at ? escapeHtml(lastChecklist.saved_at) : "暂无"}
+            </div>
+        </div>
+
+        <div class="asset-item">
+            <div class="asset-item-title">备份建议</div>
+            <div class="asset-item-meta">
+                ${lastBackup?.exported_at ? `上次备份：${escapeHtml(lastBackup.exported_at)}` : "你还没有做过备份。建议在“备份”中导出 JSON。"}
+            </div>
+        </div>
+    `;
+}
+
+function filterByQuery(text) {
+    const q = String(AssetsUI.query || "").trim().toLowerCase();
+    if (!q) return true;
+    return String(text || "").toLowerCase().includes(q);
+}
+
+function renderAssetsMasters() {
+    const list = Array.isArray(AppState.masters) ? AppState.masters : [];
+    const filtered = list.filter(m => filterByQuery(m.name) || filterByQuery(m.domain));
+
+    if (!filtered.length) {
+        return `<div class="hint">暂无大师（或未匹配搜索）。你可以在“源头探测”结果里保存大师。</div>`;
+    }
+
+    return filtered.map(m => `
+        <div class="asset-item">
+            <div class="asset-item-title">${escapeHtml(m.name)}</div>
+            <div class="asset-item-meta">${escapeHtml(m.domain || "")}</div>
+            <div class="asset-actions">
+                <button class="btn secondary" type="button" data-asset-action="toNavigate" data-master="${escapeHtml(m.name)}">作品导航</button>
+                <button class="btn secondary" type="button" data-asset-action="toDeconstruct" data-master="${escapeHtml(m.name)}">拆解</button>
+                <button class="btn secondary" type="button" data-asset-action="deleteMaster" data-master="${escapeHtml(m.name)}">删除</button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderAssetsSkills() {
+    const list = Array.isArray(AppState.skills) ? AppState.skills : [];
+    const filtered = list.filter(s => filterByQuery(s.name) || filterByQuery(s.from));
+
+    if (!filtered.length) {
+        return `<div class="hint">暂无技法（或未匹配搜索）。你可以在“四层拆解”结果里保存技法。</div>`;
+    }
+
+    return filtered.map(s => `
+        <div class="asset-item">
+            <div class="asset-item-title">${escapeHtml(s.name)}</div>
+            <div class="asset-item-meta">来自：${escapeHtml(s.from || "")}</div>
+            <div class="asset-actions">
+                <button class="btn secondary" type="button" data-asset-action="toTransferSkill" data-skill="${escapeHtml(s.name)}" data-from="${escapeHtml(s.from || "")}">迁移</button>
+                <button class="btn secondary" type="button" data-asset-action="deleteSkill" data-skill="${escapeHtml(s.name)}" data-from="${escapeHtml(s.from || "")}">删除</button>
+            </div>
+        </div>
+    `).join("");
+}
+
+function renderAssetsChecklist() {
+    const last = safeLoadJson(STORAGE_KEYS.CHECKLIST_LAST, null);
+    if (!last) return `<div class="hint">暂无清单。你可以在右侧“创作检查清单”生成。</div>`;
+
+    const md = checklistToMarkdown(last);
+    return `
+        <div class="asset-item">
+            <div class="asset-item-title">${escapeHtml(last.checklist_title || "创作检查清单")}</div>
+            <div class="asset-item-meta">保存时间：${escapeHtml(last.saved_at || "")} · 载体：${escapeHtml(last.user_domain || "")}</div>
+            <div class="asset-actions">
+                <button class="btn secondary" type="button" id="assetsCopyChecklistMdBtn">复制 Markdown</button>
+                <button class="btn secondary" type="button" id="assetsDownloadChecklistMdBtn">下载 .md</button>
+                <button class="btn secondary" type="button" id="assetsPrintChecklistBtn">导出 PDF（打印）</button>
+            </div>
+        </div>
+        <div class="asset-item">
+            <div class="asset-item-title">预览</div>
+            <pre class="log">${escapeHtml(md.slice(0, 8000))}</pre>
+        </div>
+    `;
+}
+
+function renderAssetsJournal() {
+    const arr = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+    const list = Array.isArray(arr) ? arr : [];
+    const filtered = list.slice().reverse().filter(x => {
+        const d = x?.data || {};
+        return filterByQuery(d?.source?.master) || filterByQuery(d?.quote_or_scene) || filterByQuery(d?.date);
+    });
+
+    if (!filtered.length) {
+        return `<div class="hint">暂无日记（或未匹配搜索）。你可以在“晨间校准”里存入审美日记。</div>`;
+    }
+
+    const top = filtered.slice(0, 30);
+    return `
+        <div class="asset-item">
+            <div class="asset-item-title">审美日记（最近 ${Math.min(30, filtered.length)} 条）</div>
+            <div class="asset-item-meta">提示：长期使用建议定期备份（见“备份”）。</div>
+            <div class="asset-actions">
+                <button class="btn secondary" type="button" id="assetsExportJournalMdBtn">导出日记 Markdown</button>
+                <button class="btn secondary" type="button" id="assetsClearJournalBtn">清空日记</button>
+            </div>
+        </div>
+        ${top.map(x => {
+            const d = x?.data || {};
+            const savedAt = x?.saved_at ? new Date(x.saved_at).toLocaleString() : "";
+            return `
+                <div class="asset-item">
+                    <div class="asset-item-title">${escapeHtml(d.date || "")} · ${escapeHtml(d?.source?.master || "未知")}</div>
+                    <div class="asset-item-meta">${escapeHtml(savedAt)}</div>
+                    <div class="asset-item-meta">${escapeHtml((d.quote_or_scene || "").slice(0, 120))}</div>
+                </div>
+            `;
+        }).join("")}
+    `;
+}
+
+function renderAssetsCompass() {
+    const snap = safeLoadJson(STORAGE_KEYS.COMPASS_SNAPSHOT, null);
+    const hist = safeLoadJson(STORAGE_KEYS.COMPASS_HISTORY, []);
+    const history = Array.isArray(hist) ? hist : [];
+
+    return `
+        <div class="asset-item">
+            <div class="asset-item-title">坐标快照</div>
+            <div class="asset-item-meta">${snap?.saved_at ? `保存于：${escapeHtml(snap.saved_at)}（原因：${escapeHtml(snap.reason || "")}）` : "暂无快照"}</div>
+            <div class="asset-actions">
+                <button class="btn secondary" type="button" id="assetsExportCompassJsonBtn">导出坐标 JSON</button>
+            </div>
+        </div>
+        <div class="asset-item">
+            <div class="asset-item-title">坐标历史（最近 30 天）</div>
+            <div class="asset-item-meta">${history.length ? `记录数：${history.length}` : "暂无历史"}</div>
+            ${history.length ? `<pre class="log">${escapeHtml(JSON.stringify(history.slice(-30), null, 2).slice(0, 8000))}</pre>` : ""}
+        </div>
+    `;
+}
+
+function buildAssetBundle() {
+    const schema_version = 1;
+    const exported_at = nowISO();
+
+    const bundle = {
+        schema_version,
+        exported_at,
+        assets: {
+            masters: AppState.masters || [],
+            skills: AppState.skills || [],
+            morning_today: safeLoadJson(STORAGE_KEYS.MORNING_TODAY, null),
+            morning_journal: safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []),
+            compass_snapshot: safeLoadJson(STORAGE_KEYS.COMPASS_SNAPSHOT, null),
+            compass_history: safeLoadJson(STORAGE_KEYS.COMPASS_HISTORY, []),
+            checklist_last: safeLoadJson(STORAGE_KEYS.CHECKLIST_LAST, null),
+            checklist_state: safeLoadJson(STORAGE_KEYS.CHECKLIST_STATE, {}),
+            audit_log: safeLoadJson(STORAGE_KEYS.AUDIT_LOG, []),
+            theme: safeLoadJson(STORAGE_KEYS.THEME, "auto"),
+            results_cache: safeLoadJson(STORAGE_KEYS.RESULTS_CACHE, null)
+        },
+        notes: {
+            no_backend_db: true,
+            excludes_api_keys: true
+        }
+    };
+
+    return bundle;
+}
+
+function exportAssetBundle() {
+    if (!AppState.storage_ok) { showToast("本地存储不可用，无法导出", "error"); return; }
+    const day = new Date().toISOString().slice(0, 10);
+    const bundle = buildAssetBundle();
+    const ok = downloadJsonFile(`origin-backup-${day}.json`, bundle);
+    if (ok) {
+        safeSaveJson(STORAGE_KEYS.ASSET_BUNDLE_LAST, { exported_at: bundle.exported_at, schema_version: bundle.schema_version });
+        auditLogAdd({ type: "export_bundle", entity: "asset_bundle", ok: true, key: "ASSET_BUNDLE", meta: { day } });
+        showToast("已导出备份 JSON（不含 API Key）", "success");
+    } else {
+        auditLogAdd({ type: "export_bundle", entity: "asset_bundle", ok: false, key: "ASSET_BUNDLE" });
+        showToast("导出失败", "error");
+    }
+    updateAssetsButtonLabel();
+}
+
+function importAssetBundleFromObj(bundle) {
+    if (!AppState.storage_ok) { showToast("本地存储不可用，无法导入", "error"); return false; }
+    if (!bundle || typeof bundle !== "object") { showToast("导入文件格式不正确", "error"); return false; }
+
+    const ver = Number(bundle.schema_version || 0);
+    const assets = bundle.assets || bundle; // tolerate older formats
+    if (!assets || typeof assets !== "object") { showToast("导入文件缺少 assets", "error"); return false; }
+
+    if (ver && ver !== 1) {
+        showToast(`不支持的备份版本：${ver}`, "error");
+        return false;
+    }
+
+    // do NOT import API keys; we only write known asset keys
+    try {
+        localStorage.setItem(STORAGE_KEYS.MASTERS, JSON.stringify(Array.isArray(assets.masters) ? assets.masters : []));
+        localStorage.setItem(STORAGE_KEYS.SKILLS, JSON.stringify(Array.isArray(assets.skills) ? assets.skills : []));
+        localStorage.setItem(STORAGE_KEYS.MORNING_TODAY, JSON.stringify(assets.morning_today || null));
+        localStorage.setItem(STORAGE_KEYS.MORNING_JOURNAL, JSON.stringify(Array.isArray(assets.morning_journal) ? assets.morning_journal : []));
+        localStorage.setItem(STORAGE_KEYS.COMPASS_SNAPSHOT, JSON.stringify(assets.compass_snapshot || null));
+        localStorage.setItem(STORAGE_KEYS.COMPASS_HISTORY, JSON.stringify(Array.isArray(assets.compass_history) ? assets.compass_history : []));
+        localStorage.setItem(STORAGE_KEYS.CHECKLIST_LAST, JSON.stringify(assets.checklist_last || null));
+        localStorage.setItem(STORAGE_KEYS.CHECKLIST_STATE, JSON.stringify(assets.checklist_state || {}));
+        localStorage.setItem(STORAGE_KEYS.AUDIT_LOG, JSON.stringify(Array.isArray(assets.audit_log) ? assets.audit_log : []));
+        if (assets.theme) localStorage.setItem(STORAGE_KEYS.THEME, String(assets.theme));
+        if (assets.results_cache) localStorage.setItem(STORAGE_KEYS.RESULTS_CACHE, JSON.stringify(assets.results_cache));
+
+        auditLogAdd({ type: "import_bundle", entity: "asset_bundle", ok: true, key: "ASSET_BUNDLE", meta: { imported_at: nowISO() } });
+        return true;
+    } catch (e) {
+        auditLogAdd({ type: "import_bundle", entity: "asset_bundle", ok: false, key: "ASSET_BUNDLE", error: String(e) });
+        showToast("导入失败（可能是存储空间不足）", "error");
+        return false;
+    }
+}
+
+function renderAssetsBackup() {
+    const lastBackup = safeLoadJson(STORAGE_KEYS.ASSET_BUNDLE_LAST, null);
+    const audit = safeLoadJson(STORAGE_KEYS.AUDIT_LOG, []);
+    const a = Array.isArray(audit) ? audit.slice(-20).reverse() : [];
+    return `
+        <div class="asset-item">
+            <div class="asset-item-title">全量备份（JSON）</div>
+            <div class="asset-item-meta">
+                ${lastBackup?.exported_at ? `上次备份：${escapeHtml(lastBackup.exported_at)}` : "尚未备份。建议现在导出一份。"}
+            </div>
+            <div class="asset-actions">
+                <button class="btn secondary" type="button" id="assetsExportBundleBtn">导出全部资产(JSON)</button>
+                <button class="btn secondary" type="button" id="assetsImportBundleBtn">导入资产(JSON)</button>
+            </div>
+            <div class="hint" style="margin-top: 8px;">
+                说明：备份不包含 API Key（为了安全）。导入会覆盖当前资产（大师/技法/日记/清单/坐标）。
+            </div>
+        </div>
+
+        <div class="asset-item">
+            <div class="asset-item-title">保存日志（最近 20 条）</div>
+            ${a.length ? `<pre class="log">${escapeHtml(JSON.stringify(a, null, 2).slice(0, 8000))}</pre>` : `<div class="hint">暂无日志</div>`}
+        </div>
+    `;
+}
+
+function renderAssetsDrawer() {
+    renderAssetsTabs();
+
+    const subtitle = document.getElementById("assetsSubtitle");
+    if (subtitle) {
+        const storageText = AppState.storage_ok ? "可用" : "不可用（无痕/权限/配额）";
+        const c = getAssetCounts();
+        subtitle.textContent = `本地存储：${storageText} · 大师 ${c.masters} · 技法 ${c.skills} · 日记 ${c.journal}`;
+    }
+
+    const body = document.getElementById("assetsBody");
+    const search = document.getElementById("assetsSearchInput");
+    const footer = document.getElementById("assetsFooter");
+    if (!body || !search || !footer) return;
+
+    search.value = AssetsUI.query || "";
+    search.disabled = !["masters", "skills", "journal"].includes(AssetsUI.tab);
+
+    let html = "";
+    if (AssetsUI.tab === "overview") html = renderAssetsOverview();
+    else if (AssetsUI.tab === "masters") html = renderAssetsMasters();
+    else if (AssetsUI.tab === "skills") html = renderAssetsSkills();
+    else if (AssetsUI.tab === "checklist") html = renderAssetsChecklist();
+    else if (AssetsUI.tab === "journal") html = renderAssetsJournal();
+    else if (AssetsUI.tab === "compass") html = renderAssetsCompass();
+    else if (AssetsUI.tab === "backup") html = renderAssetsBackup();
+    else html = renderAssetsOverview();
+
+    body.innerHTML = html;
+
+    footer.innerHTML = `
+        <button class="btn secondary" type="button" id="assetsCopyLastMdBtn">复制最近结果 MD</button>
+        <button class="btn secondary" type="button" id="assetsPrintLastBtn">打印最近结果</button>
+    `;
+
+    document.getElementById("assetsCopyLastMdBtn")?.addEventListener("click", async () => {
+        const mode = LastResult.mode || AppState.currentMode;
+        const md = toMarkdown(mode, LastResult.data || {});
+        await copyTextWithFallback(md);
+    });
+
+    document.getElementById("assetsPrintLastBtn")?.addEventListener("click", () => {
+        const mode = LastResult.mode || AppState.currentMode;
+        const md = toMarkdown(mode, LastResult.data || {});
+        openPrintView({ title: `源流导出：${mode}`, contentText: md });
+    });
+
+    // bind overview actions
+    document.getElementById("assetsGoMorningBtn")?.addEventListener("click", () => {
+        toggleAssetsDrawer(false);
+        document.getElementById("morningCard")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+    document.getElementById("assetsGoDiagnoseBtn")?.addEventListener("click", () => {
+        toggleAssetsDrawer(false);
+        goToMode("diagnose", { focusId: "submitBtn" });
+    });
+
+    // bind list actions
+    body.querySelectorAll("[data-asset-action]").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const action = btn.getAttribute("data-asset-action");
+            if (action === "toNavigate") {
+                const name = btn.getAttribute("data-master") || "";
+                toggleAssetsDrawer(false);
+                goToMode("navigate", { inputValue: name, focusId: "mainInput" });
+            } else if (action === "toDeconstruct") {
+                const name = btn.getAttribute("data-master") || "";
+                toggleAssetsDrawer(false);
+                goToMode("deconstruct", { inputValue: name, focusId: "mainInput" });
+            } else if (action === "toTransferSkill") {
+                const skill = btn.getAttribute("data-skill") || "";
+                const from = btn.getAttribute("data-from") || "";
+                toggleAssetsDrawer(false);
+                goToMode("transfer", { transferSkillName: skill, transferFromMaster: from, focusId: "transferScenarioInput" });
+            } else if (action === "deleteMaster") {
+                const name = btn.getAttribute("data-master") || "";
+                if (!name) return;
+                const ok = confirm(`确认删除大师「${name}」？\n\n这不会影响你导出的备份，但会影响诊断/迁移的可选项。`);
+                if (!ok) return;
+                AppState.removeMaster(name);
+                auditLogAdd({ type: "delete", entity: "master", ok: true, key: "MASTERS", meta: { name } });
+                toastDeleted({ what: `大师「${name}」`, count: AppState.masters.length });
+                renderMasterList();
+                refreshTransferAssistOptions();
+                const snap = computeCompassFromMasters(AppState.masters);
+                saveCompassSnapshot(snap, "remove_master");
+                updateCompassVisual(snap);
+                updateAssetsButtonLabel();
+                renderAssetsDrawer();
+            } else if (action === "deleteSkill") {
+                const skill = btn.getAttribute("data-skill") || "";
+                const from = btn.getAttribute("data-from") || "";
+                if (!skill) return;
+                const ok = confirm(`确认删除技法「${skill}」${from ? `（来自：${from}）` : ""}？`);
+                if (!ok) return;
+                const removed = AppState.removeSkill(skill, from);
+                auditLogAdd({ type: "delete", entity: "skill", ok: removed, key: "SKILLS", meta: { name: skill, from } });
+                if (removed) toastDeleted({ what: `技法「${skill}」`, count: AppState.skills.length });
+                else showToast("未找到该技法", "warn");
+                renderSkillList();
+                refreshTransferAssistOptions();
+                updateAssetsButtonLabel();
+                renderAssetsDrawer();
+            }
+        });
+    });
+
+    // bind checklist actions
+    document.getElementById("assetsCopyChecklistMdBtn")?.addEventListener("click", async () => {
+        const last = safeLoadJson(STORAGE_KEYS.CHECKLIST_LAST, null);
+        if (!last) return;
+        await copyTextWithFallback(checklistToMarkdown(last));
+    });
+    document.getElementById("assetsDownloadChecklistMdBtn")?.addEventListener("click", () => {
+        const last = safeLoadJson(STORAGE_KEYS.CHECKLIST_LAST, null);
+        if (!last) return;
+        const day = new Date().toISOString().slice(0, 10);
+        downloadTextFile(`origin-${day}-checklist.md`, checklistToMarkdown(last), "text/markdown;charset=utf-8");
+        showToast("已下载", "success");
+    });
+    document.getElementById("assetsPrintChecklistBtn")?.addEventListener("click", () => {
+        const last = safeLoadJson(STORAGE_KEYS.CHECKLIST_LAST, null);
+        if (!last) return;
+        openPrintView({ title: "源流导出：检查清单", contentText: checklistToMarkdown(last) });
+    });
+
+    // bind journal actions
+    document.getElementById("assetsExportJournalMdBtn")?.addEventListener("click", () => {
+        const arr = safeLoadJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+        const list = Array.isArray(arr) ? arr : [];
+        const mdLines = [];
+        mdLines.push(`# 审美日记（导出）`);
+        mdLines.push(``);
+        mdLines.push(`* 导出时间：${nowISO()}`);
+        mdLines.push(`* 条目数：${list.length}`);
+        mdLines.push(``);
+        list.forEach(x => {
+            const d = x?.data || {};
+            mdLines.push(`---`);
+            mdLines.push(`## ${d.date || ""} · ${d?.source?.master || "未知"}`);
+            mdLines.push(``);
+            mdLines.push(`今日一口：${d.quote_or_scene || ""}`);
+            mdLines.push(``);
+            const nt = Array.isArray(d.what_to_notice) ? d.what_to_notice : [];
+            if (nt.length) {
+                mdLines.push(`看的时候注意：`);
+                nt.forEach(t => mdLines.push(`* ${t}`));
+                mdLines.push(``);
+            }
+            if (d.micro_practice) {
+                mdLines.push(`微作业：${d.micro_practice}`);
+                mdLines.push(``);
+            }
+        });
+        const day = new Date().toISOString().slice(0, 10);
+        downloadTextFile(`origin-${day}-journal.md`, mdLines.join("\n"), "text/markdown;charset=utf-8");
+        showToast("已导出日记 Markdown", "success");
+        auditLogAdd({ type: "export_md", entity: "morning_journal", ok: true, key: "MORNING_JOURNAL" });
+    });
+
+    document.getElementById("assetsClearJournalBtn")?.addEventListener("click", () => {
+        const ok = confirm("确认清空审美日记？\n\n清空后无法恢复（除非你有备份 JSON）。");
+        if (!ok) return;
+        const saved = safeSaveJson(STORAGE_KEYS.MORNING_JOURNAL, []);
+        auditLogAdd({ type: "clear", entity: "morning_journal", ok: saved, key: "MORNING_JOURNAL" });
+        if (saved) showToast("已清空日记", "warn");
+        updateMorningJournalUI();
+        updateAssetsButtonLabel();
+        renderAssetsDrawer();
+    });
+
+    // bind compass export
+    document.getElementById("assetsExportCompassJsonBtn")?.addEventListener("click", () => {
+        const snap = safeLoadJson(STORAGE_KEYS.COMPASS_SNAPSHOT, null);
+        const hist = safeLoadJson(STORAGE_KEYS.COMPASS_HISTORY, []);
+        const data = { compass_snapshot: snap, compass_history: hist, exported_at: nowISO() };
+        const day = new Date().toISOString().slice(0, 10);
+        downloadJsonFile(`origin-${day}-compass.json`, data);
+        showToast("已导出坐标 JSON", "success");
+        auditLogAdd({ type: "export_json", entity: "compass", ok: true, key: "COMPASS_SNAPSHOT/COMPASS_HISTORY" });
+    });
+
+    // bind backup actions
+    document.getElementById("assetsExportBundleBtn")?.addEventListener("click", exportAssetBundle);
+    document.getElementById("assetsImportBundleBtn")?.addEventListener("click", () => {
+        const input = document.getElementById("assetsImportFile");
+        if (!input) return;
+        input.value = "";
+        input.click();
+    });
+}
+
+/* -----------------------------
+ * 14) Rendering + Phase 4 button hooks
  * ----------------------------- */
 let aiModule = null;
 let __lastSourceMasters = [];
@@ -2761,12 +4029,14 @@ function renderMasterList() {
     container.querySelectorAll(".remove-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             AppState.removeMaster(btn.dataset.name);
+            auditLogAdd({ type: "delete", entity: "master", ok: true, key: "MASTERS", meta: { name: btn.dataset.name } });
             renderMasterList();
             refreshTransferAssistOptions();
             validateAndToggleSubmit();
             const snap = computeCompassFromMasters(AppState.masters);
             saveCompassSnapshot(snap, "remove_master");
             updateCompassVisual(snap);
+            updateAssetsButtonLabel();
             FLOW_updateAll();
         });
     });
@@ -2818,8 +4088,9 @@ function renderSourceResults(data) {
                 <p style="margin: 12px 0; font-size: 14px;">${escapeHtml(m.why_source_level || "")}</p>
 
                 <div class="row" style="margin-top: 16px;">
-                    <button class="btn secondary save-master-btn" data-idx="${idx}">保存到图谱</button>
-                    <button class="btn secondary deconstruct-btn" data-name="${escapeHtml(m.name)}">深度拆解</button>
+                    <button class="btn secondary save-master-btn" data-idx="${idx}" type="button">保存到图谱</button>
+                    <button class="btn secondary navigate-btn" data-name="${escapeHtml(m.name)}" type="button">作品导航</button>
+                    <button class="btn secondary deconstruct-btn" data-name="${escapeHtml(m.name)}" type="button">拆解</button>
                 </div>
             </div>
         `;
@@ -2833,17 +4104,27 @@ function renderSourceResults(data) {
             const master = __lastSourceMasters[idx];
             if (!master) return;
 
-            if (AppState.addMaster(master)) {
+            const added = AppState.addMaster(master);
+            if (added) {
                 btn.textContent = "已保存";
                 btn.disabled = true;
+
+                auditLogAdd({ type: "save", entity: "master", ok: true, key: "MASTERS", meta: { name: master.name } });
+                toastSaved({ where: "大师图谱", count: AppState.masters.length, extra: "可在右侧/资产中心查看" });
+                highlightElementById("masterList");
+
                 renderMasterList();
                 refreshTransferAssistOptions();
+
                 const snap = computeCompassFromMasters(AppState.masters);
                 saveCompassSnapshot(snap, "add_master");
                 updateCompassVisual(snap);
+
+                updateAssetsButtonLabel();
             } else {
                 btn.textContent = "已保存";
                 btn.disabled = true;
+                showToast("大师已在图谱中", "warn");
             }
             FLOW_updateAll();
         });
@@ -2851,17 +4132,19 @@ function renderSourceResults(data) {
 
     container.querySelectorAll(".deconstruct-btn").forEach(btn => {
         btn.addEventListener("click", () => {
-            document.getElementById("mainInput").value = btn.dataset.name;
-            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
-            document.querySelector('[data-mode="deconstruct"]').classList.add("active");
-            AppState.currentMode = "deconstruct";
-            setModeUI(AppState.currentMode);
-            validateAndToggleSubmit();
-            FLOW_updateAll();
-            handleSubmit();
+            const name = btn.dataset.name || "";
+            goToMode("deconstruct", { inputValue: name, focusId: "mainInput", autoSubmit: false });
         });
     });
 
+    container.querySelectorAll(".navigate-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const name = btn.dataset.name || "";
+            goToMode("navigate", { inputValue: name, focusId: "mainInput", autoSubmit: false });
+        });
+    });
+
+    LastResult.set("source", data);
     FLOW_updateAll();
 }
 
@@ -2887,7 +4170,10 @@ function renderDeconstructResults(data) {
                             <span class="variation-distance">${escapeHtml(s.from_layer || "")}</span>
                         </div>
                         <p class="hint">${escapeHtml(s.description || "")}</p>
-                        <button class="btn secondary save-skill-btn" data-idx="${idx}">保存技法</button>
+                        <div class="row" style="margin-top: 10px;">
+                            <button class="btn secondary save-skill-btn" data-idx="${idx}" type="button">保存技法</button>
+                            <button class="btn secondary transfer-skill-btn" data-skill="${escapeHtml(s.skill_name || "")}" data-from="${escapeHtml(data.master || "")}" type="button">迁移这个技法</button>
+                        </div>
                     </div>
                 `).join("")}
             </div>
@@ -2908,22 +4194,40 @@ function renderDeconstructResults(data) {
                 description: String(s.description || "")
             };
 
-            if (AppState.addSkill(skill)) {
+            const added = AppState.addSkill(skill);
+            if (added) {
                 btn.textContent = "已保存";
                 btn.disabled = true;
+
+                auditLogAdd({ type: "save", entity: "skill", ok: true, key: "SKILLS", meta: { name: skill.name, from: skill.from } });
+                toastSaved({ where: "技法库", count: AppState.skills.length, extra: "迁移/清单会用到" });
+                highlightElementById("skillList");
+
                 renderSkillList();
                 refreshTransferAssistOptions();
+                updateAssetsButtonLabel();
             } else {
                 btn.textContent = "已保存";
                 btn.disabled = true;
+                showToast("技法已存在", "warn");
             }
             FLOW_updateAll();
         });
     });
 
+    container.querySelectorAll(".transfer-skill-btn").forEach(btn => {
+        btn.addEventListener("click", () => {
+            const skillName = btn.getAttribute("data-skill") || "";
+            const from = btn.getAttribute("data-from") || "";
+            goToMode("transfer", { transferSkillName: skillName, transferFromMaster: from, focusId: "transferScenarioInput", autoSubmit: false });
+        });
+    });
+
+    LastResult.set("deconstruct", data);
     FLOW_updateAll();
 }
 
+/* Transfer/Navigate/Diagnose renderers: same as last fixed version, with LastResult.set(...) added */
 function renderTransferResults(data) {
     const container = document.getElementById("resultsSection");
 
@@ -3041,6 +4345,7 @@ function renderTransferResults(data) {
         ` : ""}
     `;
 
+    LastResult.set("transfer", data);
     FLOW_updateAll();
 }
 
@@ -3150,6 +4455,7 @@ function renderNavigateResults(data) {
         ` : ""}
     `;
 
+    LastResult.set("navigate", data);
     FLOW_updateAll();
 }
 
@@ -3287,78 +4593,30 @@ function renderDiagnoseResults(data) {
         ` : ""}
     `;
 
-    const snap = {
-        masters_count: (data?.masters_analyzed || []).length,
-        coordinate_analysis: coords,
-        blindspots: []
-    };
+    const snap = { masters_count: (data?.masters_analyzed || []).length, coordinate_analysis: coords, blindspots: [] };
     saveCompassSnapshot(snap, "diagnose");
     updateCompassVisual(snap);
 
     container.querySelectorAll(".diagnoseToSourceBtn").forEach(btn => {
         btn.addEventListener("click", () => {
             const m = btn.getAttribute("data-master") || "";
-            document.getElementById("mainInput").value = m;
-            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
-            document.querySelector('[data-mode="source"]')?.classList.add("active");
-            AppState.currentMode = "source";
-            setModeUI(AppState.currentMode);
-            validateAndToggleSubmit();
-            FLOW_updateAll();
+            goToMode("source", { inputValue: m, focusId: "mainInput", autoSubmit: false });
         });
     });
 
     container.querySelectorAll(".diagnoseToNavigateBtn").forEach(btn => {
         btn.addEventListener("click", () => {
             const m = btn.getAttribute("data-master") || "";
-            document.getElementById("mainInput").value = m;
-            document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
-            document.querySelector('[data-mode="navigate"]')?.classList.add("active");
-            AppState.currentMode = "navigate";
-            setModeUI(AppState.currentMode);
-            validateAndToggleSubmit();
-            FLOW_updateAll();
+            goToMode("navigate", { inputValue: m, focusId: "mainInput", autoSubmit: false });
         });
     });
 
+    LastResult.set("diagnose", data);
     FLOW_updateAll();
 }
 
-async function runLastRequest() {
-    const req = AppState.lastRequest;
-    if (!req) return;
-
-    const s = aiModule.get_state();
-    if (!s.networking_enabled) {
-        showToast("请先开启联网", "error");
-        openAISettings();
-        return;
-    }
-
-    showLoading();
-    try {
-        const result = await aiModule.call_ai({ messages: req.messages });
-        let data = parseAIResponse(result.text);
-        data = normalizeResponseByMode(req.mode, data);
-        validateSchemaOrThrow(req.mode, data);
-
-        if (req.mode === "source") renderSourceResults(data);
-        else if (req.mode === "deconstruct") renderDeconstructResults(data);
-        else if (req.mode === "transfer") renderTransferResults(data);
-        else if (req.mode === "navigate") renderNavigateResults(data);
-        else if (req.mode === "diagnose") renderDiagnoseResults(data);
-        else renderFallbackAIResponse({ title: "重试成功", rawText: JSON.stringify(data, null, 2), errorText: "" });
-
-    } catch (err) {
-        const actionable = aiModule.get_actionable_error(err);
-        renderFallbackAIResponse({ title: "重试失败", rawText: "", errorText: actionable });
-    } finally {
-        FLOW_updateAll();
-    }
-}
-
 /* -----------------------------
- * 12) Submit handler
+ * 15) Submit handler + checklist runners
  * ----------------------------- */
 async function handleSubmit() {
     const mode = AppState.currentMode;
@@ -3433,7 +4691,7 @@ async function handleSubmit() {
             ];
         }
 
-        AppState.setLastRequest({ mode, messages, input, at: new Date().toISOString() });
+        AppState.setLastRequest({ mode, messages, input, at: nowISO() });
 
         const result = await aiModule.call_ai({ messages });
 
@@ -3443,11 +4701,22 @@ async function handleSubmit() {
             data = normalizeResponseByMode(mode, data);
             validateSchemaOrThrow(mode, data);
         } catch (e) {
-            renderFallbackAIResponse({
-                title: "AI 输出解析/结构失败（已降级）",
-                rawText: result.text,
-                errorText: String(e?.message || e)
-            });
+            document.getElementById("resultsSection").innerHTML = `
+                <div class="result-card" style="border-left: 4px solid var(--warn);">
+                    <h2 style="color: var(--warn);">AI 输出解析/结构失败（已降级）</h2>
+                    <div class="hint" style="margin-top: 6px;">${escapeHtml(String(e?.message || e))}</div>
+                    <pre class="log" style="margin-top: 12px;">${escapeHtml(result.text)}</pre>
+                    <div class="row" style="margin-top: 12px;">
+                        <button class="btn secondary" type="button" id="openAiSettingsBtnX">打开 AI 设置</button>
+                        <button class="btn secondary" type="button" id="copyRawBtnX">复制原文</button>
+                    </div>
+                </div>
+            `;
+            document.getElementById("openAiSettingsBtnX")?.addEventListener("click", openAISettings);
+            document.getElementById("copyRawBtnX")?.addEventListener("click", async () => copyTextWithFallback(result.text));
+            auditLogAdd({ type: "ai_parse_fail", entity: mode, ok: false, key: "AI_RESPONSE", meta: { at: nowISO() } });
+            FLOW_updateAll();
+            updateResultsActionBar();
             return;
         }
 
@@ -3457,18 +4726,30 @@ async function handleSubmit() {
         else if (mode === "navigate") renderNavigateResults(data);
         else if (mode === "diagnose") renderDiagnoseResults(data);
 
+        auditLogAdd({ type: "ai_success", entity: mode, ok: true, key: "AI_RESPONSE", meta: { at: nowISO() } });
+
     } catch (err) {
         console.error(err);
         const actionable = aiModule.get_actionable_error(err);
-        showError(actionable);
+        document.getElementById("resultsSection").innerHTML = `
+            <div class="result-card" style="border-left: 4px solid var(--bad);">
+                <h2 style="color: var(--bad);">出错了</h2>
+                <pre class="log" style="margin-top: 12px;">${escapeHtml(actionable)}</pre>
+                <div class="row" style="margin-top: 12px;">
+                    <button class="btn secondary" type="button" id="openAiSettingsBtnY">打开 AI 设置</button>
+                    <button class="btn secondary" type="button" id="copyErrBtnY">复制错误</button>
+                </div>
+            </div>
+        `;
+        document.getElementById("openAiSettingsBtnY")?.addEventListener("click", openAISettings);
+        document.getElementById("copyErrBtnY")?.addEventListener("click", async () => copyTextWithFallback(actionable));
+        auditLogAdd({ type: "ai_fail", entity: mode, ok: false, key: "AI_CALL", meta: { at: nowISO() } });
     } finally {
         FLOW_updateAll();
+        updateResultsActionBar();
     }
 }
 
-/* -----------------------------
- * 13) Checklist runners
- * ----------------------------- */
 function getChecklistContextFromUI() {
     const domain = document.getElementById("checklistDomain")?.value || "通用写作";
     const constraints = String(document.getElementById("checklistConstraints")?.value || "").trim();
@@ -3485,6 +4766,8 @@ async function runChecklistLocal() {
     const { user_domain, constraints } = getChecklistContextFromUI();
     const data = buildLocalChecklistData({ user_domain, constraints, skills: AppState.skills });
     renderChecklistResults(data, { stateKey: getChecklistStateKey(user_domain) });
+    toastSaved({ where: "检查清单", extra: "已在右侧生成" });
+    updateAssetsButtonLabel();
     FLOW_updateAll();
 }
 
@@ -3510,23 +4793,33 @@ async function runChecklistAI() {
         document.getElementById("resultsSection").innerHTML = `
             <div class="result-card">
                 <h2>检查清单已生成</h2>
-                <p class="hint">请在右侧查看/复制/勾选。</p>
+                <p class="hint">请在右侧查看/复制/勾选；也可在“我的资产→清单”导出。</p>
             </div>
         `;
 
         renderChecklistResults(parsed, { stateKey: getChecklistStateKey(user_domain) });
+        toastSaved({ where: "检查清单", extra: "可在资产中心导出" });
+        updateAssetsButtonLabel();
 
     } catch (err) {
         console.error(err);
         const actionable = aiModule.get_actionable_error(err);
-        showError(actionable);
+        showToast("生成失败", "error");
+        document.getElementById("resultsSection").innerHTML = `
+            <div class="result-card" style="border-left: 4px solid var(--bad);">
+                <h2 style="color: var(--bad);">清单生成失败</h2>
+                <pre class="log" style="margin-top: 12px;">${escapeHtml(actionable)}</pre>
+            </div>
+        `;
+        auditLogAdd({ type: "ai_fail", entity: "checklist", ok: false, key: "AI_CALL", meta: { at: nowISO() } });
     } finally {
         FLOW_updateAll();
+        updateResultsActionBar();
     }
 }
 
 /* -----------------------------
- * 14) Key status + theme (guarded)
+ * 16) Key status + theme
  * ----------------------------- */
 function applyTheme(mode) {
     if (mode === "light") document.documentElement.dataset.theme = "light";
@@ -3561,7 +4854,7 @@ function updateKeyStatus() {
 }
 
 /* -----------------------------
- * 15) Init (storage guard + AI module mount + stepper P0/P1)
+ * 17) Init
  * ----------------------------- */
 function init() {
     AppState.storage_ok = storageAvailable();
@@ -3584,30 +4877,38 @@ function init() {
     }
 
     AppState.load();
+    LastResult.loadFromStorage();
+    pruneChecklistStateDays();
+
     loadTheme();
     updateKeyStatus();
 
     renderMasterList();
     renderSkillList();
     refreshTransferAssistOptions();
+    updateAssetsButtonLabel();
 
     const snap = computeCompassFromMasters(AppState.masters);
     saveCompassSnapshot(snap, "init");
     updateCompassVisual(snap);
 
     updateMorningJournalUI();
+    trimMorningJournal();
     generateMorning({ force: false });
 
     FLOW_setSessionBaseline();
     FLOW_initObservers();
     FLOW_updateAll();
+    updateResultsActionBar();
 
+    // theme
     document.getElementById("themeSelect").addEventListener("change", (e) => {
         const mode = e.target.value;
         if (AppState.storage_ok) localStorage.setItem(STORAGE_KEYS.THEME, mode);
         applyTheme(mode);
     });
 
+    // quick tags
     document.querySelectorAll(".quick-tag[data-query]").forEach(tag => {
         tag.addEventListener("click", () => {
             document.getElementById("mainInput").value = tag.dataset.query;
@@ -3616,6 +4917,7 @@ function init() {
         });
     });
 
+    // mode buttons
     document.querySelectorAll(".mode-btn").forEach(btn => {
         btn.addEventListener("click", () => {
             document.querySelectorAll(".mode-btn").forEach(b => b.classList.remove("active"));
@@ -3629,6 +4931,7 @@ function init() {
         });
     });
 
+    // input change
     document.getElementById("mainInput").addEventListener("input", () => {
         if (AppState.currentMode === "transfer") fillTransferAssistFromQuickInput();
         validateAndToggleSubmit();
@@ -3639,6 +4942,7 @@ function init() {
         if (e.key === "Enter") handleSubmit();
     });
 
+    // transfer assists
     ["transferTechniqueSelect", "transferMasterSelect", "transferScenarioInput", "transferConstraintsInput"].forEach(id => {
         const el = document.getElementById(id);
         if (!el) return;
@@ -3646,15 +4950,19 @@ function init() {
         el.addEventListener("change", () => { validateAndToggleSubmit(); FLOW_updateAll(); });
     });
 
+    // submit
     document.getElementById("submitBtn").addEventListener("click", handleSubmit);
 
+    // checklist buttons
     document.getElementById("generateChecklistLocalBtn").addEventListener("click", runChecklistLocal);
     document.getElementById("generateChecklistAiBtn").addEventListener("click", runChecklistAI);
 
+    // morning buttons
     document.getElementById("refreshMorningBtn").addEventListener("click", () => generateMorningWithAI());
     document.getElementById("saveMorningBtn").addEventListener("click", saveMorningToJournal);
     document.getElementById("copyMorningBtn").addEventListener("click", copyMorningToday);
 
+    // export compass (existing)
     document.getElementById("exportCompassBtn").addEventListener("click", () => {
         if (!AppState.storage_ok) { showToast("本地存储不可用，无法导出", "error"); return; }
         const snapRaw = localStorage.getItem(STORAGE_KEYS.COMPASS_SNAPSHOT);
@@ -3664,18 +4972,59 @@ function init() {
             skills: AppState.skills,
             compass_snapshot: snapRaw ? JSON.parse(snapRaw) : null,
             compass_history: historyRaw ? JSON.parse(historyRaw) : [],
-            exported_at: new Date().toISOString()
+            exported_at: nowISO()
         };
-        const blob = new Blob([JSON.stringify(data, null, 2)], { type: "application/json" });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement("a");
-        a.href = url;
-        a.download = `origin-compass-${new Date().toISOString().slice(0, 10)}.json`;
-        a.click();
-        URL.revokeObjectURL(url);
-        showToast("已导出");
+        const day = new Date().toISOString().slice(0, 10);
+        downloadJsonFile(`origin-compass-${day}.json`, data);
+        showToast("已导出审美坐标系", "success");
+        auditLogAdd({ type: "export_json", entity: "compass", ok: true, key: "COMPASS_SNAPSHOT/COMPASS_HISTORY" });
+        updateAssetsButtonLabel();
     });
 
+    // assets drawer bindings
+    document.getElementById("openAssetsBtn")?.addEventListener("click", () => toggleAssetsDrawer(true));
+    document.getElementById("closeAssetsBtn")?.addEventListener("click", () => toggleAssetsDrawer(false));
+    document.getElementById("assetsOverlay")?.addEventListener("click", () => toggleAssetsDrawer(false));
+    document.getElementById("assetsSearchInput")?.addEventListener("input", (e) => setAssetsQuery(e.target.value));
+    document.addEventListener("keydown", (e) => {
+        if (e.key === "Escape" && AssetsUI.open) toggleAssetsDrawer(false);
+    });
+
+    document.getElementById("assetsImportFile")?.addEventListener("change", (e) => {
+        const file = e.target.files && e.target.files[0];
+        if (!file) return;
+        const ok = confirm("确认导入该备份？\n\n导入会覆盖当前资产（大师/技法/日记/清单/坐标）。\n不会导入 API Key。");
+        if (!ok) return;
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            try {
+                const obj = JSON.parse(String(reader.result || ""));
+                const imported = importAssetBundleFromObj(obj);
+                if (imported) {
+                    showToast("导入成功", "success");
+                    // refresh app state
+                    AppState.load();
+                    loadTheme();
+                    renderMasterList();
+                    renderSkillList();
+                    refreshTransferAssistOptions();
+                    updateMorningJournalUI();
+                    const snap = computeCompassFromMasters(AppState.masters);
+                    saveCompassSnapshot(snap, "import_bundle");
+                    updateCompassVisual(snap);
+                    LastResult.loadFromStorage();
+                    updateAssetsButtonLabel();
+                    renderAssetsDrawer();
+                }
+            } catch (err) {
+                showToast("导入失败：JSON 无效", "error");
+            }
+        };
+        reader.readAsText(file, "utf-8");
+    });
+
+    // initial UI hints
     setModeUI(AppState.currentMode);
     validateAndToggleSubmit();
 }
