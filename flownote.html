@@ -1,0 +1,2047 @@
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FlowNote - 极简笔记</title>
+    <style>
+        /* ========== CSS 变量系统（复用 key-manager 风格） ========== */
+        :root {
+            --bg: #f6f7fb;
+            --bg2: #ffffff;
+            --panel: rgba(255, 255, 255, 0.96);
+            --text: #0f172a;
+            --muted: #64748b;
+            --border: rgba(15, 23, 42, 0.10);
+            --accent: #2563eb;
+            --accent-light: #3b82f6;
+            --good: #059669;
+            --warn: #d97706;
+            --bad: #dc2626;
+            --radius: 12px;
+            --radius-sm: 8px;
+            --shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+            --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.04);
+            --mono: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+            --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            --transition: 0.2s ease;
+        }
+
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0b0f19;
+                --bg2: #111827;
+                --panel: rgba(17, 24, 39, 0.96);
+                --text: #f1f5f9;
+                --muted: #94a3b8;
+                --border: rgba(255, 255, 255, 0.10);
+                --accent: #60a5fa;
+                --accent-light: #93c5fd;
+                --shadow: 0 4px 24px rgba(0, 0, 0, 0.3);
+                --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.2);
+            }
+        }
+
+        /* ========== 基础重置 ========== */
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        html {
+            font-size: 16px;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body {
+            font-family: var(--sans);
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+            min-height: 100vh;
+        }
+
+        /* ========== 布局 ========== */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 24px;
+        }
+
+        header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            font-size: 32px;
+        }
+
+        .logo-text h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--text);
+        }
+
+        .logo-text p {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        .header-actions {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .main-grid {
+            display: grid;
+            grid-template-columns: 1fr 420px;
+            gap: 24px;
+            align-items: start;
+        }
+
+        @media (max-width: 1024px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* ========== 卡片 ========== */
+        .card {
+            background: var(--panel);
+            border-radius: var(--radius);
+            border: 1px solid var(--border);
+            box-shadow: var(--shadow-sm);
+            overflow: hidden;
+        }
+
+        .card-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+            font-weight: 600;
+            font-size: 15px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .card-body {
+            padding: 20px;
+        }
+
+        /* ========== 按钮 ========== */
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 10px 18px;
+            font-size: 14px;
+            font-weight: 500;
+            font-family: inherit;
+            border: none;
+            border-radius: var(--radius-sm);
+            cursor: pointer;
+            transition: all var(--transition);
+            text-decoration: none;
+            white-space: nowrap;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent-light);
+            transform: translateY(-1px);
+        }
+
+        .btn-secondary {
+            background: var(--bg);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: var(--bg2);
+            border-color: var(--accent);
+        }
+
+        .btn-sm {
+            padding: 6px 12px;
+            font-size: 13px;
+        }
+
+        .btn-icon {
+            padding: 8px;
+            border-radius: 8px;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ========== 输入区 ========== */
+        .input-section {
+            margin-bottom: 20px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 12px;
+        }
+
+        .input-wrapper textarea {
+            flex: 1;
+            padding: 14px 16px;
+            font-size: 15px;
+            font-family: inherit;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text);
+            resize: vertical;
+            min-height: 80px;
+            max-height: 200px;
+            transition: border-color var(--transition);
+        }
+
+        .input-wrapper textarea:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .input-wrapper textarea::placeholder {
+            color: var(--muted);
+        }
+
+        .input-hint {
+            font-size: 12px;
+            color: var(--muted);
+            margin-top: 8px;
+        }
+
+        /* ========== 时间流 ========== */
+        .timeline {
+            max-height: calc(100vh - 350px);
+            overflow-y: auto;
+        }
+
+        .timeline-empty {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--muted);
+        }
+
+        .timeline-empty-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+            opacity: 0.5;
+        }
+
+        .timeline-group {
+            margin-bottom: 24px;
+        }
+
+        .timeline-date {
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            padding: 8px 0;
+            position: sticky;
+            top: 0;
+            background: var(--panel);
+            z-index: 1;
+        }
+
+        .note-card {
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            padding: 14px 16px;
+            margin-bottom: 10px;
+            border: 1px solid transparent;
+            transition: all var(--transition);
+        }
+
+        .note-card:hover {
+            border-color: var(--border);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .note-card.rescued {
+            border-left: 3px solid var(--good);
+        }
+
+        .note-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .note-time {
+            font-size: 12px;
+            color: var(--muted);
+        }
+
+        .note-badges {
+            display: flex;
+            gap: 6px;
+        }
+
+        .badge {
+            font-size: 11px;
+            padding: 2px 8px;
+            border-radius: 10px;
+            font-weight: 500;
+        }
+
+        .badge-rescued {
+            background: rgba(5, 150, 105, 0.1);
+            color: var(--good);
+        }
+
+        .badge-count {
+            background: rgba(37, 99, 235, 0.1);
+            color: var(--accent);
+        }
+
+        .note-content {
+            font-size: 14px;
+            line-height: 1.7;
+            color: var(--text);
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .note-actions {
+            display: flex;
+            gap: 8px;
+            margin-top: 12px;
+            opacity: 0;
+            transition: opacity var(--transition);
+        }
+
+        .note-card:hover .note-actions {
+            opacity: 1;
+        }
+
+        .load-more {
+            text-align: center;
+            padding: 16px;
+        }
+
+        /* ========== AI 面板 ========== */
+        .ai-section .card-body {
+            padding: 0;
+        }
+
+        .ai-settings-mount {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ai-features {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .ai-features h3 {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--muted);
+            margin-bottom: 12px;
+        }
+
+        .feature-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 8px;
+        }
+
+        .feature-btn {
+            padding: 10px 12px;
+            font-size: 13px;
+            text-align: left;
+            justify-content: flex-start;
+        }
+
+        .ai-chat {
+            padding: 16px 20px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .chat-input-wrapper {
+            display: flex;
+            gap: 10px;
+        }
+
+        .chat-input-wrapper input {
+            flex: 1;
+            padding: 12px 14px;
+            font-size: 14px;
+            font-family: inherit;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-sm);
+            background: var(--bg);
+            color: var(--text);
+            transition: border-color var(--transition);
+        }
+
+        .chat-input-wrapper input:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .ai-output {
+            padding: 16px 20px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .ai-output-content {
+            font-size: 14px;
+            line-height: 1.8;
+            white-space: pre-wrap;
+            word-break: break-word;
+        }
+
+        .ai-output-content.empty {
+            color: var(--muted);
+            font-style: italic;
+        }
+
+        .ai-output-content.loading {
+            color: var(--accent);
+        }
+
+        .ai-output-content.error {
+            color: var(--bad);
+        }
+
+        /* ========== 统计栏 ========== */
+        .stats-bar {
+            display: flex;
+            gap: 24px;
+            padding: 12px 20px;
+            background: var(--bg);
+            border-radius: var(--radius-sm);
+            margin-bottom: 20px;
+        }
+
+        .stat-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .stat-value {
+            font-size: 20px;
+            font-weight: 700;
+            color: var(--accent);
+        }
+
+        .stat-label {
+            font-size: 13px;
+            color: var(--muted);
+        }
+
+        /* ========== 模态框 ========== */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            opacity: 0;
+            visibility: hidden;
+            transition: all var(--transition);
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal {
+            background: var(--panel);
+            border-radius: var(--radius);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform var(--transition);
+        }
+
+        .modal-overlay.active .modal {
+            transform: scale(1);
+        }
+
+        .modal-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .modal-header h2 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: 60vh;
+        }
+
+        .modal-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+        }
+
+        /* ========== 提示消息 ========== */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            padding: 14px 20px;
+            background: var(--panel);
+            border-radius: var(--radius-sm);
+            box-shadow: var(--shadow);
+            border: 1px solid var(--border);
+            font-size: 14px;
+            z-index: 1001;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s ease;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            border-left: 3px solid var(--good);
+        }
+
+        .toast.error {
+            border-left: 3px solid var(--bad);
+        }
+
+        /* ========== 滚动条 ========== */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--muted);
+        }
+
+        /* ========== 响应式 ========== */
+        @media (max-width: 640px) {
+            .container {
+                padding: 16px;
+            }
+
+            header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .header-actions {
+                width: 100%;
+            }
+
+            .header-actions .btn {
+                flex: 1;
+            }
+
+            .feature-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .stats-bar {
+                flex-wrap: wrap;
+                gap: 16px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- ========== 工具元数据（支持首页搜索） ========== -->
+    <script type="application/json" id="tool_meta">
+{
+    "tool_id": "flownote",
+    "tool_name": "FlowNote 极简笔记",
+    "tool_version": "1.0.0",
+    "description": "基于 Karpathy 方法论的 Append-Only 笔记工具，支持 AI 智能回顾、洞察挖掘、第二大脑对话。用时间代替分类，用注意力代替整理。",
+    "created_at": "2026-01-04",
+    "capabilities": {
+        "paste_first": true,
+        "file_input": true,
+        "download_output": true,
+        "url_state": false,
+        "local_draft": true,
+        "networking": true,
+        "ai": true
+    },
+    "inputs": ["paste_text", "file_upload"],
+    "outputs": ["copy_text", "download_file"],
+    "dependencies": [],
+    "ai_integration": {
+        "uses_key_manager": true,
+        "providers": ["siliconflow", "openrouter", "deepseek", "custom"],
+        "key_names": ["siliconflow_key", "openrouter_key", "deepseek_key", "custom_key"]
+    },
+    "tags": ["notes", "笔记", "pkm", "知识管理", "ai", "productivity", "效率", "append-only", "karpathy"],
+    "links": {
+        "source_repo": "",
+        "prompt_log": ""
+    }
+}
+</script>
+
+    <!-- ========== 页面结构 ========== -->
+    <div class="container">
+        <!-- 头部 -->
+        <header>
+            <div class="logo">
+                <span class="logo-icon">🌊</span>
+                <div class="logo-text">
+                    <h1>FlowNote</h1>
+                    <p>极简笔记 · 让想法自然流动</p>
+                </div>
+            </div>
+            <div class="header-actions">
+                <button class="btn btn-secondary" id="importBtn">📥 导入</button>
+                <button class="btn btn-secondary" id="exportBtn">📤 导出</button>
+                <a href="key-manager.html" class="btn btn-secondary" target="_blank">🔑 API 管理</a>
+            </div>
+        </header>
+
+        <!-- 主体 -->
+        <main class="main-grid">
+            <!-- 左栏：笔记区 -->
+            <section class="note-section">
+                <!-- 统计栏 -->
+                <div class="stats-bar">
+                    <div class="stat-item">
+                        <span class="stat-value" id="statTotal">0</span>
+                        <span class="stat-label">条笔记</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="statToday">0</span>
+                        <span class="stat-label">今日新增</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-value" id="statRescued">0</span>
+                        <span class="stat-label">已打捞</span>
+                    </div>
+                </div>
+
+                <!-- 输入区 -->
+                <div class="card">
+                    <div class="card-header">
+                        ✏️ 快速记录
+                    </div>
+                    <div class="card-body">
+                        <div class="input-section">
+                            <div class="input-wrapper">
+                                <textarea id="noteInput" placeholder="记点什么...&#10;&#10;只记事实，不用润色。"></textarea>
+                                <button class="btn btn-primary" id="addNoteBtn">添加</button>
+                            </div>
+                            <p class="input-hint">💡 Enter 发送，Shift+Enter 换行</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- 时间流 -->
+                <div class="card" style="margin-top: 20px;">
+                    <div class="card-header">
+                        📜 时间流
+                    </div>
+                    <div class="card-body" style="padding: 12px 20px;">
+                        <div class="timeline" id="timeline">
+                            <!-- 动态渲染 -->
+                        </div>
+                        <div class="load-more" id="loadMore" style="display: none;">
+                            <button class="btn btn-secondary btn-sm" id="loadMoreBtn">加载更多</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- 右栏：AI 面板 -->
+            <section class="ai-section card">
+                <div class="card-header">
+                    🤖 AI 助手
+                </div>
+                <div class="card-body">
+                    <!-- AI 设置挂载点 -->
+                    <div class="ai-settings-mount" id="aiSettingsMount"></div>
+
+                    <!-- AI 功能按钮 -->
+                    <div class="ai-features">
+                        <h3>智能功能</h3>
+                        <div class="feature-grid">
+                            <button class="btn btn-secondary feature-btn" data-feature="smart-review">🔍 智能回顾</button>
+                            <button class="btn btn-secondary feature-btn" data-feature="chat">💬 对话问答</button>
+                            <button class="btn btn-secondary feature-btn" data-feature="generate-report">📊
+                                生成报告</button>
+                            <button class="btn btn-secondary feature-btn" data-feature="discover-insights">💡
+                                挖掘洞察</button>
+                            <button class="btn btn-secondary feature-btn" data-feature="find-connections">🔗
+                                发现关联</button>
+                            <button class="btn btn-secondary feature-btn" data-feature="second-brain">🧠 第二大脑</button>
+                        </div>
+                    </div>
+
+                    <!-- 对话输入 -->
+                    <div class="ai-chat">
+                        <div class="chat-input-wrapper">
+                            <input type="text" id="chatInput" placeholder="问点什么...（基于你的笔记回答）">
+                            <button class="btn btn-primary" id="chatSendBtn">发送</button>
+                        </div>
+                    </div>
+
+                    <!-- AI 输出 -->
+                    <div class="ai-output">
+                        <div class="ai-output-content empty" id="aiOutput">
+                            AI 输出将显示在这里...
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- 导入模态框 -->
+    <div class="modal-overlay" id="importModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h2>📥 导入笔记</h2>
+                <button class="btn btn-icon btn-secondary" id="closeImportModal">✕</button>
+            </div>
+            <div class="modal-body">
+                <p style="margin-bottom: 16px; color: var(--muted);">支持导入 Markdown 或纯文本文件，每个段落将作为一条笔记。</p>
+                <input type="file" id="importFile" accept=".md,.txt,.markdown" style="margin-bottom: 16px;">
+                <p style="font-size: 13px; color: var(--muted);">或者直接粘贴内容：</p>
+                <textarea id="importText"
+                    style="width: 100%; height: 150px; margin-top: 8px; padding: 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-family: inherit; resize: vertical;"
+                    placeholder="粘贴笔记内容..."></textarea>
+                -radius: var(--radius-sm); background: var(--bg); color: var(--text); font-family: inherit; resize:
+                vertical;" placeholder="粘贴笔记内容..."></textarea>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancelImport">取消</button>
+                <button class="btn btn-primary" id="confirmImport">导入</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast 提示 -->
+    <div class="toast" id="toast"></div>
+
+    <!-- ========== AI_MODULE 代码 ========== -->
+    <script>
+        const AI_MODULE = (() => {
+            // ===== 配置 =====
+            const KM_PROVIDER_OVERRIDES_KEY = "km_provider_overrides_v1";
+            const DOMAIN_CONSENT_KEY = "ai_domain_consent_v1";
+
+            const ALLOWED_HOSTNAMES = [
+                "localhost",
+                "127.0.0.1",
+                "0.0.0.0",
+                // 添加您的域名
+            ];
+
+            const AI_PROVIDERS = {
+                "siliconflow": {
+                    name: "硅基流动 (SiliconFlow)",
+                    keyName: "siliconflow_key",
+                    baseUrl: "https://api.siliconflow.cn/v1",
+                    models: [
+                        { id: "Qwen/Qwen2.5-72B-Instruct", name: "Qwen 2.5 72B" },
+                        { id: "Qwen/Qwen2.5-32B-Instruct", name: "Qwen 2.5 32B" },
+                        { id: "Qwen/Qwen2.5-7B-Instruct", name: "Qwen 2.5 7B (Fast)" },
+                        { id: "deepseek-ai/DeepSeek-V3", name: "DeepSeek V3" },
+                        { id: "deepseek-ai/DeepSeek-R1", name: "DeepSeek R1" },
+                        { id: "Pro/zai-org/GLM-4.7", name: "GLM-4.7 Pro" },
+                        { id: "Pro/moonshotai/Kimi-K2-Thinking", name: "Kimi K2 Thinking" },
+                        { id: "Qwen/Qwen3-VL-32B-Thinking", name: "Qwen3 VL 32B Thinking" }
+                    ]
+                },
+                "openrouter": {
+                    name: "OpenRouter",
+                    keyName: "openrouter_key",
+                    baseUrl: "https://openrouter.ai/api/v1",
+                    models: [
+                        { id: "anthropic/claude-3.5-sonnet", name: "Claude 3.5 Sonnet" },
+                        { id: "openai/gpt-4o", name: "GPT-4o" },
+                        { id: "google/gemini-pro-1.5", name: "Gemini Pro 1.5" },
+                        { id: "meta-llama/llama-3.1-405b-instruct", name: "Llama 3.1 405B" },
+                        { id: "anthropic/claude-opus-4.5", name: "Claude Opus 4.5" },
+                        { id: "openai/gpt-5.2-pro", name: "GPT-5.2 Pro" },
+                        { id: "google/gemini-3-pro-preview", name: "Gemini 3 Pro Preview" }
+                    ]
+                },
+                "deepseek": {
+                    name: "DeepSeek Official",
+                    keyName: "deepseek_key",
+                    baseUrl: "https://api.deepseek.com",
+                    models: [
+                        { id: "deepseek-chat", name: "DeepSeek V3" },
+                        { id: "deepseek-reasoner", name: "DeepSeek R1" }
+                    ]
+                },
+                "custom": {
+                    name: "自定义 / Ollama",
+                    keyName: "custom_key",
+                    baseUrl: "http://localhost:11434/v1",
+                    models: [
+                        { id: "llama3.1", name: "Llama 3.1 (本地)" },
+                        { id: "qwen2.5", name: "Qwen 2.5 (本地)" }
+                    ],
+                    allowEmptyKey: true
+                }
+            };
+
+            // ===== 域名安全 =====
+            function getHostname() {
+                try {
+                    return window.location.hostname.toLowerCase();
+                } catch {
+                    return "";
+                }
+            }
+
+            function isDomainAllowed() {
+                const hostname = getHostname();
+                if (!hostname) return false;
+                return ALLOWED_HOSTNAMES.some(allowed =>
+                    hostname === allowed || hostname.endsWith("." + allowed)
+                );
+            }
+
+            function getDomainConsent() {
+                try {
+                    const data = localStorage.getItem(DOMAIN_CONSENT_KEY);
+                    if (!data) return {};
+                    return JSON.parse(data);
+                } catch {
+                    return {};
+                }
+            }
+
+            function setDomainConsent(hostname, allowed) {
+                try {
+                    const data = getDomainConsent();
+                    data[hostname] = { allowed, timestamp: Date.now() };
+                    localStorage.setItem(DOMAIN_CONSENT_KEY, JSON.stringify(data));
+                } catch { }
+            }
+
+            async function ensureDomainConsentOrThrow() {
+                if (isDomainAllowed()) return true;
+
+                const hostname = getHostname();
+                const consent = getDomainConsent()[hostname];
+
+                if (consent && consent.allowed) return true;
+
+                const confirmed = confirm(
+                    `⚠️ 安全提示\n\n` +
+                    `当前域名 "${hostname}" 不在预设白名单中。\n\n` +
+                    `继续操作将使用您配置的 API Key 发送请求。\n` +
+                    `请确认这是您信任的网站。\n\n` +
+                    `点击「确定」继续，点击「取消」中止。`
+                );
+
+                if (confirmed) {
+                    setDomainConsent(hostname, true);
+                    return true;
+                }
+
+                throw new Error("用户拒绝在此域名使用 API");
+            }
+
+            // ===== Key 管理 =====
+            function getKeyFromStorage(keyName) {
+                try {
+                    // 优先从 localStorage 读取
+                    let val = localStorage.getItem(keyName);
+                    if (val) return val;
+
+                    // 其次从 sessionStorage
+                    val = sessionStorage.getItem(keyName);
+                    if (val) return val;
+
+                    return "";
+                } catch {
+                    return "";
+                }
+            }
+
+            function getProviderOverrides() {
+                try {
+                    const data = localStorage.getItem(KM_PROVIDER_OVERRIDES_KEY);
+                    return data ? JSON.parse(data) : {};
+                } catch {
+                    return {};
+                }
+            }
+
+            function getMergedProviderConfig(providerId) {
+                const base = AI_PROVIDERS[providerId];
+                if (!base) return null;
+
+                const overrides = getProviderOverrides()[providerId] || {};
+
+                return {
+                    ...base,
+                    baseUrl: overrides.baseUrl || base.baseUrl,
+                    models: overrides.models && overrides.models.length > 0
+                        ? overrides.models
+                        : base.models
+                };
+            }
+
+            function getKeyStatus(providerId) {
+                const config = getMergedProviderConfig(providerId);
+                if (!config) return { hasKey: false, keyName: "" };
+
+                const key = getKeyFromStorage(config.keyName);
+                const hasKey = config.allowEmptyKey || (key && key.length > 0);
+
+                return { hasKey, keyName: config.keyName, key };
+            }
+
+            // ===== API 调用 =====
+            async function call_llm_unified({ providerId, modelId, messages, temperature = 0.7, maxTokens = 4096 }) {
+                await ensureDomainConsentOrThrow();
+
+                const config = getMergedProviderConfig(providerId);
+                if (!config) throw new Error(`未知的 Provider: ${providerId}`);
+
+                const keyStatus = getKeyStatus(providerId);
+                if (!keyStatus.hasKey) {
+                    throw new Error(`请先配置 ${config.name} 的 API Key`);
+                }
+
+                const url = `${config.baseUrl}/chat/completions`;
+                const headers = {
+                    "Content-Type": "application/json"
+                };
+
+                if (keyStatus.key) {
+                    headers["Authorization"] = `Bearer ${keyStatus.key}`;
+                }
+
+                // OpenRouter 需要额外 header
+                if (providerId === "openrouter") {
+                    headers["HTTP-Referer"] = window.location.origin;
+                    headers["X-Title"] = "FlowNote";
+                }
+
+                const body = {
+                    model: modelId,
+                    messages: messages,
+                    temperature: temperature,
+                    max_tokens: maxTokens,
+                    stream: false
+                };
+
+                const response = await fetch(url, {
+                    method: "POST",
+                    headers: headers,
+                    body: JSON.stringify(body)
+                });
+
+                if (!response.ok) {
+                    const errorText = await response.text();
+                    let errorMsg = `API 请求失败 (${response.status})`;
+                    try {
+                        const errorJson = JSON.parse(errorText);
+                        errorMsg = errorJson.error?.message || errorJson.message || errorMsg;
+                    } catch { }
+                    throw new Error(errorMsg);
+                }
+
+                const data = await response.json();
+                const text = data.choices?.[0]?.message?.content || "";
+
+                return {
+                    text,
+                    usage: data.usage,
+                    model: data.model
+                };
+            }
+
+            // ===== UI 挂载 =====
+            function mount_ai_settings({ mount_el, default_provider_id = "siliconflow", on_state_change }) {
+                const state = {
+                    networking_enabled: false,
+                    provider_id: default_provider_id,
+                    model_id: AI_PROVIDERS[default_provider_id]?.models[0]?.id || ""
+                };
+
+                function render() {
+                    const config = getMergedProviderConfig(state.provider_id);
+                    const keyStatus = getKeyStatus(state.provider_id);
+
+                    mount_el.innerHTML = `
+                <div style="display: flex; flex-direction: column; gap: 12px;">
+                    <!-- 联网开关 -->
+                    <label style="display: flex; align-items: center; gap: 8px; cursor: pointer;">
+                        <input type="checkbox" id="ai_networking" ${state.networking_enabled ? 'checked' : ''} 
+                            style="width: 16px; height: 16px; cursor: pointer;">
+                        <span style="font-size: 14px;">允许联网调用 AI</span>
+                        ${keyStatus.hasKey
+                            ? '<span style="color: var(--good); font-size: 12px;">✓ Key 已配置</span>'
+                            : '<span style="color: var(--warn); font-size: 12px;">⚠ 未配置 Key</span>'}
+                    </label>
+                    
+                    <!-- Provider 选择 -->
+                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                        <select id="ai_provider" style="flex: 1; min-width: 140px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 13px;">
+                            ${Object.entries(AI_PROVIDERS).map(([id, p]) =>
+                                `<option value="${id}" ${id === state.provider_id ? 'selected' : ''}>${p.name}</option>`
+                            ).join('')}
+                        </select>
+                        <select id="ai_model" style="flex: 1; min-width: 140px; padding: 8px 12px; border: 1px solid var(--border); border-radius: var(--radius-sm); background: var(--bg); color: var(--text); font-size: 13px;">
+                            ${config.models.map(m =>
+                                `<option value="${m.id}" ${m.id === state.model_id ? 'selected' : ''}>${m.name}</option>`
+                            ).join('')}
+                        </select>
+                    </div>
+                </div>
+            `;
+
+                    // 绑定事件
+                    mount_el.querySelector('#ai_networking').addEventListener('change', (e) => {
+                        state.networking_enabled = e.target.checked;
+                        if (on_state_change) on_state_change({ ...state });
+                    });
+
+                    mount_el.querySelector('#ai_provider').addEventListener('change', (e) => {
+                        state.provider_id = e.target.value;
+                        const newConfig = getMergedProviderConfig(state.provider_id);
+                        state.model_id = newConfig.models[0]?.id || "";
+                        render();
+                        if (on_state_change) on_state_change({ ...state });
+                    });
+
+                    mount_el.querySelector('#ai_model').addEventListener('change', (e) => {
+                        state.model_id = e.target.value;
+                        if (on_state_change) on_state_change({ ...state });
+                    });
+                }
+
+                render();
+
+                return {
+                    get_state: () => ({ ...state }),
+
+                    async call_ai({ messages, temperature, maxTokens }) {
+                        if (!state.networking_enabled) {
+                            throw new Error("请先勾选「允许联网调用 AI」");
+                        }
+                        return await call_llm_unified({
+                            providerId: state.provider_id,
+                            modelId: state.model_id,
+                            messages,
+                            temperature,
+                            maxTokens
+                        });
+                    },
+
+                    get_actionable_error(err) {
+                        const msg = err.message || String(err);
+
+                        if (msg.includes("API Key") || msg.includes("未配置")) {
+                            return `❌ ${msg}\n\n👉 请点击右上角「API 管理」配置密钥`;
+                        }
+                        if (msg.includes("401") || msg.includes("Unauthorized")) {
+                            return `❌ API Key 无效或已过期\n\n👉 请检查密钥是否正确`;
+                        }
+                        if (msg.includes("429") || msg.includes("rate limit")) {
+                            return `❌ 请求过于频繁\n\n👉 请稍后再试`;
+                        }
+                        if (msg.includes("500") || msg.includes("502") || msg.includes("503")) {
+                            return `❌ AI 服务暂时不可用\n\n👉 请稍后再试或切换其他模型`;
+                        }
+                        if (msg.includes("Failed to fetch") || msg.includes("NetworkError")) {
+                            return `❌ 网络连接失败\n\n👉 请检查网络连接`;
+                        }
+                        if (msg.includes("用户拒绝")) {
+                            return `❌ 已取消操作`;
+                        }
+
+                        return `❌ ${msg}`;
+                    }
+                };
+            }
+
+            return {
+                AI_PROVIDERS,
+                mount_ai_settings,
+                getMergedProviderConfig,
+                getKeyStatus,
+                call_llm_unified
+            };
+        })();
+    </script>
+
+    <!-- ========== Prompts 定义 ========== -->
+    <script>
+        const PROMPTS = {
+            smartReview: `你是一位「注意力考古学家」，专门从时间流中打捞被埋没的宝藏。
+
+## 背景
+用户使用 Append-Only 笔记法：新内容永远加在顶部，旧内容自然下沉。
+你的任务是识别那些「值得被打捞回顶部」的条目。
+
+## 打捞标准
+1. **未完成的种子**：提到了想法但没有后续行动
+2. **反直觉洞察**：当时记下的独特观点，可能被遗忘
+3. **情绪锚点**：记录了强烈情绪的时刻，值得回顾
+4. **连接节点**：与其他笔记有潜在关联
+5. **时效触发**：当时记录的事项，现在正好是行动时机
+
+## 输出格式
+请用以下格式输出（最多 5 条）：
+
+### 🎣 推荐打捞
+
+**1. [笔记摘要]**
+- 📍 原文：「...」
+- 💡 打捞理由：...
+- ⚡ 建议行动：...
+
+## 规则
+- 不要推荐超过 5 条
+- 优先推荐「有行动价值」的条目
+- 如果没有值得打捞的，诚实说「当前没有需要打捞的内容」
+- 用中文回复`,
+
+            generateReport: `你是一位「时间晶体师」，能把散落的时间碎片凝结成有意义的晶体。
+
+## 任务
+基于用户的笔记，生成一份结构化的回顾报告。
+
+## 报告结构
+
+### 📊 数据概览
+- 记录条数、涉及主题数、情绪基调
+
+### 🎯 核心收获
+这段时间最重要的 3 个洞察/学习
+
+### 🔄 行为模式
+发现的规律
+
+### 🌱 未完成的种子
+提到但没有后续的想法（2-3 个）
+
+### 💡 下一步建议
+1-3 个具体、可执行的建议
+
+## 风格
+- 温暖但不鸡汤
+- 数据驱动但不冰冷
+- 用中文回复`,
+
+            discoverInsights: `你是一位「模式猎人」，专门发现用户自己都没意识到的思维模式。
+
+## 寻找方向
+1. **重复出现的主题**：用户反复提到什么？
+2. **隐藏的信念**：字里行间透露的价值观
+3. **矛盾与张力**：不同时间记录的观点是否冲突？
+4. **盲点**：用户可能忽略的重要领域
+5. **涌现的智慧**：多条笔记组合后产生的新洞察
+
+## 输出格式
+每个洞察用以下格式：
+
+### 💡 洞察 1：[一句话标题]
+
+**🔍 发现**：[具体描述]
+**📝 证据**：「引用相关笔记」
+**✨ 启示**：这意味着什么
+**❓ 追问**：一个引发深度思考的问题
+
+## 规则
+- 洞察必须有笔记证据支撑
+- 优先输出「反直觉」的发现
+- 最多 5 个洞察
+- 用中文回复`,
+
+            qaChat: `你是用户笔记的「代言人」，基于笔记内容回答问题。
+
+## 用户的笔记库
+{notes}
+
+## 规则
+1. **只基于笔记回答**：没有相关信息就诚实说「你的笔记中没有记录这方面的内容」
+2. **引用来源**：回答时用「」引用具体笔记
+3. **承认不确定性**：推断时说「根据你的笔记推断...」
+4. **发现联系**：帮助用户发现笔记之间的联系
+
+## 风格
+- 像熟悉用户所有笔记的助手
+- 不编造笔记中没有的信息
+- 用中文回复`,
+
+            findConnections: `你是一位「概念桥梁建筑师」，在看似无关的想法之间搭建桥梁。
+
+## 关联类型
+1. **主题关联**：讨论相似话题
+2. **因果关联**：A 可能导致 B
+3. **对比关联**：A 和 B 形成有趣对比
+4. **隐喻关联**：A 可以用来解释 B
+5. **情绪关联**：引发相似情绪
+
+## 输出格式
+
+### 🔗 关联 1
+
+**笔记 A**：「原文摘要」
+**笔记 B**：「原文摘要」
+**关联类型**：[类型]
+**为什么有关联**：[解释]
+**可能的洞察**：[启发]
+
+## 规则
+- 优先发现「意想不到」的关联
+- 关联必须有逻辑支撑
+- 最多 7 个关联
+- 用中文回复`,
+
+            secondBrain: `你是用户的「第二大脑」—— 基于用户所有笔记形成的数字人格。
+
+## 你的记忆
+{notes}
+
+## 行为准则
+1. **像用户自己在思考**：用「我们」或反问句
+2. **调用记忆**：自然引用过去的笔记，如「记得你之前说过...」
+3. **挑战与支持并存**：既认可用户，也敢于指出矛盾
+4. **承认边界**：笔记没记录的事情，你不知道
+
+## 对话风格
+- 像了解用户多年的老友
+- 能指出思维盲点
+- 会问「你有没有想过...」这类启发性问题
+- 用中文回复`
+        };
+    </script>
+
+    <!-- ========== 主应用逻辑 ========== -->
+    <script>
+        // ========== 数据库 ==========
+        const DB_NAME = 'FlowNoteDB';
+        const DB_VERSION = 1;
+        let db = null;
+
+        async function initDB() {
+            return new Promise((resolve, reject) => {
+                const request = indexedDB.open(DB_NAME, DB_VERSION);
+
+                request.onerror = () => {
+                    console.error('IndexedDB 打开失败:', request.error);
+                    reject(request.error);
+                };
+
+                request.onsuccess = () => {
+                    db = request.result;
+                    console.log('IndexedDB 初始化成功');
+                    resolve(db);
+                };
+
+                request.onupgradeneeded = (event) => {
+                    const database = event.target.result;
+
+                    if (!database.objectStoreNames.contains('notes')) {
+                        const store = database.createObjectStore('notes', { keyPath: 'id' });
+                        store.createIndex('position', 'position', { unique: false });
+                        store.createIndex('created_at', 'created_at', { unique: false });
+                    }
+                };
+            });
+        }
+
+        // ========== 笔记引擎 ==========
+        const NoteEngine = {
+            pageSize: 50,
+            currentPage: 0,
+
+            async addNote(content) {
+                if (!content.trim()) return null;
+
+                const note = {
+                    id: crypto.randomUUID(),
+                    content: content.trim(),
+                    created_at: Date.now(),
+                    updated_at: Date.now(),
+                    position: 0,
+                    is_rescued: false,
+                    rescue_count: 0
+                };
+
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('notes', 'readwrite');
+                    const store = tx.objectStore('notes');
+
+                    // 获取所有笔记并更新 position
+                    const getAllRequest = store.getAll();
+
+                    getAllRequest.onsuccess = () => {
+                        const allNotes = getAllRequest.result || [];
+
+                        // 批量更新 position
+                        allNotes.forEach(n => {
+                            n.position += 1;
+                            store.put(n);
+                        });
+
+                        // 添加新笔记
+                        store.add(note);
+                    };
+
+                    tx.oncomplete = () => resolve(note);
+                    tx.onerror = () => reject(tx.error);
+                });
+            },
+
+            async rescueNote(noteId) {
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('notes', 'readwrite');
+                    const store = tx.objectStore('notes');
+
+                    const getRequest = store.get(noteId);
+
+                    getRequest.onsuccess = () => {
+                        const note = getRequest.result;
+                        if (!note) {
+                            reject(new Error('笔记不存在'));
+                            return;
+                        }
+
+                        const oldPosition = note.position;
+
+                        // 获取所有笔记
+                        const getAllRequest = store.getAll();
+
+                        getAllRequest.onsuccess = () => {
+                            const allNotes = getAllRequest.result || [];
+
+                            // 更新位置
+                            allNotes.forEach(n => {
+                                if (n.id !== noteId && n.position < oldPosition) {
+                                    n.position += 1;
+                                    store.put(n);
+                                }
+                            });
+
+                            // 更新被打捞的笔记
+                            note.position = 0;
+                            note.is_rescued = true;
+                            note.rescue_count += 1;
+                            note.updated_at = Date.now();
+                            store.put(note);
+                        };
+                    };
+
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+            },
+
+            async deleteNote(noteId) {
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('notes', 'readwrite');
+                    const store = tx.objectStore('notes');
+                    store.delete(noteId);
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+            },
+
+            async getAllNotes() {
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('notes', 'readonly');
+                    const store = tx.objectStore('notes');
+                    const index = store.index('position');
+                    const request = index.getAll();
+
+                    request.onsuccess = () => {
+                        const notes = request.result || [];
+                        notes.sort((a, b) => a.position - b.position);
+                        resolve(notes);
+                    };
+                    request.onerror = () => reject(request.error);
+                });
+            },
+
+            async getNotesPage(page = 0) {
+                const allNotes = await this.getAllNotes();
+                const start = page * this.pageSize;
+                const end = start + this.pageSize;
+                return {
+                    notes: allNotes.slice(start, end),
+                    hasMore: end < allNotes.length,
+                    total: allNotes.length
+                };
+            },
+
+            async getStats() {
+                const notes = await this.getAllNotes();
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+                const todayTs = today.getTime();
+
+                return {
+                    total: notes.length,
+                    today: notes.filter(n => n.created_at >= todayTs).length,
+                    rescued: notes.filter(n => n.is_rescued).length
+                };
+            },
+
+            async exportAsMarkdown() {
+                const notes = await this.getAllNotes();
+
+                if (notes.length === 0) {
+                    return '# FlowNote 导出\n\n暂无笔记';
+                }
+
+                const lines = ['# FlowNote 导出', '', `导出时间：${new Date().toLocaleString()}`, '', '---', ''];
+
+                notes.forEach((n, i) => {
+                    const date = new Date(n.created_at).toLocaleString();
+                    const rescued = n.is_rescued ? ' 🎣' : '';
+                    lines.push(`## ${i + 1}. ${date}${rescued}`);
+                    lines.push('');
+                    lines.push(n.content);
+                    lines.push('');
+                    lines.push('---');
+                    lines.push('');
+                });
+
+                return lines.join('\n');
+            },
+
+            async importFromText(text) {
+                if (!text.trim()) return 0;
+
+                // 按分隔符拆分
+                const separators = /\n---\n|\n\n\n+/;
+                let chunks = text.split(separators).map(s => s.trim()).filter(s => s.length > 0);
+
+                // 如果没有分隔符，按双换行拆分
+                if (chunks.length === 1) {
+                    chunks = text.split(/\n\n+/).map(s => s.trim()).filter(s => s.length > 0);
+                }
+
+                // 过滤掉标题行
+                chunks = chunks.filter(c => !c.startsWith('# FlowNote') && !c.startsWith('导出时间'));
+
+                // 逆序添加（保持原顺序）
+                let count = 0;
+                for (let i = chunks.length - 1; i >= 0; i--) {
+                    const content = chunks[i].replace(/^## \d+\.\s*[\d\/\s:]+🎣?\s*/m, '').trim();
+                    if (content) {
+                        await this.addNote(content);
+                        count++;
+                    }
+                }
+
+                return count;
+            },
+
+            async clearAll() {
+                return new Promise((resolve, reject) => {
+                    const tx = db.transaction('notes', 'readwrite');
+                    const store = tx.objectStore('notes');
+                    store.clear();
+                    tx.oncomplete = () => resolve(true);
+                    tx.onerror = () => reject(tx.error);
+                });
+            }
+        };
+
+        // ========== AI 功能 ==========
+        let aiController = null;
+
+        const AIFeatures = {
+            async _callAI(systemPrompt, userMessage) {
+                if (!aiController) {
+                    throw new Error('AI 模块未初始化');
+                }
+
+                const state = aiController.get_state();
+                if (!state.networking_enabled) {
+                    throw new Error('请先勾选「允许联网调用 AI」');
+                }
+
+                const result = await aiController.call_ai({
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userMessage }
+                    ],
+                    temperature: 0.7,
+                    maxTokens: 4096
+                });
+
+                return result.text;
+            },
+
+            _formatNotes(notes, limit = 50) {
+                const limited = notes.slice(0, limit);
+                return limited.map((n, i) => {
+                    const date = new Date(n.created_at).toLocaleDateString();
+                    const content = n.content.length > 500 ? n.content.slice(0, 500) + '...' : n.content;
+                    return `[${i + 1}] ${date}\n${content}`;
+                }).join('\n\n---\n\n');
+            },
+
+            async smartReview() {
+                const notes = await NoteEngine.getAllNotes
+                    ();
+
+                if (notes.length === 0) {
+                    return '📭 笔记库为空，请先添加一些笔记。';
+                }
+
+                if (notes.length < 3) {
+                    return '📝 笔记较少（仅 ' + notes.length + ' 条），建议积累更多后再使用智能回顾功能。';
+                }
+
+                const notesText = this._formatNotes(notes, 50);
+                return await this._callAI(
+                    PROMPTS.smartReview,
+                    `以下是我的笔记，请分析哪些值得重新关注：\n\n${notesText}`
+                );
+            },
+
+            async generateReport(period = '近期') {
+                const notes = await NoteEngine.getAllNotes();
+
+                if (notes.length === 0) {
+                    return '📭 笔记库为空，无法生成报告。';
+                }
+
+                const notesText = this._formatNotes(notes, 100);
+                return await this._callAI(
+                    PROMPTS.generateReport,
+                    `请基于以下「${period}」的笔记生成总结报告：\n\n${notesText}`
+                );
+            },
+
+            async discoverInsights() {
+                const notes = await NoteEngine.getAllNotes();
+
+                if (notes.length < 5) {
+                    return '📝 笔记较少（仅 ' + notes.length + ' 条），建议积累至少 5 条后再挖掘洞察。';
+                }
+
+                const notesText = this._formatNotes(notes, 50);
+                return await this._callAI(
+                    PROMPTS.discoverInsights,
+                    `请从以下笔记中挖掘隐藏的洞察：\n\n${notesText}`
+                );
+            },
+
+            async chat(question) {
+                const notes = await NoteEngine.getAllNotes();
+
+                if (notes.length === 0) {
+                    return '📭 笔记库为空，我无法回答基于笔记的问题。请先添加一些笔记。';
+                }
+
+                const notesText = this._formatNotes(notes, 30);
+                const prompt = PROMPTS.qaChat.replace('{notes}', notesText);
+                return await this._callAI(prompt, question);
+            },
+
+            async findConnections() {
+                const notes = await NoteEngine.getAllNotes();
+
+                if (notes.length < 3) {
+                    return '📝 笔记较少（仅 ' + notes.length + ' 条），建议积累更多后再发现关联。';
+                }
+
+                const notesText = this._formatNotes(notes, 40);
+                return await this._callAI(
+                    PROMPTS.findConnections,
+                    `请发现以下笔记之间的隐藏联系：\n\n${notesText}`
+                );
+            },
+
+            async secondBrain(message) {
+                const notes = await NoteEngine.getAllNotes();
+
+                if (notes.length === 0) {
+                    return '📭 我还没有任何记忆（笔记库为空）。请先添加一些笔记，让我了解你。';
+                }
+
+                const notesText = this._formatNotes(notes, 50);
+                const prompt = PROMPTS.secondBrain.replace('{notes}', notesText);
+                return await this._callAI(prompt, message);
+            }
+        };
+
+        // ========== UI 工具函数 ==========
+        function escapeHtml(str) {
+            const div = document.createElement('div');
+            div.textContent = str;
+            return div.innerHTML;
+        }
+
+        function showToast(message, type = 'success') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type + ' show';
+
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function formatDate(timestamp) {
+            const date = new Date(timestamp);
+            const now = new Date();
+            const today = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+            const yesterday = new Date(today.getTime() - 86400000);
+            const noteDate = new Date(date.getFullYear(), date.getMonth(), date.getDate());
+
+            if (noteDate.getTime() === today.getTime()) {
+                return '今天';
+            } else if (noteDate.getTime() === yesterday.getTime()) {
+                return '昨天';
+            } else {
+                return date.toLocaleDateString('zh-CN', { month: 'long', day: 'numeric' });
+            }
+        }
+
+        function formatTime(timestamp) {
+            return new Date(timestamp).toLocaleTimeString('zh-CN', { hour: '2-digit', minute: '2-digit' });
+        }
+
+        // ========== UI 渲染 ==========
+        async function renderTimeline(append = false) {
+            const timeline = document.getElementById('timeline');
+            const loadMore = document.getElementById('loadMore');
+
+            if (!append) {
+                NoteEngine.currentPage = 0;
+            }
+
+            const { notes, hasMore, total } = await NoteEngine.getNotesPage(NoteEngine.currentPage);
+
+            if (total === 0) {
+                timeline.innerHTML = `
+            <div class="timeline-empty">
+                <div class="timeline-empty-icon">📝</div>
+                <p>还没有笔记</p>
+                <p style="font-size: 13px; margin-top: 8px;">开始记录你的想法吧</p>
+            </div>
+        `;
+                loadMore.style.display = 'none';
+                return;
+            }
+
+            // 按日期分组
+            const groups = {};
+            notes.forEach(note => {
+                const dateKey = formatDate(note.created_at);
+                if (!groups[dateKey]) {
+                    groups[dateKey] = [];
+                }
+                groups[dateKey].push(note);
+            });
+
+            let html = '';
+
+            for (const [dateKey, dateNotes] of Object.entries(groups)) {
+                html += `<div class="timeline-group">`;
+                html += `<div class="timeline-date">${dateKey}</div>`;
+
+                dateNotes.forEach(note => {
+                    const time = formatTime(note.created_at);
+                    const rescuedClass = note.is_rescued ? 'rescued' : '';
+                    const rescuedBadge = note.is_rescued ? `<span class="badge badge-rescued">已打捞</span>` : '';
+                    const countBadge = note.rescue_count > 1 ? `<span class="badge badge-count">×${note.rescue_count}</span>` : '';
+
+                    html += `
+                <div class="note-card ${rescuedClass}" data-id="${note.id}">
+                    <div class="note-header">
+                        <span class="note-time">${time}</span>
+                        <div class="note-badges">
+                            ${rescuedBadge}
+                            ${countBadge}
+                        </div>
+                    </div>
+                    <div class="note-content">${escapeHtml(note.content)}</div>
+                    <div class="note-actions">
+                        <button class="btn btn-secondary btn-sm rescue-btn" data-id="${note.id}">🎣 打捞</button>
+                        <button class="btn btn-secondary btn-sm delete-btn" data-id="${note.id}">🗑️ 删除</button>
+                    </div>
+                </div>
+            `;
+                });
+
+                html += `</div>`;
+            }
+
+            if (append) {
+                timeline.insertAdjacentHTML('beforeend', html);
+            } else {
+                timeline.innerHTML = html;
+            }
+
+            // 显示/隐藏加载更多
+            loadMore.style.display = hasMore ? 'block' : 'none';
+
+            // 绑定事件
+            bindNoteEvents();
+        }
+
+        function bindNoteEvents() {
+            // 打捞按钮
+            document.querySelectorAll('.rescue-btn').forEach(btn => {
+                btn.onclick = async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    try {
+                        await NoteEngine.rescueNote(id);
+                        await renderTimeline();
+                        await updateStats();
+                        showToast('🎣 已打捞到顶部');
+                    } catch (err) {
+                        showToast('打捞失败: ' + err.message, 'error');
+                    }
+                };
+            });
+
+            // 删除按钮
+            document.querySelectorAll('.delete-btn').forEach(btn => {
+                btn.onclick = async (e) => {
+                    e.stopPropagation();
+                    const id = btn.dataset.id;
+                    if (confirm('确定要删除这条笔记吗？')) {
+                        try {
+                            await NoteEngine.deleteNote(id);
+                            await renderTimeline();
+                            await updateStats();
+                            showToast('已删除');
+                        } catch (err) {
+                            showToast('删除失败: ' + err.message, 'error');
+                        }
+                    }
+                };
+            });
+        }
+
+        async function updateStats() {
+            const stats = await NoteEngine.getStats();
+            document.getElementById('statTotal').textContent = stats.total;
+            document.getElementById('statToday').textContent = stats.today;
+            document.getElementById('statRescued').textContent = stats.rescued;
+        }
+
+        function setAIOutput(content, className = '') {
+            const output = document.getElementById('aiOutput');
+            output.textContent = content;
+            output.className = 'ai-output-content ' + className;
+        }
+
+        // ========== 事件绑定 ==========
+        function bindEvents() {
+            const noteInput = document.getElementById('noteInput');
+            const addNoteBtn = document.getElementById('addNoteBtn');
+            const chatInput = document.getElementById('chatInput');
+            const chatSendBtn = document.getElementById('chatSendBtn');
+
+            // 添加笔记
+            async function addNote() {
+                const content = noteInput.value.trim();
+                if (!content) return;
+
+                try {
+                    await NoteEngine.addNote(content);
+                    noteInput.value = '';
+                    await renderTimeline();
+                    await updateStats();
+                    showToast('✅ 已添加');
+                } catch (err) {
+                    showToast('添加失败: ' + err.message, 'error');
+                }
+            }
+
+            addNoteBtn.addEventListener('click', addNote);
+
+            noteInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    addNote();
+                }
+            });
+
+            // AI 对话
+            async function sendChat() {
+                const question = chatInput.value.trim();
+                if (!question) return;
+
+                setAIOutput('🤔 思考中...', 'loading');
+
+                try {
+                    const result = await AIFeatures.chat(question);
+                    setAIOutput(result);
+                    chatInput.value = '';
+                } catch (err) {
+                    const msg = aiController ? aiController.get_actionable_error(err) : err.message;
+                    setAIOutput(msg, 'error');
+                }
+            }
+
+            chatSendBtn.addEventListener('click', sendChat);
+
+            chatInput.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    sendChat();
+                }
+            });
+
+            // AI 功能按钮
+            document.querySelectorAll('.feature-btn').forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    const feature = btn.dataset.feature;
+
+                    setAIOutput('🤔 思考中...', 'loading');
+
+                    try {
+                        let result;
+
+                        switch (feature) {
+                            case 'smart-review':
+                                result = await AIFeatures.smartReview();
+                                break;
+                            case 'generate-report':
+                                result = await AIFeatures.generateReport();
+                                break;
+                            case 'discover-insights':
+                                result = await AIFeatures.discoverInsights();
+                                break;
+                            case 'find-connections':
+                                result = await AIFeatures.findConnections();
+                                break;
+                            case 'second-brain':
+                                // 第二大脑需要用户输入
+                                const msg = prompt('想和「第二大脑」聊什么？');
+                                if (!msg) {
+                                    setAIOutput('已取消', 'empty');
+                                    return;
+                                }
+                                result = await AIFeatures.secondBrain(msg);
+                                break;
+                            case 'chat':
+                                chatInput.focus();
+                                setAIOutput('请在下方输入框中输入你的问题', 'empty');
+                                return;
+                            default:
+                                result = '功能开发中...';
+                        }
+
+                        setAIOutput(result);
+                    } catch (err) {
+                        const msg = aiController ? aiController.get_actionable_error(err) : err.message;
+                        setAIOutput(msg, 'error');
+                    }
+                });
+            });
+
+            // 加载更多
+            document.getElementById('loadMoreBtn').addEventListener('click', async () => {
+                NoteEngine.currentPage++;
+                await renderTimeline(true);
+            });
+
+            // 导出
+            document.getElementById('exportBtn').addEventListener('click', async () => {
+                try {
+                    const md = await NoteEngine.exportAsMarkdown();
+                    const blob = new Blob([md], { type: 'text/markdown;charset=utf-8' });
+                    const url = URL.createObjectURL(blob);
+                    const a = document.createElement('a');
+                    a.href = url;
+                    a.download = `flownote-${new Date().toISOString().slice(0, 10)}.md`;
+                    document.body.appendChild(a);
+                    a.click();
+                    document.body.removeChild(a);
+                    URL.revokeObjectURL(url);
+                    showToast('📤 导出成功');
+                } catch (err) {
+                    showToast('导出失败: ' + err.message, 'error');
+                }
+            });
+
+            // 导入
+            const importModal = document.getElementById('importModal');
+            const importFile = document.getElementById('importFile');
+            const importText = document.getElementById('importText');
+
+            document.getElementById('importBtn').addEventListener('click', () => {
+                importModal.classList.add('active');
+                importFile.value = '';
+                importText.value = '';
+            });
+
+            document.getElementById('closeImportModal').addEventListener('click', () => {
+                importModal.classList.remove('active');
+            });
+
+            document.getElementById('cancelImport').addEventListener('click', () => {
+                importModal.classList.remove('active');
+            });
+
+            importModal.addEventListener('click', (e) => {
+                if (e.target === importModal) {
+                    importModal.classList.remove('active');
+                }
+            });
+
+            importFile.addEventListener('change', async (e) => {
+                const file = e.target.files[0];
+                if (!file) return;
+
+                // 检查文件大小（最大 5MB）
+                if (file.size > 5 * 1024 * 1024) {
+                    showToast('文件过大，请选择小于 5MB 的文件', 'error');
+                    return;
+                }
+
+                try {
+                    const text = await file.text();
+                    importText.value = text;
+                } catch (err) {
+                    showToast('读取文件失败: ' + err.message, 'error');
+                }
+            });
+
+            document.getElementById('confirmImport').addEventListener('click', async () => {
+                const text = importText.value.trim();
+
+                if (!text) {
+                    showToast('请选择文件或粘贴内容', 'error');
+                    return;
+                }
+
+                try {
+                    const count = await NoteEngine.importFromText(text);
+                    importModal.classList.remove('active');
+                    await renderTimeline();
+                    await updateStats();
+                    showToast(`📥 成功导入 ${count} 条笔记`);
+                } catch (err) {
+                    showToast('导入失败: ' + err.message, 'error');
+                }
+            });
+        }
+
+        // ========== 初始化 ==========
+        async function init() {
+            try {
+                // 1. 初始化数据库
+                await initDB();
+                console.log('✅ 数据库初始化完成');
+
+                // 2. 挂载 AI 设置
+                const aiMount = document.getElementById('aiSettingsMount');
+                aiController = AI_MODULE.mount_ai_settings({
+                    mount_el: aiMount,
+                    default_provider_id: 'siliconflow',
+                    on_state_change: (state) => {
+                        console.log('AI 状态变更:', state);
+                    }
+                });
+                console.log('✅ AI 模块初始化完成');
+
+                // 3. 渲染界面
+                await renderTimeline();
+                await updateStats();
+                console.log('✅ 界面渲染完成');
+
+                // 4. 绑定事件
+                bindEvents();
+                console.log('✅ 事件绑定完成');
+
+                console.log('🌊 FlowNote 初始化完成');
+
+            } catch (err) {
+                console.error('初始化失败:', err);
+
+                // 降级处理：如果 IndexedDB 不可用
+                if (err.name === 'SecurityError' || err.message.includes('IndexedDB')) {
+                    document.body.innerHTML = `
+                <div style="padding: 40px; text-align: center; color: var(--text);">
+                    <h1>⚠️ 存储不可用</h1>
+                    <p style="margin-top: 16px; color: var(--muted);">
+                        FlowNote 需要使用浏览器存储功能。<br>
+                        请检查是否处于隐私模式，或尝试使用其他浏览器。
+                    </p>
+                </div>
+            `;
+                }
+            }
+        }
+
+        // 启动
+        document.addEventListener('DOMContentLoaded', init);
+    </script>
+
+</body>
+
+</html>
