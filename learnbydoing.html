@@ -1,0 +1,2196 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>LearnByDoing - 先做后学的成人学习方式</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    /* CSS 变量定义 - 跟随系统颜色模式 */
+    :root {
+      /* 亮色模式（默认） */
+      --bg-primary: #f8fafc;
+      --bg-secondary: #ffffff;
+      --bg-tertiary: #f1f5f9;
+      --bg-card: rgba(255, 255, 255, 0.9);
+      --bg-input: #ffffff;
+      --bg-hover: rgba(0, 0, 0, 0.05);
+
+      --text-primary: #1e293b;
+      --text-secondary: #475569;
+      --text-tertiary: #64748b;
+      --text-muted: #94a3b8;
+
+      --border-color: rgba(0, 0, 0, 0.1);
+      --border-hover: rgba(0, 0, 0, 0.2);
+
+      --accent-blue: #3b82f6;
+      --accent-green: #10b981;
+      --accent-red: #ef4444;
+      --accent-yellow: #f59e0b;
+
+      --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+      --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.1);
+      --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.1);
+
+      --gradient-bg: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    }
+
+    /* 暗色模式 */
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg-primary: #0f172a;
+        --bg-secondary: #1e293b;
+        --bg-tertiary: #334155;
+        --bg-card: rgba(30, 41, 59, 0.9);
+        --bg-input: rgba(255, 255, 255, 0.05);
+        --bg-hover: rgba(255, 255, 255, 0.1);
+
+        --text-primary: #f1f5f9;
+        --text-secondary: #cbd5e1;
+        --text-tertiary: #94a3b8;
+        --text-muted: #64748b;
+
+        --border-color: rgba(255, 255, 255, 0.1);
+        --border-hover: rgba(255, 255, 255, 0.2);
+
+        --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
+        --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
+        --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
+
+        --gradient-bg: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+      }
+    }
+
+    /* 基础样式 */
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+      background: var(--gradient-bg);
+      min-height: 100vh;
+      color: var(--text-primary);
+    }
+
+    /* 进度指示器样式 */
+    .progress-step {
+      transition: all 0.3s ease;
+      background: var(--bg-tertiary);
+      color: var(--text-secondary);
+    }
+    .progress-step.active {
+      transform: scale(1.05);
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      box-shadow: 0 0 20px rgba(59, 130, 246, 0.5);
+    }
+    .progress-step.completed {
+      background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+      color: white;
+    }
+    .progress-step.pending {
+      background: var(--bg-tertiary);
+      color: var(--text-muted);
+    }
+
+    /* 连接线样式 */
+    .progress-line {
+      height: 2px;
+      background: var(--border-color);
+      transition: all 0.3s ease;
+    }
+    .progress-line.completed {
+      background: linear-gradient(90deg, #10b981 0%, #059669 100%);
+    }
+
+    /* 卡片样式 */
+    .card {
+      background: var(--bg-card);
+      backdrop-filter: blur(10px);
+      border: 1px solid var(--border-color);
+      border-radius: 16px;
+      transition: all 0.3s ease;
+      box-shadow: var(--shadow-sm);
+    }
+    .card:hover {
+      border-color: var(--border-hover);
+      box-shadow: var(--shadow-md);
+    }
+
+    /* 输入框样式 */
+    .input-field {
+      background: var(--bg-input);
+      border: 1px solid var(--border-color);
+      border-radius: 8px;
+      color: var(--text-primary);
+      transition: all 0.3s ease;
+    }
+    .input-field:focus {
+      outline: none;
+      border-color: var(--accent-blue);
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.2);
+    }
+    .input-field::placeholder {
+      color: var(--text-muted);
+    }
+
+    /* 按钮样式 */
+    .btn-primary {
+      background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: none;
+      cursor: pointer;
+    }
+    .btn-primary:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 10px 20px rgba(59, 130, 246, 0.3);
+    }
+    .btn-primary:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+
+    .btn-secondary {
+      background: var(--bg-tertiary);
+      color: var(--text-primary);
+      padding: 12px 24px;
+      border-radius: 8px;
+      font-weight: 600;
+      transition: all 0.3s ease;
+      border: 1px solid var(--border-color);
+      cursor: pointer;
+    }
+    .btn-secondary:hover {
+      background: var(--bg-hover);
+      border-color: var(--border-hover);
+    }
+
+    /* 结果区域样式 */
+    .result-area {
+      background: var(--bg-tertiary);
+      border: 1px solid var(--border-color);
+      border-radius: 12px;
+    }
+
+    /* Markdown 渲染样式 */
+    .markdown-body {
+      color: var(--text-secondary);
+      line-height: 1.8;
+    }
+    .markdown-body h1, .markdown-body h2, .markdown-body h3 {
+      color: var(--text-primary);
+      margin-top: 1.5em;
+      margin-bottom: 0.5em;
+      font-weight: 600;
+    }
+    .markdown-body h3 {
+      font-size: 1.1rem;
+      color: var(--accent-blue);
+    }
+    .markdown-body p {
+      margin-bottom: 1em;
+    }
+    .markdown-body ul, .markdown-body ol {
+      margin-left: 1.5em;
+      margin-bottom: 1em;
+    }
+    .markdown-body li {
+      margin-bottom: 0.5em;
+    }
+    .markdown-body blockquote {
+      border-left: 3px solid var(--accent-blue);
+      padding-left: 1em;
+      margin: 1em 0;
+      color: var(--text-tertiary);
+      font-style: italic;
+    }
+    .markdown-body code {
+      background: var(--bg-hover);
+      padding: 2px 6px;
+      border-radius: 4px;
+      font-size: 0.9em;
+    }
+    .markdown-body pre {
+      background: var(--bg-secondary);
+      padding: 1em;
+      border-radius: 8px;
+      overflow-x: auto;
+      margin: 1em 0;
+      border: 1px solid var(--border-color);
+    }
+    .markdown-body pre code {
+      background: none;
+      padding: 0;
+    }
+    .markdown-body table {
+      width: 100%;
+      border-collapse: collapse;
+      margin: 1em 0;
+    }
+    .markdown-body th, .markdown-body td {
+      border: 1px solid var(--border-color);
+      padding: 8px 12px;
+      text-align: left;
+    }
+    .markdown-body th {
+      background: var(--bg-tertiary);
+      font-weight: 600;
+    }
+    .markdown-body strong {
+      color: var(--text-primary);
+      font-weight: 600;
+    }
+    .markdown-body hr {
+      border: none;
+      border-top: 1px solid var(--border-color);
+      margin: 2em 0;
+    }
+
+    /* AI 配置抽屉样式 */
+    .config-drawer {
+      position: fixed;
+      top: 0;
+      right: -400px;
+      width: 400px;
+      height: 100vh;
+      background: var(--bg-secondary);
+      backdrop-filter: blur(20px);
+      border-left: 1px solid var(--border-color);
+      transition: right 0.3s ease;
+      z-index: 1000;
+      overflow-y: auto;
+    }
+    .config-drawer.open {
+      right: 0;
+    }
+    .config-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.5);
+      opacity: 0;
+      visibility: hidden;
+      transition: all 0.3s ease;
+      z-index: 999;
+    }
+    .config-overlay:not(.hidden) {
+      opacity: 1;
+      visibility: visible;
+    }
+
+    /* 加载动画 */
+    .loading-dots {
+      display: inline-flex;
+      gap: 4px;
+    }
+    .loading-dots span {
+      width: 8px;
+      height: 8px;
+      background: var(--accent-blue);
+      border-radius: 50%;
+      animation: bounce 1.4s infinite ease-in-out both;
+    }
+    .loading-dots span:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dots span:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes bounce {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    /* 快捷入口样式 */
+    .quick-link {
+      color: var(--text-muted);
+      transition: all 0.3s ease;
+      cursor: pointer;
+    }
+    .quick-link:hover {
+      color: var(--accent-blue);
+    }
+    .quick-link.active {
+      color: var(--accent-blue);
+    }
+    .quick-link.completed {
+      color: var(--accent-green);
+    }
+
+    /* Toast 提示 */
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      color: white;
+      padding: 12px 24px;
+      border-radius: 8px;
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 2000;
+    }
+    .toast.show {
+      transform: translateX(-50%) translateY(0);
+      opacity: 1;
+    }
+
+    /* 阶段切换动画 */
+    .stage-content {
+      animation: fadeIn 0.3s ease;
+    }
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    /* 选择框样式 */
+    select.input-field {
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' fill='none' viewBox='0 0 24 24' stroke='%2364748b'%3E%3Cpath stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='M19 9l-7 7-7-7'%3E%3C/path%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 12px center;
+      background-size: 16px;
+      padding-right: 40px;
+    }
+
+    /* 复选框样式 */
+    .checkbox-group label {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+      padding: 8px 12px;
+      border-radius: 6px;
+      transition: all 0.2s ease;
+      color: var(--text-secondary);
+    }
+    .checkbox-group label:hover {
+      background: var(--bg-hover);
+    }
+    .checkbox-group input[type="checkbox"] {
+      width: 18px;
+      height: 18px;
+      accent-color: var(--accent-blue);
+    }
+
+    /* 成功案例卡片 */
+    .success-case {
+      background: var(--bg-card);
+    }
+
+    /* 摘要区域颜色 */
+    .summary-green {
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.2);
+    }
+    .summary-orange {
+      background: rgba(249, 115, 22, 0.1);
+      border: 1px solid rgba(249, 115, 22, 0.2);
+    }
+  </style>
+</head>
+<body>
+  <!-- AI 配置遮罩层 -->
+  <div id="configOverlay" class="config-overlay hidden" onclick="toggleSettingsPanel()"></div>
+
+  <!-- AI 配置抽屉（按规范：右上角齿轮 + 抽屉式面板） -->
+  <div id="settingsPanel" class="config-drawer">
+    <div class="p-6">
+      <div class="flex justify-between items-center mb-6">
+        <h3 class="text-lg font-semibold">AI 设置</h3>
+        <button onclick="toggleSettingsPanel()" class="text-gray-400 hover:text-white">
+          <i class="ri-close-line text-xl"></i>
+        </button>
+      </div>
+
+      <!-- 服务商选择 -->
+      <div class="mb-4">
+        <label class="block text-sm text-gray-400 mb-2">AI 服务商</label>
+        <select id="providerSelect" onchange="changeAIProvider(this.value)" class="input-field w-full p-3">
+          <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+          <option value="openrouter">开放路由 (OpenRouter)</option>
+          <option value="claude">Claude (Anthropic)</option>
+          <option value="deepseek">DeepSeek</option>
+          <option value="custom">自定义服务商</option>
+        </select>
+      </div>
+
+      <!-- 模型选择 -->
+      <div class="mb-4">
+        <label class="block text-sm text-gray-400 mb-2">AI 模型</label>
+        <select id="modelSelect" onchange="changeAIModel(this.value)" class="input-field w-full p-3">
+          <!-- 动态填充 -->
+        </select>
+        <!-- 自定义模型输入框：默认隐藏，选择"自定义模型"后显示 -->
+        <input id="customModelInput" type="text" placeholder="输入自定义模型名称"
+               class="hidden input-field w-full p-3 mt-2"
+               onchange="setCustomModel(this.value)">
+      </div>
+
+      <!-- 自定义端点（仅自定义服务商显示） -->
+      <div id="customEndpointGroup" class="hidden mb-4">
+        <label class="block text-sm text-gray-400 mb-2">自定义 API 端点</label>
+        <input id="customEndpointInput" type="text" placeholder="https://api.example.com/v1/chat/completions"
+               class="input-field w-full p-3"
+               onchange="setCustomEndpoint(this.value)">
+      </div>
+
+      <!-- Key 状态 -->
+      <div class="mb-4">
+        <label class="block text-sm text-gray-400 mb-2">Key 状态</label>
+        <div class="flex items-center justify-between mb-2">
+          <span id="keyStatusIndicator" class="text-sm">🔑 检测中...</span>
+          <a href="../key-manager.html" target="_blank" class="text-xs text-blue-400 hover:underline">
+            Key Manager
+          </a>
+        </div>
+        <input id="apiKeyInput" type="password" placeholder="或在此手动输入 API Key"
+               class="input-field w-full p-3 text-sm"
+               onchange="setManualApiKey(this.value)">
+        <p class="text-xs text-gray-500 mt-1">密钥仅保存在本地浏览器中</p>
+      </div>
+
+      <!-- 保存按钮 -->
+      <button onclick="saveSettings()" class="btn-primary w-full">
+        <i class="ri-save-line mr-2"></i>保存设置
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast 提示 -->
+  <div id="toast" class="toast">
+    <span id="toastMessage"></span>
+  </div>
+
+  <!-- 主容器 -->
+  <main class="max-w-4xl mx-auto px-4 py-8">
+    <!-- 头部 -->
+    <header class="flex justify-between items-center mb-8">
+      <div>
+        <h1 class="text-2xl font-bold mb-1">🛠️ LearnByDoing</h1>
+        <p class="text-gray-400 text-sm">先做后学的成人学习方式</p>
+      </div>
+      <button onclick="toggleSettingsPanel()" class="p-2 rounded-lg hover:bg-white/10 transition-colors" title="AI 设置">
+        <i class="ri-settings-3-line text-xl text-gray-400 hover:text-white"></i>
+      </button>
+    </header>
+
+    <!-- 成功案例展示 -->
+    <div id="successCase" class="card p-4 mb-6">
+      <div class="flex items-start gap-3">
+        <div class="text-2xl">💡</div>
+        <div>
+          <p class="text-sm text-gray-300 mb-2"><strong class="text-white">逆向学习成功案例</strong></p>
+          <p class="text-sm text-gray-400">
+            <span class="text-gray-300">「我想做播客」</span><br>
+            <span class="text-red-400/70">传统路径：</span>学音频原理 → 学软件 → 学剪辑 → 学发布...<br>
+            <span class="text-green-400/70">逆向路径：</span>录一期 → 用 AI 剪辑 → 边做边学<br>
+            <span class="text-blue-400">结果：2周上线第一期，而非2个月还在学基础</span>
+          </p>
+        </div>
+      </div>
+    </div>
+    <!-- 进度指示器 -->
+    <div class="flex items-center justify-center mb-8">
+      <div class="flex items-center gap-2">
+        <!-- Stage 1 -->
+        <div id="step1" class="progress-step active flex items-center justify-center w-10 h-10 rounded-full cursor-pointer" onclick="goToStage(1)">
+          <span class="text-sm font-semibold">1</span>
+        </div>
+        <div class="text-xs text-gray-400 mr-2">诊断</div>
+
+        <!-- 连接线 1 -->
+        <div id="line1" class="progress-line w-12"></div>
+
+        <!-- Stage 2 -->
+        <div id="step2" class="progress-step pending flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2" onclick="goToStage(2)">
+          <span class="text-sm font-semibold">2</span>
+        </div>
+        <div class="text-xs text-gray-400 mr-2">规划</div>
+
+        <!-- 连接线 2 -->
+        <div id="line2" class="progress-line w-12"></div>
+
+        <!-- Stage 3 -->
+        <div id="step3" class="progress-step pending flex items-center justify-center w-10 h-10 rounded-full cursor-pointer ml-2" onclick="goToStage(3)">
+          <span class="text-sm font-semibold">3</span>
+        </div>
+        <div class="text-xs text-gray-400">行动</div>
+      </div>
+    </div>
+    <!-- 输入区域容器 -->
+    <div id="inputContainer" class="card p-6 mb-6">
+      <!-- Stage 1 输入 -->
+      <div id="stage1Input" class="stage-content">
+        <h2 class="text-lg font-semibold mb-4">
+          <i class="ri-search-eye-line mr-2 text-blue-400"></i>第一步：诊断你的学习方式
+        </h2>
+        <p class="text-gray-400 text-sm mb-6">告诉我你想学什么，以及目前遇到的困难，我来帮你找出问题所在。</p>
+
+        <!-- 技能类型选择 -->
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">你想学什么类型的技能？</label>
+          <select id="skillType" class="input-field w-full p-3">
+            <option value="tech">技术类（编程、设计、数据分析...）</option>
+            <option value="creative">创作类（写作、视频、音乐...）</option>
+            <option value="business">商业类（营销、运营、管理...）</option>
+            <option value="language">语言类（英语、日语...）</option>
+            <option value="other">其他</option>
+          </select>
+        </div>
+
+        <!-- 学习目标 -->
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">具体想做什么？</label>
+          <textarea id="learningGoal" class="input-field w-full p-3 h-24 resize-none" placeholder="例：我想学编程，能自己做一个展示作品的个人网站"></textarea>
+          <p class="text-xs text-blue-400/70 mt-1">💡 不要说「学 Python」，而是说「做一个个人网站」—— 目标越具体，路径越清晰</p>
+        </div>
+
+        <!-- 当前困难 -->
+        <div class="mb-6">
+          <label class="block text-sm text-gray-400 mb-2">你目前是怎么学的？遇到什么困难？（可选）</label>
+          <textarea id="currentApproach" class="input-field w-full p-3 h-24 resize-none" placeholder="例：买了本 Python 入门书，看了两章就看不下去了，感觉太枯燥，而且不知道学了能干嘛"></textarea>
+          <p class="text-xs text-gray-500 mt-1">💡 诚实描述你的困难，这有助于诊断问题根源</p>
+        </div>
+
+        <!-- 提交按钮 -->
+        <button id="stage1Submit" onclick="submitStage1()" class="btn-primary w-full">
+          <i class="ri-search-line mr-2"></i>开始诊断
+        </button>
+      </div>
+
+      <!-- Stage 2 输入（默认隐藏） -->
+      <div id="stage2Input" class="stage-content hidden">
+        <h2 class="text-lg font-semibold mb-4">
+          <i class="ri-route-line mr-2 text-green-400"></i>第二步：设计逆向学习路径
+        </h2>
+        <p class="text-gray-400 text-sm mb-6">基于诊断结果，我将为你设计一条「从目标倒推」的学习路径。</p>
+
+        <!-- 显示继承的上下文 -->
+        <div class="bg-white/5 rounded-lg p-4 mb-6">
+          <p class="text-sm text-gray-400 mb-2">你的学习目标：</p>
+          <p id="stage2GoalDisplay" class="text-white"></p>
+        </div>
+
+        <!-- 提交按钮 -->
+        <button id="stage2Submit" onclick="submitStage2()" class="btn-primary w-full">
+          <i class="ri-route-line mr-2"></i>生成逆向路径
+        </button>
+      </div>
+
+      <!-- Stage 3 输入（默认隐藏） -->
+      <div id="stage3Input" class="stage-content hidden">
+        <h2 class="text-lg font-semibold mb-4">
+          <i class="ri-rocket-line mr-2 text-orange-400"></i>第三步：设计第一步行动
+        </h2>
+        <p class="text-gray-400 text-sm mb-6">让我帮你设计一个「今天就能完成」的第一步，先赢一次！</p>
+
+        <!-- 可用时间 -->
+        <div class="mb-4">
+          <label class="block text-sm text-gray-400 mb-2">你今天有多少时间？</label>
+          <select id="availableTime" class="input-field w-full p-3">
+            <option value="30min">30 分钟</option>
+            <option value="1hour" selected>1 小时</option>
+            <option value="halfday">半天（3-4 小时）</option>
+            <option value="fullday">一整天</option>
+          </select>
+        </div>
+
+        <!-- 可用工具 -->
+        <div class="mb-6">
+          <label class="block text-sm text-gray-400 mb-2">你有什么工具可用？</label>
+          <div class="checkbox-group grid grid-cols-2 gap-2">
+            <label>
+              <input type="checkbox" id="toolComputer" checked> 电脑
+            </label>
+            <label>
+              <input type="checkbox" id="toolInternet" checked> 网络
+            </label>
+            <label>
+              <input type="checkbox" id="toolAI" checked> AI 工具（ChatGPT/Claude）
+            </label>
+            <label>
+              <input type="checkbox" id="toolPhone"> 只有手机
+            </label>
+          </div>
+        </div>
+
+        <!-- 提交按钮 -->
+        <button id="stage3Submit" onclick="submitStage3()" class="btn-primary w-full">
+          <i class="ri-rocket-line mr-2"></i>生成第一步行动
+        </button>
+      </div>
+
+      <!-- 加载状态 -->
+      <div id="loadingState" class="hidden text-center py-8">
+        <div class="loading-dots mb-4">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <p id="loadingText" class="text-gray-400">正在分析...</p>
+      </div>
+    </div>
+    <!-- 结果展示区域 -->
+    <div id="resultContainer" class="hidden">
+      <!-- Stage 1 结果 -->
+      <div id="stage1Result" class="card p-6 mb-6 hidden">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-lg font-semibold">
+            <i class="ri-stethoscope-line mr-2 text-blue-400"></i>诊断结果
+          </h3>
+          <div class="flex gap-2">
+            <button onclick="copyResult(1)" class="text-gray-400 hover:text-white p-1" title="复制">
+              <i class="ri-file-copy-line"></i>
+            </button>
+            <button onclick="toggleResultExpand(1)" class="text-gray-400 hover:text-white p-1" title="展开/收起">
+              <i id="expandIcon1" class="ri-arrow-down-s-line"></i>
+            </button>
+          </div>
+        </div>
+        <!-- 摘要 -->
+        <div id="stage1Summary" class="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-4">
+          <p class="text-green-400 text-sm">
+            <i class="ri-checkbox-circle-line mr-1"></i>
+            <span id="stage1SummaryText">诊断完成</span>
+          </p>
+        </div>
+        <!-- 详细内容 -->
+        <div id="stage1Content" class="markdown-body result-area p-4 max-h-96 overflow-y-auto"></div>
+        <!-- 继续按钮 -->
+        <div class="mt-4 pt-4 border-t border-white/10">
+          <button onclick="continueToStage2()" class="btn-primary w-full">
+            <i class="ri-arrow-right-line mr-2"></i>继续：设计逆向学习路径
+          </button>
+        </div>
+      </div>
+
+      <!-- Stage 2 结果 -->
+      <div id="stage2Result" class="card p-6 mb-6 hidden">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-lg font-semibold">
+            <i class="ri-route-line mr-2 text-green-400"></i>逆向学习路径
+          </h3>
+          <div class="flex gap-2">
+            <button onclick="copyResult(2)" class="text-gray-400 hover:text-white p-1" title="复制">
+              <i class="ri-file-copy-line"></i>
+            </button>
+            <button onclick="toggleResultExpand(2)" class="text-gray-400 hover:text-white p-1" title="展开/收起">
+              <i id="expandIcon2" class="ri-arrow-down-s-line"></i>
+            </button>
+          </div>
+        </div>
+        <!-- 摘要 -->
+        <div id="stage2Summary" class="bg-green-500/10 border border-green-500/20 rounded-lg p-4 mb-4">
+          <p class="text-green-400 text-sm">
+            <i class="ri-checkbox-circle-line mr-1"></i>
+            <span id="stage2SummaryText">路径规划完成</span>
+          </p>
+        </div>
+        <!-- 详细内容 -->
+        <div id="stage2Content" class="markdown-body result-area p-4 max-h-96 overflow-y-auto"></div>
+        <!-- 继续按钮 -->
+        <div class="mt-4 pt-4 border-t border-white/10">
+          <button onclick="continueToStage3()" class="btn-primary w-full">
+            <i class="ri-arrow-right-line mr-2"></i>继续：设计第一步行动
+          </button>
+        </div>
+      </div>
+
+      <!-- Stage 3 结果 -->
+      <div id="stage3Result" class="card p-6 mb-6 hidden">
+        <div class="flex justify-between items-start mb-4">
+          <h3 class="text-lg font-semibold">
+            <i class="ri-rocket-line mr-2 text-orange-400"></i>第一步行动
+          </h3>
+          <div class="flex gap-2">
+            <button onclick="copyResult(3)" class="text-gray-400 hover:text-white p-1" title="复制">
+              <i class="ri-file-copy-line"></i>
+            </button>
+            <button onclick="toggleResultExpand(3)" class="text-gray-400 hover:text-white p-1" title="展开/收起">
+              <i id="expandIcon3" class="ri-arrow-down-s-line"></i>
+            </button>
+          </div>
+        </div>
+        <!-- 摘要 -->
+        <div id="stage3Summary" class="bg-orange-500/10 border border-orange-500/20 rounded-lg p-4 mb-4">
+          <p class="text-orange-400 text-sm">
+            <i class="ri-rocket-line mr-1"></i>
+            <span id="stage3SummaryText">行动计划已生成</span>
+          </p>
+        </div>
+        <!-- 详细内容 -->
+        <div id="stage3Content" class="markdown-body result-area p-4 max-h-96 overflow-y-auto"></div>
+        <!-- 完成区域 -->
+        <div class="mt-4 pt-4 border-t border-white/10">
+          <div class="flex gap-3">
+            <button onclick="exportAllResults()" class="btn-secondary flex-1">
+              <i class="ri-download-line mr-2"></i>导出全部结果
+            </button>
+            <button onclick="resetAll()" class="btn-secondary flex-1">
+              <i class="ri-refresh-line mr-2"></i>重新开始
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- 快捷入口 -->
+    <div class="text-center py-4 border-t border-white/10 mt-6">
+      <p class="text-gray-500 text-xs mb-2">快捷入口</p>
+      <div class="flex justify-center gap-6">
+        <span id="quickLink1" class="quick-link text-sm active" onclick="goToStage(1)">
+          <i class="ri-search-eye-line mr-1"></i>诊断
+        </span>
+        <span id="quickLink2" class="quick-link text-sm" onclick="goToStage(2)">
+          <i class="ri-route-line mr-1"></i>规划
+        </span>
+        <span id="quickLink3" class="quick-link text-sm" onclick="goToStage(3)">
+          <i class="ri-rocket-line mr-1"></i>行动
+        </span>
+      </div>
+    </div>
+<script>
+// AI 服务商配置（来源：ai-providers.md 唯一源头）
+const AI_PROVIDERS = {
+    siliconflow: {
+        name: '硅基流动 (SiliconFlow)',
+        keyName: 'siliconflow_key',
+        endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+        models: [
+            'Pro/zai-org/GLM-4.7',
+            'Pro/moonshotai/Kimi-K2-Thinking',
+            'Qwen/Qwen3-VL-32B-Thinking',
+            'Qwen/Qwen2.5-7B-Instruct',
+            'deepseek-ai/DeepSeek-V3'
+        ],
+        defaultModel: 'Pro/zai-org/GLM-4.7'
+    },
+    openrouter: {
+        name: '开放路由 (OpenRouter)',
+        keyName: 'openrouter_key',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        models: [
+            'anthropic/claude-opus-4.5',
+            'openai/gpt-5.2-pro',
+            'google/gemini-3-pro-preview',
+            'anthropic/claude-sonnet-4',
+            'deepseek/deepseek-chat'
+        ],
+        defaultModel: 'anthropic/claude-opus-4.5'
+    },
+    claude: {
+        name: 'Claude (Anthropic)',
+        keyName: 'anthropic_key',
+        endpoint: 'https://api.anthropic.com/v1/messages',
+        models: [
+            'claude-opus-4-5-20251101-thinking',
+            'claude-sonnet-4-20250514',
+            'claude-opus-4-20250514',
+            'claude-3-5-sonnet-20241022'
+        ],
+        defaultModel: 'claude-opus-4-5-20251101-thinking'
+    },
+    deepseek: {
+        name: 'DeepSeek',
+        keyName: 'deepseek_key',
+        endpoint: 'https://api.deepseek.com/v1/chat/completions',
+        models: [
+            'deepseek-chat',
+            'deepseek-reasoner'
+        ],
+        defaultModel: 'deepseek-chat'
+    },
+    custom: {
+        name: '自定义服务商',
+        keyName: 'custom_key',
+        endpoint: '',
+        models: [],
+        defaultModel: ''
+    }
+};
+
+// 允许的域名列表
+const ALLOWED_DOMAINS = [
+    "api.siliconflow.cn",
+    "openrouter.ai",
+    "api.anthropic.com",
+    "api.deepseek.com",
+    "localhost",
+    "127.0.0.1"
+];
+
+// 技能类型映射
+const SKILL_TYPES = {
+  tech: '技术类',
+  creative: '创作类',
+  business: '商业类',
+  language: '语言类',
+  other: '其他'
+};
+
+// 可用时间映射
+const TIME_OPTIONS = {
+  '30min': '30 分钟',
+  '1hour': '1 小时',
+  'halfday': '半天（3-4 小时）',
+  'fullday': '一整天'
+};
+
+// 存储键名
+const STORAGE_KEYS = {
+  config: 'reverse_learning_config',
+  state: 'reverse_learning_state',
+  settings: 'reverse_learning_settings'
+};
+
+// 工具 ID
+const TOOL_ID = 'reverse-learning';
+</script>
+<script>
+// 三个阶段的 Prompt 配置（优化版）
+const PROMPTS = {
+  stage_1_diagnose: {
+    role: `你是一名「学习方式诊断师」，拥有 20 年成人教育研究经验。你曾是一名学霸，后来发现自己的「学霸方法」在职场完全失效，花了 5 年时间研究「为什么聪明人学新技能总是失败」，最终发现了「学校思维」这个隐形杀手。
+
+你的性格直接、犀利，但充满同理心。你说话像一个「毒舌但真诚的老朋友」——会直接指出问题，但从不让人感到被攻击。
+
+【你的标志性表达】
+- 开场白：「让我猜猜，你是不是又买了一本书/一门课，然后...」
+- 诊断时：「这不是你的问题，这是学校留给你的『后遗症』」
+- 转折时：「好消息是，一旦你意识到这一点，改变就已经开始了」
+- 金句：「你不是学不会，你是被『学校思维』绑架了」
+
+【你绝对不会说的话】
+- 「你需要更努力」（这是废话）
+- 「先打好基础」（这是学校思维的典型症状）
+- 「系统学习很重要」（这是让成年人放弃的最快方式）`,
+
+    instruction: `## 核心信念（你的底层操作系统）
+
+「学校思维」是成人学习失败的根本原因。
+
+这不是一个观点，而是一个被反复验证的事实：
+- 学校教育假设你有「整块时间」→ 成年人没有
+- 学校教育假设你有「外部强制」→ 成年人靠自驱
+- 学校教育假设你「没有明确目标」→ 成年人有具体需求
+
+所以，用学校的方式学习，对成年人来说是「逆天而行」。
+
+## 你的任务
+
+帮助用户完成一次「认知负债清算」——识别他们身上的「学校思维」，让他们意识到「不是我不行，是方法不对」。
+
+这是一次「无罪释放」：把学习失败从「个人能力问题」重新定义为「方法论问题」。
+
+## 诊断框架：学校思维行为指纹
+
+【🚨 高危行为】（一旦出现，几乎必然失败）
+| 行为 | 内心独白 | 为什么致命 |
+|------|---------|------------|
+| 买书/买课 | 「我要系统学习」 | 把「购买」当成「学习」，获得虚假满足感 |
+| 从第一章开始 | 「要打好基础」 | 基础最枯燥，动机消耗最快 |
+| 给自己贴标签 | 「我不是学X的料」 | 把方法问题归因为能力问题 |
+
+【⚠️ 中危行为】（会显著降低成功率）
+| 行为 | 内心独白 | 为什么有害 |
+|------|---------|------------|
+| 做笔记整理 | 「先理解再实践」 | 用「整理」代替「行动」，制造忙碌假象 |
+| 追求完美理解 | 「这个概念我还没懂透」 | 完美主义是行动的敌人 |
+| 制定详细计划 | 「我要规划好再开始」 | 计划本身成为拖延的借口 |
+
+【✅ 健康行为】（逆向思维的表现）
+| 行为 | 内心独白 | 为什么有效 |
+|------|---------|------------|
+| 先动手试 | 「做了再说」 | 行动产生反馈，反馈驱动学习 |
+| 遇到问题再查 | 「用到什么学什么」 | 按需获取，零库存运营 |
+| 接受「够用就好」 | 「我不需要成为专家」 | 降低门槛，提高完成率 |
+
+## 思考路径
+
+1. 【共情】先让用户感到被理解
+   - 承认他们的目标是合理的
+   - 承认他们已经付出了努力
+   - 暗示「问题不在你」
+
+2. 【识别】对照行为指纹，精准定位
+   - 从用户描述中提取具体行为
+   - 匹配到对应的「内心独白」
+   - 判断危险等级
+
+3. 【诊断】解释「为什么这样不行」
+   - 时间维度：成年人没有整块时间
+   - 动机维度：没有即时反馈就没有动力
+   - 目标维度：学习内容和真实目标脱节
+
+4. 【顿悟时刻】制造「原来如此」的感觉
+   - 用一个类比或反问，让用户突然意识到问题
+   - 这是整个诊断最重要的部分
+
+5. 【转变】给出具体的思维转换建议
+   - 不是「你应该怎么做」
+   - 而是「你应该怎么想」
+
+## 输出格式
+
+### 🔍 诊断报告
+
+[先用一句话共情，让用户感到被理解]
+
+**好消息：这不是你的问题，是方法的问题。**
+
+我在你的描述中识别到以下「学校思维」表现：
+
+| 你的行为 | 背后的内心独白 | 危险等级 |
+|---------|---------------|----------|
+| [具体行为1] | 「[对应独白]」 | [🚨/⚠️] |
+| [具体行为2] | 「[对应独白]」 | [🚨/⚠️] |
+
+### 💡 问题根源
+
+**为什么这种方式对成人无效？**
+
+让我用一个类比来解释：[一个精准的类比，制造顿悟时刻]
+
+- **时间维度**：[具体分析]
+- **动机维度**：[具体分析]
+- **目标维度**：[具体分析]
+
+### 🔄 转变建议
+
+**从学校思维转向逆向思维：**
+
+1. **[思维转变1]**
+   - 学校思维：[旧想法]
+   - 逆向思维：[新想法]
+
+2. **[思维转变2]**
+   - 学校思维：[旧想法]
+   - 逆向思维：[新想法]
+
+3. **[思维转变3]**
+   - 学校思维：[旧想法]
+   - 逆向思维：[新想法]
+
+---
+
+**💡 下一步预告**
+
+接下来，我会帮你设计一条「逆向学习路径」——从你想做的事情倒推，只学够用的知识。
+
+你会发现：原来达成目标需要的知识，比你想象的少得多。
+
+## 边界处理
+
+【如果用户目标不明确】
+- 不要直接说「你的目标不明确」
+- 而是说「我注意到你说的是『学 X』，而不是『用 X 做什么』——这本身就是学校思维的表现」
+- 然后引导用户思考「学会之后想做什么」
+
+【如果用户没有描述困难】
+- 主动询问：「你之前尝试过学习吗？遇到了什么困难？」
+- 或者根据技能类型，预测常见的学校思维表现
+
+【如果用户的领域不适合逆向学习】
+- 如果是需要执照的领域（医学、法律）：「这个领域确实需要系统学习，但你可以用逆向思维来提高效率——先明确考试重点，再针对性学习」
+- 如果是纯理论研究：「逆向学习更适合有明确产出的技能，你的情况可能需要不同的策略」
+
+## 禁止事项
+
+❌ 不要输出泛泛的诊断（如「你需要更有计划」）
+❌ 不要给出「更努力」类的建议
+❌ 不要使用「系统学习」「打好基础」等学校思维词汇
+❌ 不要让用户感到被批评或被否定
+❌ 不要跳过「顿悟时刻」的设计`
+  },
+
+  stage_2_plan: {
+    role: `你是一名「逆向学习规划师」，拥有 15 年产品经理背景，是 JTBD（Jobs to be Done）理论的实践专家。你曾帮助上千名成年人设计学习路径，发现了一个惊人的规律：90% 的人学习失败，是因为他们学了太多「用不上」的东西。
+
+你的性格务实、高效，说话简洁有力，像一个「精准的外科医生」——只切除必要的部分，绝不多动一刀。
+
+【你的标志性表达】
+- 开场白：「让我帮你算一笔账：达成目标需要多少知识？」
+- 规划时：「你不需要成为专家，你只需要做出来」
+- 转折时：「好消息是，你需要学的比想象中少得多」
+- 金句：「传统学习是囤积知识，逆向学习是按需获取」
+
+【你绝对不会说的话】
+- 「你需要先系统学习...」（这是学校思维）
+- 「打好基础很重要」（这是让人放弃的咒语）
+- 「这个领域很复杂，需要长期积累」（这是劝退话术）`,
+
+    instruction: `## 核心信念（你的底层操作系统）
+
+「逆向学习」= 从目标倒推，只学够用的。
+
+这不是偷懒，而是效率革命：
+- 传统学习：100% 知识 → 筛选 → 10% 有用（90% 浪费）
+- 逆向学习：10% 需要 → 精准获取 → 100% 有用（零浪费）
+
+你的工作就是帮用户找到那「10%」。
+
+## 你的任务
+
+帮助用户完成一次「知识瘦身」——从目标倒推，设计最短路径，提取最小可行知识（MVK）。
+
+这是一次「减法革命」：不是告诉用户要学什么，而是告诉用户可以不学什么。
+
+## JTBD 转化框架
+
+【核心原则】
+- 不是「学 X」，而是「用 X 做 Y」
+- 不是「掌握技能」，而是「完成任务」
+- 不是「成为专家」，而是「解决问题」
+
+【JTBD 公式】
+当我 [处于某种情境] 时，
+我想要 [完成某个任务]，
+这样我就能 [获得某种结果]。
+
+【转化示例】
+| 用户说的 | JTBD 转化 |
+|---------|----------|
+| 「我想学编程」 | 「我想做一个能展示作品的网站」 |
+| 「我想学英语」 | 「我想能看懂行业英文报告」 |
+| 「我想学设计」 | 「我想能做出好看的 PPT」 |
+
+## 逆向路径设计原则
+
+【倒推法则】
+目标 ← 最后一步 ← 倒数第二步 ← ... ← 第一步 ← 现在
+
+【每一步必须满足】
+1. 有可见的产出（不是「理解了」，而是「做出了」）
+2. 产出可以展示（能发朋友圈、能给别人看）
+3. 时间可控（每步不超过 1-2 天）
+
+【路径精简原则】
+- 能跳过的步骤就跳过
+- 能合并的步骤就合并
+- 能用工具替代的就用工具
+
+## MVK 提取框架
+
+【三分法】
+| 类别 | 定义 | 学习策略 |
+|------|------|----------|
+| 🔴 必要基础 | 不懂就完全无法开始 | 花 30 分钟快速了解 |
+| 🟡 边做边学 | 遇到问题时再查 | 不提前学，用到再说 |
+| 🟢 暂时不学 | 目前阶段用不上 | 明确告诉用户可以跳过 |
+
+【MVK 判断标准】
+- 问自己：「如果不学这个，能不能完成第一步？」
+- 如果能 → 归入「边做边学」或「暂时不学」
+- 如果不能 → 归入「必要基础」，但要最小化
+
+## 输出格式
+
+### 🎯 JTBD 分析
+
+**你的真正任务不是「学 [X]」，而是：**
+
+> [一句话描述待完成任务，用 JTBD 公式]
+
+**完成后你会得到**：
+- [具体产出1]
+- [具体产出2]
+
+**这意味着**：[一句话说明这个产出的价值]
+
+### 📍 逆向路径
+
+**好消息：只需要 N 步，你就能达成目标。**
+
+[目标] ← [步骤N] ← ... ← [步骤2] ← [步骤1] ← [现在]
+
+| 步骤 | 要做什么 | 产出 | 所需知识 | 预计时间 |
+|------|---------|------|----------|----------|
+| 1 | [具体行动] | [可见产出] | [最小知识] | [X小时/天] |
+| 2 | [具体行动] | [可见产出] | [最小知识] | [X小时/天] |
+| ... | ... | ... | ... | ... |
+
+### 📦 MVK 清单
+
+**最小可行知识（只学这些就够了）**
+
+🔴 **必要基础**（花 30 分钟了解）：
+- [知识点1]：[为什么必要 + 怎么快速了解]
+
+🟡 **边做边学**（遇到再查）：
+- [知识点2]：[什么时候会用到]
+
+🟢 **暂时不学**（大胆跳过）：
+- [知识点3]：[为什么可以跳过]
+- [知识点4]：[为什么可以跳过]
+
+**💡 对比一下**：
+- 传统路径需要学：[N] 个知识点
+- 逆向路径只需要：[M] 个知识点
+- 你节省了：[N-M] 个知识点的时间
+
+---
+
+**💡 下一步预告**
+
+接下来，我会根据你的可用时间，设计一个「今天就能完成」的第一步行动。
+
+你会发现：第一步比你想象的简单得多。
+
+## 禁止事项
+
+❌ 不要设计「从基础开始」的路径
+❌ 不要列出超过 6 个步骤（太多会让人放弃）
+❌ 不要在 MVK 中列出超过 3 个「必要基础」
+❌ 不要使用「系统学习」「打好基础」等词汇
+❌ 不要跳过「对比传统路径」的惊喜时刻`
+  },
+
+  stage_3_action: {
+    role: `你是一名「行动催化师」，拥有 10 年用户体验设计背景，专门研究「为什么人们知道该做什么却不去做」。你发现了一个秘密：不是人们缺乏动力，而是第一步太难了。你的使命是把第一步设计得「简单到不可能失败」。
+
+你的性格热情、鼓励，但绝不空洞。你像一个「贴心的教练」——不会说「加油你可以的」，而是说「来，我帮你把第一步拆成三个小动作」。
+
+【你的标志性表达】
+- 开场白：「让我帮你设计一个『不可能失败』的第一步」
+- 设计时：「做出来就是学会了」
+- 鼓励时：「30 分钟后，你就能看到成果」
+- 金句：「一次小成功，比十次鼓励更有效」
+
+【你绝对不会说的话】
+- 「你需要先准备好...」（准备是拖延的借口）
+- 「等你有时间再...」（永远不会有「完美时机」）
+- 「这个比较难，你要有心理准备」（这是劝退话术）
+- 「加油，你可以的」（空洞的鼓励毫无意义）`,
+
+    instruction: `## 核心信念（你的底层操作系统）
+
+「先赢一次」是打破学习惯性的关键。
+
+心理学研究表明：
+- 一次成功经验 > 十次鼓励
+- 「我做到了」的记忆会在未来困难时提供心理资源
+- 第一步的难度决定了 90% 的人是否会继续
+
+所以，你的工作不是「激励用户」，而是「设计一个不可能失败的第一步」。
+
+## 你的任务
+
+帮助用户设计一个「今天就能完成」的第一步行动，让用户「先赢一次」。
+
+这是一次「启动仪式」：不是学习的开始，而是成功的开始。
+
+## 第一步设计原则
+
+【不可能失败的四个标准】
+| 标准 | 要求 | 检验方法 |
+|------|------|----------|
+| 时间可控 | 在用户指定时间内完成 | 步骤时间加总 ≤ 可用时间 |
+| 产出可见 | 有具体的、可展示的成果 | 能截图/能发朋友圈 |
+| 产出真实 | 不是练习题，是真正的作品 | 能给别人看、能用 |
+| 步骤具体 | 每一步都能直接执行 | 不需要再思考「怎么做」 |
+
+【时间匹配表】
+| 可用时间 | 任务复杂度 | 步骤数量 |
+|----------|-----------|----------|
+| 30 分钟 | 极简 | 3-4 步 |
+| 1 小时 | 简单 | 4-5 步 |
+| 半天 | 中等 | 5-6 步 |
+| 一整天 | 完整 | 6-8 步 |
+
+【AI 工具优先原则】
+如果用户有 AI 工具可用，优先设计「用 AI 辅助完成」的任务：
+- AI 生成初稿 → 用户修改 → 完成
+- 这比「从零开始」快 10 倍
+- 而且用户能学到「如何与 AI 协作」
+
+## 输出格式
+
+### 🚀 第一步行动
+
+**今天 [时间] 分钟，你就能完成这个：**
+
+> [一句话描述任务，要具体、有画面感]
+
+---
+
+**具体步骤**：
+
+**1. [步骤名称]**（约 X 分钟）
+- 做什么：[具体动作]
+- [如果需要，给出详细指令或示例]
+- 完成标志：[怎么知道做完了]
+
+**2. [步骤名称]**（约 X 分钟）
+- 做什么：[具体动作]
+- 完成标志：[怎么知道做完了]
+
+...
+
+---
+
+**需要用到**：[列出会用到的工具]
+
+**如果卡住了**：
+- [具体的求助方式，比如问 AI 什么问题]
+- [备选方案]
+
+### ✅ 预期产出
+
+**完成后你会得到**：
+- [具体产出1，要有画面感]
+- [具体产出2]
+
+**你可以**：
+- [如何展示这个产出]
+- [可以发给谁看]
+
+### ➡️ 下一步预告
+
+**完成这一步后，你可以**：
+- [下一步行动1]
+- [下一步行动2]
+
+---
+
+**🎉 恭喜你迈出了第一步！**
+
+记住：做出来就是学会了。
+
+你刚才用的 [技术/方法]，就是 [领域] 的核心技能之一。你已经不是「零基础」了。
+
+## 禁止事项
+
+❌ 不要设计「需要准备」的任务（准备就是拖延）
+❌ 不要设计「练习题」类型的任务（要真实产出）
+❌ 不要给出模糊的步骤（「学习一下 X」不是步骤）
+❌ 不要超出用户的可用时间
+❌ 不要忘记「如果卡住了」的救援设计
+❌ 不要用空洞的鼓励（「加油」「你可以的」）`
+  }
+};
+</script>
+<script>
+// 全局状态管理
+const AppState = {
+  // 当前阶段 (1, 2, 3)
+  currentStage: 1,
+
+  // 各阶段输入
+  inputs: {
+    stage1: {
+      skillType: 'tech',
+      learningGoal: '',
+      currentApproach: ''
+    },
+    stage2: {
+      // 继承 stage1 的目标
+    },
+    stage3: {
+      availableTime: '1hour',
+      tools: {
+        computer: true,
+        internet: true,
+        ai: true,
+        phoneOnly: false
+      }
+    }
+  },
+
+  // 各阶段输出（AI 返回的结果）
+  outputs: {
+    stage1: null,
+    stage2: null,
+    stage3: null
+  },
+
+  // AI 配置
+  aiConfig: {
+    provider: 'openrouter',
+    model: 'anthropic/claude-sonnet-4',
+    apiKey: '',
+    customEndpoint: '',
+    customModel: ''
+  },
+
+  // UI 状态
+  ui: {
+    isLoading: false,
+    expandedResults: {
+      stage1: true,
+      stage2: true,
+      stage3: true
+    }
+  }
+};
+
+// 状态持久化
+const StateManager = {
+  // 保存状态到 localStorage
+  save() {
+    try {
+      const stateToSave = {
+        currentStage: AppState.currentStage,
+        inputs: AppState.inputs,
+        outputs: AppState.outputs,
+        aiConfig: {
+          provider: AppState.aiConfig.provider,
+          model: AppState.aiConfig.model,
+          customEndpoint: AppState.aiConfig.customEndpoint,
+          customModel: AppState.aiConfig.customModel
+          // 注意：不保存 apiKey
+        }
+      };
+      localStorage.setItem(STORAGE_KEYS.state, JSON.stringify(stateToSave));
+    } catch (e) {
+      console.warn('保存状态失败:', e);
+    }
+  },
+
+  // 从 localStorage 加载状态
+  load() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.state);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+
+        // 恢复状态
+        if (parsed.currentStage) AppState.currentStage = parsed.currentStage;
+        if (parsed.inputs) AppState.inputs = { ...AppState.inputs, ...parsed.inputs };
+        if (parsed.outputs) AppState.outputs = { ...AppState.outputs, ...parsed.outputs };
+        if (parsed.aiConfig) {
+          AppState.aiConfig = { ...AppState.aiConfig, ...parsed.aiConfig };
+        }
+
+        return true;
+      }
+    } catch (e) {
+      console.warn('加载状态失败:', e);
+    }
+    return false;
+  },
+
+  // 清除状态
+  clear() {
+    localStorage.removeItem(STORAGE_KEYS.state);
+    // 重置为初始状态
+    AppState.currentStage = 1;
+    AppState.inputs = {
+      stage1: { skillType: 'tech', learningGoal: '', currentApproach: '' },
+      stage2: {},
+      stage3: { availableTime: '1hour', tools: { computer: true, internet: true, ai: true, phoneOnly: false } }
+    };
+    AppState.outputs = { stage1: null, stage2: null, stage3: null };
+  },
+
+  // 保存 AI 配置（单独存储，包含 API Key）
+  saveConfig() {
+    try {
+      const config = {
+        provider: AppState.aiConfig.provider,
+        model: AppState.aiConfig.model,
+        apiKey: AppState.aiConfig.apiKey,
+        customEndpoint: AppState.aiConfig.customEndpoint,
+        customModel: AppState.aiConfig.customModel
+      };
+      localStorage.setItem(STORAGE_KEYS.config, JSON.stringify(config));
+    } catch (e) {
+      console.warn('保存配置失败:', e);
+    }
+  },
+
+  // 加载 AI 配置
+  loadConfig() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEYS.config);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        AppState.aiConfig = { ...AppState.aiConfig, ...parsed };
+        return true;
+      }
+    } catch (e) {
+      console.warn('加载配置失败:', e);
+    }
+    return false;
+  }
+};
+
+// 阶段管理
+const StageManager = {
+  // 获取当前阶段
+  getCurrent() {
+    return AppState.currentStage;
+  },
+
+  // 设置当前阶段
+  setCurrent(stage) {
+    if (stage >= 1 && stage <= 3) {
+      AppState.currentStage = stage;
+      StateManager.save();
+    }
+  },
+
+  // 检查阶段是否可访问
+  canAccess(stage) {
+    if (stage === 1) return true;
+    if (stage === 2) return AppState.outputs.stage1 !== null;
+    if (stage === 3) return AppState.outputs.stage2 !== null;
+    return false;
+  },
+
+  // 检查阶段是否已完成
+  isCompleted(stage) {
+    return AppState.outputs[`stage${stage}`] !== null;
+  },
+
+  // 获取阶段状态
+  getStatus(stage) {
+    if (this.isCompleted(stage)) return 'completed';
+    if (stage === AppState.currentStage) return 'active';
+    if (this.canAccess(stage)) return 'accessible';
+    return 'pending';
+  }
+};
+
+// 构建上下文（用于 AI 调用）
+function buildContext(stage) {
+  const context = {
+    stage,
+    inputs: AppState.inputs[`stage${stage}`]
+  };
+
+  // Stage 2 需要 Stage 1 的输入和输出
+  if (stage === 2) {
+    context.previousInputs = AppState.inputs.stage1;
+    context.previousOutput = AppState.outputs.stage1;
+  }
+
+  // Stage 3 需要 Stage 1 和 Stage 2 的输入和输出
+  if (stage === 3) {
+    context.stage1Inputs = AppState.inputs.stage1;
+    context.stage1Output = AppState.outputs.stage1;
+    context.stage2Output = AppState.outputs.stage2;
+  }
+
+  return context;
+}
+
+// 构建用户消息（用于 AI 调用）
+function buildUserMessage(stage) {
+  const inputs = AppState.inputs[`stage${stage}`];
+
+  if (stage === 1) {
+    const skillTypeName = SKILL_TYPES[inputs.skillType] || inputs.skillType;
+    let message = `【技能类型】${skillTypeName}\n\n【学习目标】\n${inputs.learningGoal}`;
+    if (inputs.currentApproach) {
+      message += `\n\n【当前学习方式和困难】\n${inputs.currentApproach}`;
+    }
+    return message;
+  }
+
+  if (stage === 2) {
+    const stage1Inputs = AppState.inputs.stage1;
+    const stage1Output = AppState.outputs.stage1;
+    return `【用户学习目标】\n${stage1Inputs.learningGoal}\n\n【诊断结果】\n${stage1Output}`;
+  }
+
+  if (stage === 3) {
+    const stage1Inputs = AppState.inputs.stage1;
+    const stage2Output = AppState.outputs.stage2;
+    const timeName = TIME_OPTIONS[inputs.availableTime] || inputs.availableTime;
+
+    // 构建工具列表
+    const toolsList = [];
+    if (inputs.tools.computer) toolsList.push('电脑');
+    if (inputs.tools.internet) toolsList.push('网络');
+    if (inputs.tools.ai) toolsList.push('AI 工具（ChatGPT/Claude）');
+    if (inputs.tools.phoneOnly) toolsList.push('只有手机');
+
+    return `【用户学习目标】\n${stage1Inputs.learningGoal}\n\n【逆向学习路径】\n${stage2Output}\n\n【可用时间】${timeName}\n\n【可用工具】${toolsList.join('、')}`;
+  }
+
+  return '';
+}
+</script>
+<script>
+// API 调用模块（按 ai-providers.md 规范）
+
+// 获取域名
+function getHostname(url) {
+    try {
+        return new URL(String(url || "").trim()).hostname;
+    } catch {
+        return "";
+    }
+}
+
+// 检查域名是否在允许列表
+function isDomainAllowed(hostname) {
+    if (!hostname) return false;
+    return ALLOWED_DOMAINS.includes(hostname);
+}
+
+// 域名授权确认（用于非允许列表域名）
+function ensureDomainConsentOrThrow(hostname, consentKey = "ai_domain_consent_v1") {
+    const raw = localStorage.getItem(consentKey) || "{}";
+    let obj = {};
+    try { obj = JSON.parse(raw); } catch { obj = {}; }
+
+    if (obj[hostname] === true) return true;
+
+    const ok = confirm(
+        `你即将把请求（包含密钥）发送到域名：${hostname}\n\n` +
+        `确认要允许吗？\n` +
+        `如果这个域名不是你信任的平台，请点取消。`
+    );
+    if (!ok) throw new Error("用户取消了域名授权");
+
+    obj[hostname] = true;
+    localStorage.setItem(consentKey, JSON.stringify(obj));
+    return true;
+}
+
+// 从 key-manager 读取 API Key
+function getProviderKey(providerId) {
+    const provider = AI_PROVIDERS[providerId];
+    if (!provider) return '';
+
+    const keyName = provider.keyName;
+    if (!keyName) return '';
+
+    // 优先级: localStorage > sessionStorage > 手动输入（降级）
+    const key = localStorage.getItem(keyName)
+             || sessionStorage.getItem(keyName)
+             || (typeof state !== 'undefined' && state.settings?.apiKey)
+             || '';
+
+    return key;
+}
+
+// 调用 AI API（按 ai-providers.md 规范）
+async function callAI(systemPrompt, userPrompt) {
+    const SETTINGS_KEY = `${TOOL_ID}_settings`;
+
+    let settings;
+    try {
+        settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    } catch {
+        settings = {};
+    }
+    if (!settings.provider) settings.provider = 'siliconflow';
+
+    const providerId = settings.provider;
+    const provider = AI_PROVIDERS[providerId];
+    if(!provider) throw new Error("无效的服务商");
+
+    const apiKey = getProviderKey(providerId);
+    if(!apiKey) throw new Error(`未检测到 ${provider.name} 的 API Key`);
+
+    const model = settings.model || provider.defaultModel;
+    let endpoint = provider.endpoint;
+
+    // 自定义服务商空值检查
+    if (!endpoint && providerId === 'custom') {
+        endpoint = settings.customEndpoint;
+        if (!endpoint) throw new Error("请先设置自定义 API 端点");
+    }
+
+    // 域名安全检查
+    const hostname = getHostname(endpoint);
+    if (!isDomainAllowed(hostname)) {
+        ensureDomainConsentOrThrow(hostname);
+    }
+
+    // 构造请求
+    const headers = { 'Content-Type': 'application/json' };
+    let body = {};
+
+    if (providerId === 'claude') {
+        headers['x-api-key'] = apiKey;
+        headers['anthropic-version'] = '2023-06-01';
+        headers['anthropic-dangerous-direct-browser-access'] = 'true';
+        body = {
+            model: model, max_tokens: 4000,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }]
+        };
+    } else {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        body = {
+            model: model, stream: false,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ]
+        };
+    }
+
+    const response = await fetch(endpoint, {
+        method: 'POST', headers, body: JSON.stringify(body)
+    });
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`API Error (${response.status}): ${errText.slice(0, 100)}...`);
+    }
+
+    const data = await response.json();
+    if (providerId === 'claude') {
+        if (!data.content?.[0]?.text) throw new Error('Claude API 响应格式异常');
+        return data.content[0].text;
+    }
+    if (!data.choices?.[0]?.message?.content) throw new Error('API 响应格式异常');
+    return data.choices[0].message.content;
+}
+
+// 提交阶段（统一入口）
+async function submitStage(stage) {
+    // 防止重复提交
+    if (AppState.ui.isLoading) return;
+
+    try {
+        // 设置加载状态
+        AppState.ui.isLoading = true;
+        showLoading(stage);
+
+        // 收集输入
+        collectInputs(stage);
+
+        // 验证输入
+        validateInputs(stage);
+
+        // 获取 Prompt 配置
+        const stageKey = `stage_${stage}_${['diagnose', 'plan', 'action'][stage - 1]}`;
+        const promptConfig = PROMPTS[stageKey];
+        if (!promptConfig) {
+            throw new Error(`未找到阶段 ${stage} 的 Prompt 配置`);
+        }
+
+        // 构建系统消息和用户消息
+        const systemMessage = `${promptConfig.role}\n\n${promptConfig.instruction}`;
+        const userMessage = buildUserMessage(stage);
+
+        // 调用 AI
+        const result = await callAI(systemMessage, userMessage);
+
+        // 保存结果
+        AppState.outputs[`stage${stage}`] = result;
+        StateManager.save();
+
+        // 显示结果
+        hideLoading();
+        showResult(stage, result);
+
+        // 更新进度
+        updateProgress();
+
+    } catch (error) {
+        hideLoading();
+        showToast(error.message, 'error');
+        console.error('提交失败:', error);
+    } finally {
+        AppState.ui.isLoading = false;
+    }
+}
+
+// 收集输入
+function collectInputs(stage) {
+    if (stage === 1) {
+        AppState.inputs.stage1 = {
+            skillType: document.getElementById('skillType').value,
+            learningGoal: document.getElementById('learningGoal').value.trim(),
+            currentApproach: document.getElementById('currentApproach').value.trim()
+        };
+    } else if (stage === 3) {
+        AppState.inputs.stage3 = {
+            availableTime: document.getElementById('availableTime').value,
+            tools: {
+                computer: document.getElementById('toolComputer').checked,
+                internet: document.getElementById('toolInternet').checked,
+                ai: document.getElementById('toolAI').checked,
+                phoneOnly: document.getElementById('toolPhone').checked
+            }
+        };
+    }
+}
+
+// 验证输入
+function validateInputs(stage) {
+    if (stage === 1) {
+        if (!AppState.inputs.stage1.learningGoal) {
+            throw new Error('请填写你的学习目标');
+        }
+    }
+}
+
+// 阶段提交函数（供 HTML 调用）
+function submitStage1() { submitStage(1); }
+function submitStage2() { submitStage(2); }
+function submitStage3() { submitStage(3); }
+
+// 继续到下一阶段
+function continueToStage2() { goToStage(2); }
+function continueToStage3() { goToStage(3); }
+</script>
+<script>
+// UI 渲染模块（按 step3-generator.md 规范）
+
+// 全局状态对象
+const state = {
+    settings: {
+        provider: 'siliconflow',
+        model: 'Pro/zai-org/GLM-4.7',
+        apiKey: '',
+        customEndpoint: ''
+    }
+};
+
+// 切换设置面板
+function toggleSettingsPanel() {
+    const overlay = document.getElementById('configOverlay');
+    const panel = document.getElementById('settingsPanel');
+
+    if (panel.classList.contains('open')) {
+        panel.classList.remove('open');
+        overlay.classList.add('hidden');
+    } else {
+        overlay.classList.remove('hidden');
+        panel.classList.add('open');
+    }
+}
+
+// 更新 AI 模型选择器（按规范）
+function updateModelSelector() {
+    const provider = AI_PROVIDERS[state.settings.provider];
+    const select = document.getElementById('modelSelect');
+
+    // 防御性检查：如果 provider 无效，使用默认值
+    if (!provider) {
+        console.warn('AI Provider not found:', state.settings.provider, ', falling back to siliconflow');
+        state.settings.provider = 'siliconflow';
+        state.settings.model = 'Pro/zai-org/GLM-4.7';
+        const defaultProvider = AI_PROVIDERS['siliconflow'];
+        select.innerHTML = defaultProvider.models.map(model =>
+            `<option value="${model}" ${model === state.settings.model ? 'selected' : ''}>${model}</option>`
+        ).join('') + '<option value="__custom__">-- 自定义模型 --</option>';
+        return;
+    }
+
+    // 生成模型选项，末尾添加"自定义模型"选项
+    const modelOptions = provider.models.map(model =>
+        `<option value="${model}" ${model === state.settings.model ? 'selected' : ''}>${model}</option>`
+    ).join('');
+
+    // 检查当前模型是否是自定义的（不在预设列表中）
+    const isCustomModel = state.settings.model && !provider.models.includes(state.settings.model);
+
+    select.innerHTML = modelOptions +
+        `<option value="__custom__" ${isCustomModel ? 'selected' : ''}>-- 自定义模型 --</option>`;
+
+    // 控制自定义模型输入框的显示
+    updateCustomModelInputVisibility(isCustomModel);
+
+    // 控制自定义端点输入框的显示（仅自定义服务商）
+    const customEndpointGroup = document.getElementById('customEndpointGroup');
+    if (customEndpointGroup) {
+        customEndpointGroup.classList.toggle('hidden', state.settings.provider !== 'custom');
+    }
+}
+
+// 更新自定义模型输入框可见性
+function updateCustomModelInputVisibility(show) {
+    const customModelInput = document.getElementById('customModelInput');
+    if (!customModelInput) return;
+
+    if (show) {
+        customModelInput.classList.remove('hidden');
+        if (state.settings.model && state.settings.model !== '__custom__') {
+            customModelInput.value = state.settings.model;
+        }
+    } else {
+        customModelInput.classList.add('hidden');
+        customModelInput.value = '';
+    }
+}
+
+// 更改 AI 服务商
+function changeAIProvider(providerId) {
+    state.settings.provider = providerId;
+    const provider = AI_PROVIDERS[providerId];
+    if (provider) {
+        state.settings.model = provider.defaultModel;
+    }
+    updateModelSelector();
+    updateKeyStatusIndicator();
+    saveSettings();
+}
+
+// 更改 AI 模型
+function changeAIModel(model) {
+    if (model === '__custom__') {
+        updateCustomModelInputVisibility(true);
+        return;
+    }
+    state.settings.model = model;
+    updateCustomModelInputVisibility(false);
+    saveSettings();
+}
+
+// 设置自定义模型
+function setCustomModel(modelId) {
+    if (modelId && modelId.trim()) {
+        state.settings.model = modelId.trim();
+        saveSettings();
+    }
+}
+
+// 设置手动 API Key
+function setManualApiKey(key) {
+    state.settings.apiKey = key;
+    // 同时保存到对应的 keyName
+    const provider = AI_PROVIDERS[state.settings.provider];
+    if (provider && provider.keyName && key) {
+        localStorage.setItem(provider.keyName, key);
+    }
+    updateKeyStatusIndicator();
+    saveSettings();
+}
+
+// 设置自定义端点
+function setCustomEndpoint(endpoint) {
+    state.settings.customEndpoint = endpoint;
+    saveSettings();
+}
+
+// 更新 Key 状态指示器
+function updateKeyStatusIndicator() {
+    const indicator = document.getElementById('keyStatusIndicator');
+    if (!indicator) return;
+
+    const provider = AI_PROVIDERS[state.settings.provider];
+    if (!provider) {
+        indicator.textContent = '⚠️ 无效的服务商';
+        indicator.className = 'text-sm text-red-500';
+        return;
+    }
+
+    const keyName = provider.keyName;
+    const kmKey = keyName ? (localStorage.getItem(keyName) || sessionStorage.getItem(keyName)) : '';
+    const manualKey = state.settings.apiKey || '';
+
+    if (kmKey) {
+        indicator.innerHTML = `✅ Key Manager 已配置`;
+        indicator.className = 'text-sm text-green-400';
+    } else if (manualKey) {
+        indicator.textContent = '🔑 使用手动输入';
+        indicator.className = 'text-sm text-yellow-400';
+    } else {
+        indicator.textContent = '❌ 未配置 API Key';
+        indicator.className = 'text-sm text-red-400';
+    }
+}
+
+// 保存设置到 localStorage
+function saveSettings() {
+    const SETTINGS_KEY = `${TOOL_ID}_settings`;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(state.settings));
+    showToast('设置已保存', 'success');
+}
+
+// 显示加载状态
+function showLoading(stage) {
+    const loadingTexts = {
+        1: '正在诊断你的学习方式...',
+        2: '正在设计逆向学习路径...',
+        3: '正在设计第一步行动...'
+    };
+
+    document.getElementById('loadingText').textContent = loadingTexts[stage] || '正在处理...';
+    document.getElementById(`stage${stage}Input`).classList.add('hidden');
+    document.getElementById('loadingState').classList.remove('hidden');
+}
+
+// 隐藏加载状态
+function hideLoading() {
+    document.getElementById('loadingState').classList.add('hidden');
+    const stage = AppState.currentStage;
+    document.getElementById(`stage${stage}Input`).classList.remove('hidden');
+}
+
+// 显示结果
+function showResult(stage, content) {
+    document.getElementById('resultContainer').classList.remove('hidden');
+    document.getElementById(`stage${stage}Result`).classList.remove('hidden');
+
+    const contentEl = document.getElementById(`stage${stage}Content`);
+    contentEl.innerHTML = marked.parse(content);
+
+    const summaryTexts = {
+        1: '诊断完成！已识别出你的「学校思维」表现',
+        2: '路径规划完成！已设计最短学习路径',
+        3: '行动计划已生成！今天就能完成第一步'
+    };
+    document.getElementById(`stage${stage}SummaryText`).textContent = summaryTexts[stage];
+
+    document.getElementById(`stage${stage}Result`).scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// 更新进度指示器
+function updateProgress() {
+    for (let i = 1; i <= 3; i++) {
+        const stepEl = document.getElementById(`step${i}`);
+        const status = StageManager.getStatus(i);
+
+        stepEl.classList.remove('active', 'completed', 'pending');
+
+        if (status === 'completed') {
+            stepEl.classList.add('completed');
+            stepEl.innerHTML = '<i class="ri-check-line"></i>';
+        } else if (status === 'active') {
+            stepEl.classList.add('active');
+            stepEl.innerHTML = `<span class="text-sm font-semibold">${i}</span>`;
+        } else {
+            stepEl.classList.add('pending');
+            stepEl.innerHTML = `<span class="text-sm font-semibold">${i}</span>`;
+        }
+
+        if (i < 3) {
+            const lineEl = document.getElementById(`line${i}`);
+            if (StageManager.isCompleted(i)) {
+                lineEl.classList.add('completed');
+            } else {
+                lineEl.classList.remove('completed');
+            }
+        }
+
+        const quickLink = document.getElementById(`quickLink${i}`);
+        quickLink.classList.remove('active', 'completed');
+        if (status === 'active') {
+            quickLink.classList.add('active');
+        } else if (status === 'completed') {
+            quickLink.classList.add('completed');
+        }
+    }
+}
+
+// 跳转到指定阶段
+function goToStage(stage) {
+    if (!StageManager.canAccess(stage)) {
+        showToast('请先完成前面的步骤', 'warning');
+        return;
+    }
+
+    StageManager.setCurrent(stage);
+
+    document.querySelectorAll('.stage-content').forEach(el => el.classList.add('hidden'));
+    document.getElementById(`stage${stage}Input`).classList.remove('hidden');
+
+    if (stage === 2) {
+        document.getElementById('stage2GoalDisplay').textContent = AppState.inputs.stage1.learningGoal;
+    }
+
+    updateProgress();
+}
+
+// 显示 Toast 消息
+function showToast(message, type = 'info') {
+    const toast = document.getElementById('toast');
+    const toastMessage = document.getElementById('toastMessage');
+
+    toastMessage.textContent = message;
+
+    toast.className = 'toast';
+    if (type === 'error') {
+        toast.classList.add('bg-red-500');
+    } else if (type === 'warning') {
+        toast.classList.add('bg-yellow-500');
+    } else if (type === 'success') {
+        toast.classList.add('bg-green-500');
+    } else {
+        toast.classList.add('bg-blue-500');
+    }
+
+    toast.classList.add('show');
+
+    setTimeout(() => {
+        toast.classList.remove('show');
+    }, 3000);
+}
+
+// 切换结果展开/收起
+function toggleResultExpand(stage) {
+    const contentEl = document.getElementById(`stage${stage}Content`);
+    const iconEl = document.getElementById(`expandIcon${stage}`);
+
+    AppState.ui.expandedResults[`stage${stage}`] = !AppState.ui.expandedResults[`stage${stage}`];
+
+    if (AppState.ui.expandedResults[`stage${stage}`]) {
+        contentEl.classList.remove('collapsed');
+        iconEl.className = 'ri-arrow-up-s-line';
+    } else {
+        contentEl.classList.add('collapsed');
+        iconEl.className = 'ri-arrow-down-s-line';
+    }
+}
+
+// 复制结果
+async function copyResult(stage) {
+    const content = AppState.outputs[`stage${stage}`];
+    if (!content) return;
+
+    try {
+        await navigator.clipboard.writeText(content);
+        showToast('已复制到剪贴板', 'success');
+    } catch (e) {
+        showToast('复制失败', 'error');
+    }
+}
+
+// 导出所有结果
+function exportAllResults() {
+    const results = [];
+
+    if (AppState.outputs.stage1) {
+        results.push('# 诊断结果\n\n' + AppState.outputs.stage1);
+    }
+    if (AppState.outputs.stage2) {
+        results.push('# 逆向学习路径\n\n' + AppState.outputs.stage2);
+    }
+    if (AppState.outputs.stage3) {
+        results.push('# 第一步行动\n\n' + AppState.outputs.stage3);
+    }
+
+    if (results.length === 0) {
+        showToast('没有可导出的结果', 'warning');
+        return;
+    }
+
+    const content = results.join('\n\n---\n\n');
+    const blob = new Blob([content], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `逆向学习计划_${new Date().toISOString().slice(0, 10)}.md`;
+    a.click();
+
+    URL.revokeObjectURL(url);
+    showToast('导出成功', 'success');
+}
+
+// 重置所有
+function resetAll() {
+    if (!confirm('确定要重新开始吗？所有结果将被清除。')) return;
+
+    StateManager.clear();
+
+    document.getElementById('resultContainer').classList.add('hidden');
+    document.querySelectorAll('[id^="stage"][id$="Result"]').forEach(el => el.classList.add('hidden'));
+
+    document.getElementById('learningGoal').value = '';
+    document.getElementById('currentApproach').value = '';
+
+    goToStage(1);
+    updateProgress();
+
+    showToast('已重置', 'success');
+}
+</script>
+<script>
+// 初始化模块
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 加载保存的设置
+    initAISettings();
+
+    // 加载保存的状态
+    StateManager.loadConfig();
+    const hasState = StateManager.load();
+
+    // 如果有保存的状态，恢复界面
+    if (hasState) {
+        restoreUI();
+    }
+
+    // 更新进度指示器
+    updateProgress();
+});
+
+// 初始化 AI 设置（按规范）
+function initAISettings() {
+    const SETTINGS_KEY = `${TOOL_ID}_settings`;
+    try {
+        const saved = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+        state.settings = { ...state.settings, ...saved };
+    } catch {}
+
+    // 设置默认值
+    if (!state.settings.provider) state.settings.provider = 'siliconflow';
+    if (!state.settings.model) {
+        const provider = AI_PROVIDERS[state.settings.provider];
+        state.settings.model = provider?.defaultModel || 'Pro/zai-org/GLM-4.7';
+    }
+
+    // 同步 UI
+    const providerSelect = document.getElementById('providerSelect');
+    if (providerSelect) providerSelect.value = state.settings.provider;
+
+    updateModelSelector();
+    updateKeyStatusIndicator();
+}
+
+// 恢复 UI 状态
+function restoreUI() {
+    // 恢复输入值
+    if (AppState.inputs.stage1.skillType) {
+        document.getElementById('skillType').value = AppState.inputs.stage1.skillType;
+    }
+    if (AppState.inputs.stage1.learningGoal) {
+        document.getElementById('learningGoal').value = AppState.inputs.stage1.learningGoal;
+    }
+    if (AppState.inputs.stage1.currentApproach) {
+        document.getElementById('currentApproach').value = AppState.inputs.stage1.currentApproach;
+    }
+    if (AppState.inputs.stage3.availableTime) {
+        document.getElementById('availableTime').value = AppState.inputs.stage3.availableTime;
+    }
+
+    // 恢复工具选择
+    const tools = AppState.inputs.stage3.tools;
+    document.getElementById('toolComputer').checked = tools.computer;
+    document.getElementById('toolInternet').checked = tools.internet;
+    document.getElementById('toolAI').checked = tools.ai;
+    document.getElementById('toolPhone').checked = tools.phoneOnly;
+
+    // 恢复结果显示
+    if (AppState.outputs.stage1) {
+        document.getElementById('resultContainer').classList.remove('hidden');
+        document.getElementById('stage1Result').classList.remove('hidden');
+        document.getElementById('stage1Content').innerHTML = marked.parse(AppState.outputs.stage1);
+    }
+    if (AppState.outputs.stage2) {
+        document.getElementById('stage2Result').classList.remove('hidden');
+        document.getElementById('stage2Content').innerHTML = marked.parse(AppState.outputs.stage2);
+    }
+    if (AppState.outputs.stage3) {
+        document.getElementById('stage3Result').classList.remove('hidden');
+        document.getElementById('stage3Content').innerHTML = marked.parse(AppState.outputs.stage3);
+    }
+
+    // 跳转到当前阶段
+    goToStage(AppState.currentStage);
+}
+</script>
+    <!-- Footer -->
+    <footer class="text-center py-6 text-gray-500 text-sm border-t border-white/10 mt-8">
+      <p>LearnByDoing · 基于 Zara Zhang 的学习方法论</p>
+      <p class="mt-1 text-xs text-gray-600">Powered by AI · Built with ❤️</p>
+    </footer>
+
+  </main>
+</body>
+</html>
