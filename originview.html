@@ -1097,22 +1097,83 @@
     // 配置数据
     // ========================================
 
-    // Key Manager 集成
-    const KEY_MANAGER = {
-      // Provider ID 到 Key Manager keyName 的映射
-      KEY_NAME_MAP: {
-        siliconflow: 'siliconflow_key',
-        openrouter: 'openrouter_key',
-        deepseek: 'deepseek_key',
-        claude: 'anthropic_key'
+    // AI 服务商配置（从 ai-providers.md 复制）
+    const AI_PROVIDERS = {
+      siliconflow: {
+        name: '硅基流动 (SiliconFlow)',
+        keyName: 'siliconflow_key',
+        endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+        models: [
+          'Pro/zai-org/GLM-4.7',
+          'Pro/moonshotai/Kimi-K2-Thinking',
+          'Qwen/Qwen3-VL-32B-Thinking',
+          'Qwen/Qwen2.5-7B-Instruct',
+          'deepseek-ai/DeepSeek-V3'
+        ],
+        defaultModel: 'Pro/zai-org/GLM-4.7'
       },
+      openrouter: {
+        name: '开放路由 (OpenRouter)',
+        keyName: 'openrouter_key',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        models: [
+          'anthropic/claude-opus-4.5',
+          'openai/gpt-5.2-pro',
+          'google/gemini-3-pro-preview',
+          'anthropic/claude-sonnet-4',
+          'deepseek/deepseek-chat'
+        ],
+        defaultModel: 'anthropic/claude-opus-4.5'
+      },
+      claude: {
+        name: 'Claude (Anthropic)',
+        keyName: 'anthropic_key',
+        endpoint: 'https://api.anthropic.com/v1/messages',
+        models: [
+          'claude-opus-4-5-20251101-thinking',
+          'claude-sonnet-4-20250514',
+          'claude-opus-4-20250514',
+          'claude-3-5-sonnet-20241022'
+        ],
+        defaultModel: 'claude-opus-4-5-20251101-thinking',
+        isAnthropic: true
+      },
+      deepseek: {
+        name: 'DeepSeek',
+        keyName: 'deepseek_key',
+        endpoint: 'https://api.deepseek.com/v1/chat/completions',
+        models: [
+          'deepseek-chat',
+          'deepseek-reasoner'
+        ],
+        defaultModel: 'deepseek-chat'
+      },
+      custom: {
+        name: '自定义服务商',
+        keyName: 'custom_key',
+        endpoint: '',
+        models: [],
+        defaultModel: ''
+      }
+    };
 
+    const ALLOWED_DOMAINS = [
+      "api.siliconflow.cn",
+      "openrouter.ai",
+      "api.anthropic.com",
+      "api.deepseek.com",
+      "localhost",
+      "127.0.0.1"
+    ];
+
+    // Key Manager 集成（从 ai-providers.md 复制）
+    const KEY_MANAGER = {
       // 从 Key Manager 读取 API Key
       getApiKey(providerId) {
-        const keyName = this.KEY_NAME_MAP[providerId];
-        if (!keyName) return '';
+        const provider = AI_PROVIDERS[providerId];
+        if (!provider || !provider.keyName) return '';
         try {
-          return localStorage.getItem(keyName) || '';
+          return localStorage.getItem(provider.keyName) || '';
         } catch {
           return '';
         }
@@ -1131,54 +1192,6 @@
           text: hasKey ? '✅ 已配置' : '❌ 未配置',
           hint: hasKey ? '' : '请在 Key Manager 中配置'
         };
-      }
-    };
-
-    // AI 服务商配置
-    const AI_PROVIDERS = {
-      siliconflow: {
-        name: '硅基流动 (SiliconFlow)',
-        baseUrl: 'https://api.siliconflow.cn/v1/chat/completions',
-        models: [
-          { id: 'Pro/zai-org/GLM-4.7', name: 'GLM-4.7 (默认)' },
-          { id: 'Pro/moonshotai/Kimi-K2-Thinking', name: 'Kimi K2 Thinking' },
-          { id: 'Qwen/Qwen3-VL-32B-Thinking', name: 'Qwen 3 VL 32B Thinking' },
-          { id: 'Qwen/Qwen2.5-7B-Instruct', name: 'Qwen 2.5 7B' },
-          { id: 'deepseek-ai/DeepSeek-V3', name: 'DeepSeek V3' }
-        ],
-        defaultModel: 'Pro/zai-org/GLM-4.7'
-      },
-      openrouter: {
-        name: '开放路由 (OpenRouter)',
-        baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
-        models: [
-          { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5 (默认)' },
-          { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
-          { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
-          { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4' },
-          { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' }
-        ],
-        defaultModel: 'anthropic/claude-opus-4.5'
-      },
-      deepseek: {
-        name: 'DeepSeek',
-        baseUrl: 'https://api.deepseek.com/v1/chat/completions',
-        models: [
-          { id: 'deepseek-chat', name: 'DeepSeek Chat (默认)' },
-          { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner' }
-        ],
-        defaultModel: 'deepseek-chat'
-      },
-      claude: {
-        name: 'Claude (Anthropic)',
-        baseUrl: 'https://api.anthropic.com/v1/messages',
-        models: [
-          { id: 'claude-opus-4-5-20251101-thinking', name: 'Claude Opus 4.5 Thinking (默认)' },
-          { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
-          { id: 'claude-opus-4-20250514', name: 'Claude Opus 4' }
-        ],
-        defaultModel: 'claude-opus-4-5-20251101-thinking',
-        isAnthropic: true
       }
     };
 
@@ -2269,7 +2282,7 @@
 
     // 调用 OpenAI 兼容 API
     async function callOpenAICompatibleAPI(provider, settings, systemPrompt, userPrompt) {
-      const response = await fetch(provider.baseUrl, {
+      const response = await fetch(provider.endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2295,12 +2308,13 @@
 
     // 调用 Anthropic API
     async function callAnthropicAPI(provider, settings, systemPrompt, userPrompt) {
-      const response = await fetch(provider.baseUrl, {
+      const response = await fetch(provider.endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'x-api-key': settings.apiKey,
-          'anthropic-version': '2023-06-01'
+          'anthropic-version': '2023-06-01',
+          'anthropic-dangerous-direct-browser-access': 'true'
         },
         body: JSON.stringify({
           model: settings.model,
@@ -4595,7 +4609,7 @@
       if (provider && modelSelect && AI_PROVIDERS[provider]) {
         const p = AI_PROVIDERS[provider];
         modelSelect.innerHTML = p.models.map(m =>
-          `<option value="${m.id}">${m.name}</option>`
+          `<option value="${m}">${m}</option>`
         ).join('');
       }
       // 更新 Key 状态显示
