@@ -1,0 +1,2004 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>DeepNote - 用 AI 释放流水账笔记的全部潜力</title>
+    <meta name="description" content="基于 Karpathy 和马伯庸的 Append-and-Review 笔记法，用 AI 深度挖掘笔记价值">
+
+    <!-- tool_meta -->
+    <script type="application/json" id="tool_meta">
+    {
+        "name": "DeepNote",
+        "version": "3.0.0",
+        "description": "用 AI 释放流水账笔记的全部潜力",
+        "author": "AI Tool Factory",
+        "created": "2026-01-11",
+        "category": "知识管理",
+        "tags": ["笔记", "AI", "知识管理", "Append-and-Review"]
+    }
+    </script>
+
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Marked.js for Markdown rendering -->
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+    <style>
+        /* Custom scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #f1f5f9;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 3px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #94a3b8;
+        }
+
+        /* Textarea styling */
+        textarea {
+            resize: vertical;
+            min-height: 150px;
+        }
+
+        /* Mode card styling */
+        .mode-card {
+            transition: all 0.2s ease;
+            cursor: pointer;
+            border: 2px solid transparent;
+        }
+        .mode-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        .mode-card.active {
+            border-color: #3b82f6;
+            background-color: #eff6ff;
+        }
+        .mode-card.active .mode-icon {
+            background-color: #3b82f6;
+            color: white;
+        }
+
+        /* Path styling */
+        .path-container {
+            position: relative;
+        }
+        .path-arrow {
+            color: #9ca3af;
+            font-size: 1.25rem;
+        }
+
+        /* Result card styling */
+        .result-card {
+            animation: fadeIn 0.3s ease;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Markdown content styling */
+        .markdown-content h1 { font-size: 1.5rem; font-weight: 700; margin: 1.5rem 0 1rem; color: #1e293b; }
+        .markdown-content h2 { font-size: 1.25rem; font-weight: 600; margin: 1.25rem 0 0.75rem; color: #334155; }
+        .markdown-content h3 { font-size: 1.1rem; font-weight: 600; margin: 1rem 0 0.5rem; color: #475569; }
+        .markdown-content p { margin: 0.75rem 0; line-height: 1.7; }
+        .markdown-content ul, .markdown-content ol { margin: 0.75rem 0; padding-left: 1.5rem; }
+        .markdown-content li { margin: 0.25rem 0; line-height: 1.6; }
+        .markdown-content blockquote {
+            border-left: 4px solid #3b82f6;
+            padding: 0.75rem 1rem;
+            margin: 1rem 0;
+            background: #f8fafc;
+            border-radius: 0 0.5rem 0.5rem 0;
+        }
+        .markdown-content code {
+            background: #f1f5f9;
+            padding: 0.125rem 0.375rem;
+            border-radius: 0.25rem;
+            font-size: 0.875rem;
+        }
+        .markdown-content pre {
+            background: #1e293b;
+            color: #e2e8f0;
+            padding: 1rem;
+            border-radius: 0.5rem;
+            overflow-x: auto;
+            margin: 1rem 0;
+        }
+        .markdown-content pre code {
+            background: transparent;
+            padding: 0;
+            color: inherit;
+        }
+        .markdown-content table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 1rem 0;
+            font-size: 0.9rem;
+        }
+        .markdown-content th, .markdown-content td {
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 0.75rem;
+            text-align: left;
+        }
+        .markdown-content th {
+            background: #f8fafc;
+            font-weight: 600;
+        }
+        .markdown-content hr {
+            border: none;
+            border-top: 1px solid #e2e8f0;
+            margin: 1.5rem 0;
+        }
+        .markdown-content a {
+            color: #3b82f6;
+            text-decoration: underline;
+        }
+        .markdown-content a:hover {
+            color: #2563eb;
+        }
+
+        /* Loading animation */
+        .loading-dots::after {
+            content: '';
+            animation: dots 1.5s steps(4, end) infinite;
+        }
+        @keyframes dots {
+            0%, 20% { content: ''; }
+            40% { content: '.'; }
+            60% { content: '..'; }
+            80%, 100% { content: '...'; }
+        }
+
+        /* Progress steps */
+        .progress-step {
+            transition: all 0.3s ease;
+        }
+        .progress-step.completed {
+            color: #22c55e;
+        }
+        .progress-step.active {
+            color: #3b82f6;
+        }
+        .progress-step.pending {
+            color: #9ca3af;
+        }
+
+        /* Responsive adjustments */
+        @media (max-width: 768px) {
+            .mode-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+            .path-arrow {
+                display: none;
+            }
+        }
+        @media (max-width: 480px) {
+            .mode-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Settings panel animation */
+        .settings-panel {
+            transition: all 0.3s ease;
+            max-height: 0;
+            overflow: hidden;
+        }
+        .settings-panel.open {
+            max-height: 500px;
+        }
+
+        /* Tooltip */
+        .tooltip {
+            position: relative;
+        }
+        .tooltip::after {
+            content: attr(data-tooltip);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            padding: 0.5rem 0.75rem;
+            background: #1e293b;
+            color: white;
+            font-size: 0.75rem;
+            border-radius: 0.375rem;
+            white-space: nowrap;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            z-index: 50;
+        }
+        .tooltip:hover::after {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        /* Word count indicator */
+        .word-count {
+            transition: color 0.2s ease;
+        }
+        .word-count.warning { color: #f59e0b; }
+        .word-count.error { color: #ef4444; }
+        .word-count.success { color: #22c55e; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+    <main class="max-w-4xl mx-auto px-4 py-6">
+        <!-- Header -->
+        <header class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800">
+                        📝 DeepNote
+                    </h1>
+                    <p class="text-sm text-gray-500 mt-1">用 AI 释放流水账笔记的全部潜力</p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <a href="https://karpathy.ai/blog/append-only.html" target="_blank"
+                       class="text-gray-400 hover:text-blue-500 transition-colors tooltip"
+                       data-tooltip="了解 A&R 笔记法">
+                        <i class="fas fa-question-circle text-lg"></i>
+                    </a>
+                    <button onclick="toggleSettings()"
+                            class="text-gray-500 hover:text-gray-700 transition-colors p-2 rounded-lg hover:bg-gray-100"
+                            id="settingsBtn">
+                        <i class="fas fa-cog text-xl"></i>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Settings Panel (collapsible) -->
+            <div id="settingsPanel" class="settings-panel mt-4 pt-4 border-t border-gray-100">
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Provider Select -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">AI 服务商</label>
+                        <select id="providerSelect" onchange="updateModelSelector()"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                            <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+                            <option value="openrouter">开放路由 (OpenRouter)</option>
+                            <option value="claude">Claude (Anthropic)</option>
+                            <option value="deepseek">DeepSeek</option>
+                            <option value="custom">自定义服务商</option>
+                        </select>
+                    </div>
+
+                    <!-- Model Select -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">模型</label>
+                        <select id="modelSelect" onchange="handleModelChange()"
+                                class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                        </select>
+                        <input type="text" id="customModelInput" placeholder="输入模型名称"
+                               oninput="handleCustomModelInput()"
+                               class="hidden w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm mt-2">
+                    </div>
+
+                    <!-- Key Status -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-1">Key 状态</label>
+                        <div id="keyStatus" class="px-3 py-2 bg-gray-50 rounded-lg text-sm">
+                            <span class="text-gray-400">检查中...</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Custom Endpoint (hidden by default) -->
+                <div id="customEndpointContainer" class="hidden mt-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">自定义 API 端点</label>
+                    <input type="text" id="customEndpoint" placeholder="https://api.example.com/v1/chat/completions"
+                           class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm">
+                </div>
+
+                <!-- Privacy Notice -->
+                <div class="mt-4 p-3 bg-blue-50 rounded-lg text-xs text-blue-700">
+                    <i class="fas fa-shield-alt mr-1"></i>
+                    <strong>隐私说明：</strong>你的笔记直接发送到你配置的 AI 服务，本工具不存储任何数据。历史记录仅保存在浏览器本地。
+                </div>
+            </div>
+        </header>
+        <!-- Input Area -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div class="flex items-center justify-between mb-3">
+                <h2 class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-edit text-blue-500 mr-2"></i>输入你的笔记
+                </h2>
+                <div class="flex items-center gap-2">
+                    <button onclick="loadSampleData()"
+                            class="text-sm text-blue-600 hover:text-blue-700 hover:underline">
+                        <i class="fas fa-lightbulb mr-1"></i>查看示例
+                    </button>
+                    <a href="https://karpathy.ai/blog/append-only.html" target="_blank"
+                       class="text-sm text-gray-500 hover:text-gray-700 hover:underline">
+                        <i class="fas fa-book mr-1"></i>了解 A&R 笔记法
+                    </a>
+                </div>
+            </div>
+
+            <textarea id="notesInput"
+                      class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm leading-relaxed"
+                      rows="8"
+                      placeholder="粘贴你的 Append-and-Review 风格笔记...
+
+示例格式：
+watch: 《奥本海默》朋友推荐
+read: 《原子习惯》看了前三章
+今天和老王聊了 AI 工具的想法
+TODO: 整理上周的会议纪要
+咖啡店的那个创业点子，回头再想想
+listen: 播客「得意忘形」最新一期"></textarea>
+
+            <!-- Word Count & Status -->
+            <div class="flex items-center justify-between mt-2 text-sm">
+                <div id="wordCount" class="word-count text-gray-400">
+                    <i class="fas fa-file-alt mr-1"></i>
+                    <span id="charCount">0</span> 字 · 约 <span id="noteCount">0</span> 条笔记
+                </div>
+                <div id="inputStatus" class="text-gray-400">
+                    <span id="statusText">等待输入...</span>
+                </div>
+            </div>
+
+            <!-- History (if available) -->
+            <div id="historyArea" class="hidden mt-3 pt-3 border-t border-gray-100">
+                <div class="flex items-center gap-2 text-sm">
+                    <span class="text-gray-500"><i class="fas fa-history mr-1"></i>历史记录：</span>
+                    <div id="historyList" class="flex flex-wrap gap-2">
+                        <!-- History items will be inserted here -->
+                    </div>
+                    <button onclick="clearHistory()" class="text-red-500 hover:text-red-600 ml-auto">
+                        <i class="fas fa-trash-alt mr-1"></i>清除
+                    </button>
+                </div>
+            </div>
+        </section>
+        <!-- Smart Search Bar -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <div class="flex items-center gap-3">
+                <div class="flex-1 relative">
+                    <i class="fas fa-search absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"></i>
+                    <input type="text" id="searchInput"
+                           class="w-full pl-10 pr-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                           placeholder="有问题？直接问你的笔记... 例如：我之前记录过什么电影？">
+                </div>
+                <button onclick="executeSearch()"
+                        class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium text-sm whitespace-nowrap">
+                    <i class="fas fa-search mr-2"></i>搜索
+                </button>
+            </div>
+        </section>
+        <!-- Mode Selector - Deep Analysis -->
+        <section class="bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6">
+            <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                <i class="fas fa-chart-bar text-blue-500 mr-2"></i>深度分析
+            </h2>
+
+            <!-- Path A: Discovery -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-600 mb-3">
+                    <span class="inline-flex items-center px-2 py-1 bg-blue-100 text-blue-700 rounded-full text-xs mr-2">路径 A</span>
+                    发现洞察（理解自己）
+                </h3>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="mode-card flex-1 min-w-[140px] p-3 bg-gray-50 rounded-lg" data-mode="cluster" onclick="selectMode('cluster')">
+                        <div class="flex items-center gap-2">
+                            <span class="mode-icon w-8 h-8 flex items-center justify-center bg-gray-200 rounded-lg text-gray-600">🗂️</span>
+                            <div>
+                                <div class="font-medium text-sm text-gray-800">主题聚类</div>
+                                <div class="text-xs text-gray-500">我都记了什么？</div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="path-arrow hidden md:block">→</span>
+                    <div class="mode-card flex-1 min-w-[140px] p-3 bg-gray-50 rounded-lg" data-mode="insight" onclick="selectMode('insight')">
+                        <div class="flex items-center gap-2">
+                            <span class="mode-icon w-8 h-8 flex items-center justify-center bg-gray-200 rounded-lg text-gray-600">💡</span>
+                            <div>
+                                <div class="font-medium text-sm text-gray-800">洞察生成</div>
+                                <div class="text-xs text-gray-500">这意味着什么？</div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="path-arrow hidden md:block">→</span>
+                    <div class="mode-card flex-1 min-w-[140px] p-3 bg-gray-50 rounded-lg" data-mode="action" onclick="selectMode('action')">
+                        <div class="flex items-center gap-2">
+                            <span class="mode-icon w-8 h-8 flex items-center justify-center bg-gray-200 rounded-lg text-gray-600">✅</span>
+                            <div>
+                                <div class="font-medium text-sm text-gray-800">行动提取</div>
+                                <div class="text-xs text-gray-500">我该做什么？</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Path B: Output -->
+            <div class="mb-6">
+                <h3 class="text-sm font-medium text-gray-600 mb-3">
+                    <span class="inline-flex items-center px-2 py-1 bg-green-100 text-green-700 rounded-full text-xs mr-2">路径 B</span>
+                    整理输出（生成内容）
+                </h3>
+                <div class="flex items-center gap-2 flex-wrap">
+                    <div class="mode-card flex-1 min-w-[140px] p-3 bg-gray-50 rounded-lg" data-mode="timeline" onclick="selectMode('timeline')">
+                        <div class="flex items-center gap-2">
+                            <span class="mode-icon w-8 h-8 flex items-center justify-center bg-gray-200 rounded-lg text-gray-600">📅</span>
+                            <div>
+                                <div class="font-medium text-sm text-gray-800">时间线梳理</div>
+                                <div class="text-xs text-gray-500">事情怎么发展？</div>
+                            </div>
+                        </div>
+                    </div>
+                    <span class="path-arrow hidden md:block">→</span>
+                    <div class="mode-card flex-1 min-w-[140px] p-3 bg-gray-50 rounded-lg" data-mode="summary" onclick="selectMode('summary')">
+                        <div class="flex items-center gap-2">
+                            <span class="mode-icon w-8 h-8 flex items-center justify-center bg-gray-200 rounded-lg text-gray-600">📊</span>
+                            <div>
+                                <div class="font-medium text-sm text-gray-800">周期总结</div>
+                                <div class="text-xs text-gray-500">生成周报/月报</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- One-Click Deep Dive -->
+            <div class="pt-4 border-t border-gray-100">
+                <button onclick="executeDeepDive()"
+                        class="w-full py-4 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-xl hover:from-blue-600 hover:to-indigo-700 transition-all font-semibold text-lg shadow-lg hover:shadow-xl">
+                    <i class="fas fa-rocket mr-2"></i>一键深挖（推荐）
+                </button>
+                <p class="text-center text-xs text-gray-500 mt-2">自动执行：主题聚类 → 洞察生成 → 行动建议</p>
+            </div>
+
+            <!-- Extra Input Area (for timeline focus) -->
+            <div id="extraInputArea" class="hidden mt-4 pt-4 border-t border-gray-100">
+                <label id="extraInputLabel" class="block text-sm font-medium text-gray-700 mb-2">聚焦主题（可选）</label>
+                <input type="text" id="extraInput"
+                       class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                       placeholder="例如：项目 A、AI 工具...">
+            </div>
+
+            <!-- Period Selector (for summary mode) -->
+            <div id="periodSelector" class="hidden mt-4 pt-4 border-t border-gray-100">
+                <label class="block text-sm font-medium text-gray-700 mb-2">总结周期</label>
+                <div class="flex gap-2">
+                    <button onclick="setPeriod('周')" class="period-btn px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50" data-period="周">本周</button>
+                    <button onclick="setPeriod('月')" class="period-btn px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50" data-period="月">本月</button>
+                    <button onclick="setPeriod('季度')" class="period-btn px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50" data-period="季度">本季度</button>
+                    <button onclick="setPeriod('年')" class="period-btn px-4 py-2 border border-gray-300 rounded-lg text-sm hover:bg-gray-50" data-period="年">本年</button>
+                </div>
+            </div>
+
+            <!-- Execute Button -->
+            <div id="executeBtnArea" class="hidden mt-4">
+                <button id="executeBtn" onclick="executeMode()"
+                        class="w-full py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium">
+                    <span id="executeBtnText">执行分析</span>
+                </button>
+            </div>
+        </section>
+        <!-- AI Config is integrated into header settings panel -->
+        <!-- This file is kept for structure consistency but content is in part03_header.html -->
+        <!-- Result Area -->
+        <section id="resultSection" class="hidden bg-white rounded-xl shadow-sm border border-gray-200 p-4 mb-6 result-card">
+            <!-- Result Header -->
+            <div class="flex items-center justify-between mb-4">
+                <h2 id="resultTitle" class="text-lg font-semibold text-gray-800">
+                    <i class="fas fa-file-alt text-blue-500 mr-2"></i>分析结果
+                </h2>
+                <div class="flex items-center gap-2">
+                    <button onclick="copyResult()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-copy mr-1"></i>复制
+                    </button>
+                    <button onclick="downloadResult()" class="px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg transition-colors">
+                        <i class="fas fa-download mr-1"></i>导出
+                    </button>
+                </div>
+            </div>
+
+            <!-- Loading State -->
+            <div id="loadingState" class="hidden py-12 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-blue-100 rounded-full mb-4">
+                    <i class="fas fa-spinner fa-spin text-2xl text-blue-500"></i>
+                </div>
+                <p class="text-gray-600 font-medium">正在分析<span class="loading-dots"></span></p>
+                <p class="text-sm text-gray-400 mt-2">AI 正在深度挖掘你的笔记价值</p>
+
+                <!-- Progress Steps (for deep dive) -->
+                <div id="progressSteps" class="hidden mt-6 max-w-md mx-auto">
+                    <div class="flex items-center justify-between text-sm">
+                        <div id="step1" class="progress-step pending flex items-center gap-2">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span>主题聚类</span>
+                        </div>
+                        <div class="flex-1 h-px bg-gray-200 mx-2"></div>
+                        <div id="step2" class="progress-step pending flex items-center gap-2">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span>洞察生成</span>
+                        </div>
+                        <div class="flex-1 h-px bg-gray-200 mx-2"></div>
+                        <div id="step3" class="progress-step pending flex items-center gap-2">
+                            <i class="fas fa-circle text-xs"></i>
+                            <span>行动建议</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Error State -->
+            <div id="errorState" class="hidden py-8 text-center">
+                <div class="inline-flex items-center justify-center w-16 h-16 bg-red-100 rounded-full mb-4">
+                    <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
+                </div>
+                <p class="text-red-600 font-medium">分析失败</p>
+                <p id="errorMessage" class="text-sm text-gray-500 mt-2">请检查 API 配置后重试</p>
+                <button onclick="retryAnalysis()" class="mt-4 px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-colors text-sm">
+                    <i class="fas fa-redo mr-1"></i>重试
+                </button>
+            </div>
+
+            <!-- Result Content -->
+            <div id="resultContent" class="hidden markdown-content prose prose-sm max-w-none">
+                <!-- Markdown content will be rendered here -->
+            </div>
+
+            <!-- Continue Deep Dive -->
+            <div id="continueArea" class="hidden mt-6 pt-4 border-t border-gray-100">
+                <p class="text-sm text-gray-500 mb-3">继续深挖：</p>
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="continueWithMode('insight')" class="continue-btn px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-lightbulb mr-1 text-yellow-500"></i>生成洞察
+                    </button>
+                    <button onclick="continueWithMode('action')" class="continue-btn px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-check-circle mr-1 text-green-500"></i>提取行动
+                    </button>
+                    <button onclick="continueWithMode('summary')" class="continue-btn px-3 py-1.5 text-sm border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors">
+                        <i class="fas fa-file-alt mr-1 text-blue-500"></i>生成总结
+                    </button>
+                </div>
+            </div>
+        </section>
+    <script>
+    // ==================== AI Providers Configuration ====================
+    const AI_PROVIDERS = {
+        siliconflow: {
+            name: '硅基流动 (SiliconFlow)',
+            keyName: 'siliconflow_key',
+            endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+            models: [
+                'Pro/zai-org/GLM-4.7',
+                'Pro/moonshotai/Kimi-K2-Thinking',
+                'Pro/deepseek/DeepSeek-V3',
+                'Qwen/Qwen2.5-72B-Instruct',
+                'deepseek-ai/DeepSeek-V3',
+                'Qwen/Qwen2.5-32B-Instruct'
+            ],
+            defaultModel: 'Pro/zai-org/GLM-4.7'
+        },
+        openrouter: {
+            name: '开放路由 (OpenRouter)',
+            keyName: 'openrouter_key',
+            endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+            models: [
+                'anthropic/claude-opus-4.5',
+                'anthropic/claude-sonnet-4',
+                'anthropic/claude-opus-4',
+                'openai/gpt-4o',
+                'google/gemini-2.0-flash-exp',
+                'deepseek/deepseek-chat'
+            ],
+            defaultModel: 'anthropic/claude-opus-4.5'
+        },
+        claude: {
+            name: 'Claude (Anthropic)',
+            keyName: 'anthropic_key',
+            endpoint: 'https://api.anthropic.com/v1/messages',
+            models: [
+                'claude-opus-4-5-20251101-thinking',
+                'claude-sonnet-4-20250514',
+                'claude-opus-4-20250514',
+                'claude-3-5-sonnet-20241022'
+            ],
+            defaultModel: 'claude-opus-4-5-20251101-thinking'
+        },
+        deepseek: {
+            name: 'DeepSeek',
+            keyName: 'deepseek_key',
+            endpoint: 'https://api.deepseek.com/v1/chat/completions',
+            models: [
+                'deepseek-chat',
+                'deepseek-reasoner'
+            ],
+            defaultModel: 'deepseek-chat'
+        },
+        custom: {
+            name: '自定义服务商',
+            keyName: 'custom_key',
+            endpoint: '',
+            models: [],
+            defaultModel: ''
+        }
+    };
+
+    // Allowed domains for API calls
+    const ALLOWED_DOMAINS = [
+        "api.siliconflow.cn",
+        "openrouter.ai",
+        "api.anthropic.com",
+        "api.deepseek.com",
+        "localhost",
+        "127.0.0.1"
+    ];
+
+    // Sample notes data
+    const SAMPLE_NOTES = `watch: 《奥本海默》朋友推荐
+read: 《原子习惯》看了前三章，习惯堆叠的概念很有意思
+今天和老王聊了 AI 工具的想法，他建议先做 MVP
+TODO: 整理一下上周的会议纪要
+咖啡店的那个创业点子，回头再想想
+listen: 播客「得意忘形」最新一期
+项目 A 的需求文档终于写完了
+又想到一个自动化的场景：每天自动汇总微信消息
+read: 《纳瓦尔宝典》第一章，关于财富的定义很有启发
+和小李讨论了技术选型，决定用 React
+watch: 《硅谷》重温，创业的感觉又回来了
+那个 AI 笔记工具的想法，越想越觉得有价值
+TODO: 给客户发本周进度报告
+健身房续费了，这次一定要坚持
+listen: 「商业就是这样」聊 AI 应用
+周末去了趟书店，买了三本书
+项目 B 遇到技术难题，需要研究一下
+又想到 AI 工具的一个功能点：自动生成周报
+watch: 纪录片《美国工厂》
+read: 《深度工作》开始看了
+那个 AI 笔记工具，要不要加个语音输入功能？`;
+
+    // Mode configuration
+    const MODE_CONFIG = {
+        search: { name: '智能检索', icon: '🔍' },
+        cluster: { name: '主题聚类', icon: '🗂️' },
+        insight: { name: '洞察生成', icon: '💡' },
+        action: { name: '行动提取', icon: '✅' },
+        timeline: { name: '时间线梳理', icon: '📅' },
+        summary: { name: '周期总结', icon: '📊' },
+        deep_dive: { name: '一键深挖', icon: '🚀' }
+    };
+
+    // Get provider overrides from key-manager
+    function getProviderOverrides(providerId) {
+        const raw = localStorage.getItem('km_provider_overrides_v1');
+        if (!raw) return null;
+
+        try {
+            const overrides = JSON.parse(raw);
+            return overrides[providerId] || null;
+        } catch {
+            return null;
+        }
+    }
+    </script>
+    <script>
+    // ==================== Prompts Configuration ====================
+
+    // System Prompt (shared across all modes)
+    const SYSTEM_PROMPT = `你是一位拥有 20 年经验的「个人知识管理顾问」，专精于帮助知识工作者从碎片化记录中发现深层价值。
+
+## 你的专业背景
+
+你深谙「Append-and-Review」笔记法的精髓：
+- 这是 Andrej Karpathy（Tesla AI 总监）和马伯庸（著名作家）都在使用的方法
+- 核心理念：零摩擦记录，让时间自然筛选重要性
+- 特点：只记事实、单文件存储、新内容在顶部、位置隐含时间
+
+## 你的分析哲学
+
+1. **尊重原始记录**：用户的每一条笔记都有其存在的理由，即使看起来琐碎
+2. **寻找隐藏价值**：最有价值的洞察往往藏在用户自己没注意到的地方
+3. **连接看似无关**：发现不同笔记之间的隐藏关联
+4. **行动导向**：每个分析都要指向具体可行的下一步
+
+## 你的分析方法
+
+采用「三层挖掘法」：
+- **表层**：看到什么（事实、实体、频次）
+- **中层**：意味着什么（模式、趋势、关联）
+- **深层**：可以做什么（行动、决策、改变）
+
+## 你的输出原则
+
+1. **有据可查**：每个结论都标注来源（「基于第 X 条笔记」）
+2. **有惊喜感**：至少提供一个用户可能没想到的发现
+3. **有行动力**：建议要具体到可以立即执行
+4. **有温度**：理解笔记背后的人，但不过度解读
+
+## 重要提醒
+
+- 如果笔记内容不足以支撑某个结论，明确说明「这是推测」
+- 不要编造笔记中没有的信息
+- 尊重用户隐私，不做道德评判`;
+
+    // User Prompts for each mode
+    const USER_PROMPTS = {
+        search: `## 我的笔记
+
+{notes}
+
+---
+
+## 我的问题
+
+{question}
+
+---
+
+请像一位熟悉我所有笔记的私人助理一样回答这个问题。
+
+## 你的思考过程
+
+1. **理解意图**：用户真正想知道什么？（可能问的是 A，但实际想了解 B）
+2. **语义搜索**：不只是找关键词，而是找语义相关的内容
+3. **上下文补充**：除了直接答案，还有什么相关信息可能对用户有帮助？
+
+## 输出格式
+
+### 🎯 答案
+
+[直接、简洁地回答问题]
+
+### 📍 依据
+
+> 「[引用笔记原文]」
+> — 第 X 条
+
+### 💡 你可能还想知道
+
+[基于这个问题，列出 1-2 个相关的信息点，用户可能没问但会感兴趣]
+
+### 📊 置信度
+
+[高/中/低] — [简短说明原因]
+
+---
+
+**特别说明**：
+- 如果找不到直接答案，尝试找最相关的内容
+- 如果完全没有相关信息，诚实说明「笔记中未找到相关内容」
+- 不要编造笔记中没有的信息`,
+
+        cluster: `## 我的笔记
+
+{notes}
+
+---
+
+请深度分析我的笔记，发现其中的主题和模式。
+
+## 你的分析步骤
+
+1. **实体提取**：识别所有人名、书名、电影、播客、项目、概念
+2. **主题聚类**：将相关内容归类到主题下
+3. **频次分析**：统计每个主题/实体的出现次数
+4. **位置分析**：分析主题在笔记中的位置分布（顶部=最近，底部=较早）
+5. **趋势推断**：基于位置分布，推断关注度变化
+
+## 输出格式
+
+### 🔥 你最关注的主题
+
+| 排名 | 主题 | 出现次数 | 趋势 | 相关条目 |
+|------|------|----------|------|----------|
+| 1 | [主题] | [次数] | 📈上升/📉下降/➡️稳定 | 第 X、Y、Z 条 |
+
+### 🏷️ 关键实体清单
+
+**📚 书籍/文章**
+- [书名] — 第 X 条 [状态：想读/在读/读完]
+
+**🎬 影视/播客**
+- [名称] — 第 X 条 [状态：想看/已看]
+
+**👤 人物**
+- [人名] — 出现 X 次 — 关联主题：[主题]
+
+**💡 项目/想法**
+- [项目名] — 第 X 条 — 状态：[构思中/进行中/已完成/已搁置]
+
+### 🔗 隐藏的关联
+
+[发现 2-3 个看似无关但实际有联系的主题，解释它们的关联]
+
+### 💡 惊喜发现
+
+[1 个用户可能没意识到的发现，例如：「你在不知不觉中对 X 产生了浓厚兴趣」]
+
+### 📊 你的关注画像
+
+[用 2-3 句话总结用户的关注特点和可能的底层需求]`,
+
+        insight: `## 我的笔记
+
+{notes}
+
+---
+
+请像一位洞察力敏锐的顾问，从我的笔记中发现我自己可能没注意到的模式和洞察。
+
+## 你的分析框架
+
+1. **表层观察**：笔记中有什么？（事实层面）
+2. **模式识别**：反复出现什么？（频率层面）
+3. **关联发现**：什么和什么有联系？（关系层面）
+4. **深层洞察**：这意味着什么？（意义层面）
+5. **行动建议**：可以做什么？（行动层面）
+
+## 输出格式
+
+### 🎯 最重要的发现
+
+> [一句话核心洞察，要有冲击力]
+>
+> 📍 基于第 X、Y、Z 条笔记
+
+**为什么这很重要**：[解释这个发现的意义]
+
+---
+
+### 💡 三个关键洞察
+
+**洞察 1：[标题]**
+- 📍 来源：第 X、Y 条笔记
+- 💭 分析：[具体分析]
+- 🔗 原文：「[引用]」
+- ✅ 建议行动：[具体可执行的下一步]
+
+**洞察 2：[标题]**
+- ...
+
+**洞察 3：[标题]**
+- ...
+
+---
+
+### 🔄 你可能没注意到的模式
+
+| 模式 | 表现 | 可能的原因 | 建议 |
+|------|------|-----------|------|
+| [模式名] | [具体表现] | [推测原因] | [建议] |
+
+---
+
+### 🔗 意外的关联
+
+[发现 1-2 个看似无关但实际有深层联系的内容]
+
+---
+
+### 🤔 值得思考的问题
+
+[基于分析，提出 1-2 个引发思考的问题，帮助用户更深入地理解自己]
+
+---
+
+### ⚠️ 分析说明
+
+- 置信度：[高/中/低]
+- 推测部分：[明确标注哪些是推测]
+- 需要更多信息：[如果有的话]`,
+
+        action: `## 我的笔记
+
+{notes}
+
+---
+
+请从我的笔记中提取所有待办事项，包括显式的和隐含的。
+
+## 你的分析步骤
+
+1. **显式 TODO**：找出明确标记的待办（TODO、要做、记得、别忘了）
+2. **隐含意图**：识别隐含的待办（「回头再想想」「下次试试」「有空看看」）
+3. **状态判断**：通过后续笔记推断是否已完成
+4. **优先级评估**：基于出现频次、时间跨度、紧急程度排序
+5. **拖延识别**：找出反复出现但从未行动的想法
+
+## 输出格式
+
+### ⚡ 建议立即行动
+
+> **[最值得现在做的一件事]**
+>
+> 为什么是这个？
+> - [原因 1]
+> - [原因 2]
+>
+> 📍 来源：第 X 条
+
+---
+
+### ✅ 待办清单
+
+**🔴 高优先级**（反复出现或明确紧急）
+- [ ] [待办内容] — 📍 第 X 条 — 出现 Y 次
+- [ ] ...
+
+**🟡 中优先级**
+- [ ] [待办内容] — 📍 第 X 条
+- [ ] ...
+
+**🟢 低优先级**（提到一次，非紧急）
+- [ ] [待办内容] — 📍 第 X 条
+- [ ] ...
+
+---
+
+### ✔️ 可能已完成
+
+- [x] [事项] — 推断原因：[为什么认为已完成]
+
+---
+
+### 🔄 反复出现但未行动
+
+| 想法 | 出现次数 | 首次 | 最近 | 可能的阻碍 |
+|------|----------|------|------|-----------|
+| [想法] | [次数] | 第 X 条 | 第 Y 条 | [推测的原因] |
+
+**💡 洞察**：[分析为什么这些想法反复出现但未行动，可能揭示什么]
+
+---
+
+### 📊 你的行动模式
+
+[用 2-3 句话总结用户的行动特点，例如：「你倾向于记录很多想法，但执行率较低」]
+
+---
+
+### 🎯 本周建议聚焦
+
+[基于分析，推荐本周最值得聚焦的 1-3 件事]`,
+
+        timeline: `## 我的笔记
+
+{notes}
+
+---
+
+{focus_prompt}
+
+请将笔记内容按时间/逻辑顺序重新组织，帮我看清事情的发展脉络。
+
+## 你的分析步骤
+
+1. **时间推断**：根据笔记位置推断时间顺序（顶部=最近，底部=较早）
+2. **事件提取**：识别关键事件和节点
+3. **阶段划分**：将事件归类到不同阶段
+4. **里程碑标记**：识别重要的转折点
+5. **叙事重建**：用时间线讲述完整故事
+
+## 输出格式
+
+### 📅 时间线概览
+
+\`\`\`
+[最早] ════════════════════════════════════════ [最近]
+   │                    │                    │
+   ▼                    ▼                    ▼
+[阶段1]              [阶段2]              [阶段3]
+\`\`\`
+
+---
+
+### 📖 完整时间线
+
+**阶段 1：[阶段名称]** — [时间范围推断]
+
+| 序号 | 事件 | 来源 | 重要性 |
+|------|------|------|--------|
+| 1 | [事件描述] | 第 X 条 | ⭐/⭐⭐/⭐⭐⭐ |
+
+**阶段 2：[阶段名称]**
+...
+
+---
+
+### 🏆 关键里程碑
+
+| 里程碑 | 内容 | 来源 | 意义 |
+|--------|------|------|------|
+| 🚀 起点 | [描述] | 第 X 条 | [为什么重要] |
+| 🔄 转折 | [描述] | 第 Y 条 | [为什么重要] |
+| 📍 当前 | [描述] | 第 Z 条 | [当前状态] |
+
+---
+
+### 💡 时间线洞察
+
+**发展趋势**：[描述整体发展方向]
+
+**转折点分析**：[分析关键转折发生的原因]
+
+**当前状态**：[总结目前处于什么阶段]
+
+---
+
+### 🔮 可能的下一步
+
+[基于时间线分析，推测可能的发展方向和建议的下一步]`,
+
+        summary: `## 我的笔记
+
+{notes}
+
+---
+
+请为我生成一份{period}总结，帮我回顾这段时间的收获和成长。
+
+## 你的分析框架
+
+1. **成就盘点**：完成了什么？有什么值得骄傲的？
+2. **输入记录**：学习了什么？接触了什么新内容？
+3. **进展追踪**：各项目/目标有什么进展？
+4. **模式发现**：这段时间有什么特点？
+5. **反思提炼**：有什么值得思考的？
+6. **未来规划**：下一周期应该关注什么？
+
+## 输出格式
+
+# {period}总结
+
+## 🏆 本期亮点
+
+> [用一句话概括这段时间最大的收获或成就]
+
+---
+
+## ✅ 成就清单
+
+| 成就 | 来源 | 价值 |
+|------|------|------|
+| [成就描述] | 第 X 条 | [为什么重要] |
+
+---
+
+## 📚 输入记录
+
+**阅读**
+- 📖 [书名] — 状态：[想读/在读/读完] — 第 X 条
+
+**观看**
+- 🎬 [影视名] — 第 X 条
+
+**收听**
+- 🎧 [播客名] — 第 X 条
+
+**学习**
+- 📝 [学习内容] — 第 X 条
+
+---
+
+## 📈 项目进展
+
+| 项目 | 状态 | 本期进展 | 来源 |
+|------|------|----------|------|
+| [项目名] | 🟢进行中/🟡暂停/🔴搁置 | [进展描述] | 第 X 条 |
+
+---
+
+## 💭 本期反思
+
+**做得好的**
+- [具体事项]
+
+**可以改进的**
+- [具体事项]
+
+**意外发现**
+- [这段时间意外的收获或发现]
+
+---
+
+## 🎯 下期建议
+
+**建议聚焦**
+1. [最重要的事]
+2. [次重要的事]
+
+**建议放下**
+- [可以暂时搁置的事]
+
+**值得关注**
+- [新出现的机会或方向]
+
+---
+
+## 📊 数据统计
+
+- 笔记条数：约 X 条
+- 主要关注：[前 3 个主题]
+- 待办完成率：约 X%（推测）`,
+
+        deep_dive: `## 我的笔记
+
+{notes}
+
+---
+
+请对我的笔记进行全面深度分析，帮我发现隐藏的价值。
+
+## 分析流程
+
+你将依次完成三个层次的分析：
+1. **探索层**：我都记了什么？（主题聚类）
+2. **理解层**：这意味着什么？（洞察生成）
+3. **行动层**：我该做什么？（行动建议）
+
+---
+
+# 🚀 笔记深度分析报告
+
+## 第一部分：探索 — 你都记了什么？
+
+### 🔥 关注热度榜
+
+| 排名 | 主题 | 热度 | 趋势 |
+|------|------|------|------|
+| 1 | [主题] | 🔥🔥🔥🔥🔥 | 📈 |
+| 2 | [主题] | 🔥🔥🔥🔥 | ➡️ |
+| 3 | [主题] | 🔥🔥🔥 | 📉 |
+
+### 🏷️ 关键实体
+
+- **人物**：[列表]
+- **书籍/影视**：[列表]
+- **项目/想法**：[列表]
+
+---
+
+## 第二部分：理解 — 这意味着什么？
+
+### 🎯 最重要的发现
+
+> **[一句话核心洞察]**
+>
+> 📍 基于第 X、Y、Z 条笔记
+
+### 💡 三个关键洞察
+
+1. **[洞察标题]**
+   - [具体内容]
+   - 📍 来源：第 X 条
+
+2. **[洞察标题]**
+   - [具体内容]
+   - 📍 来源：第 Y 条
+
+3. **[洞察标题]**
+   - [具体内容]
+   - 📍 来源：第 Z 条
+
+### 🔗 隐藏的关联
+
+[发现的意外关联]
+
+---
+
+## 第三部分：行动 — 你该做什么？
+
+### ⚡ 立即行动
+
+> **[最值得现在做的一件事]**
+>
+> 为什么是这个？
+> - [原因 1]
+> - [原因 2]
+
+### ✅ 待办清单
+
+**高优先级**
+- [ ] [事项 1] — 📍 第 X 条
+- [ ] [事项 2] — 📍 第 Y 条
+
+**可以稍后**
+- [ ] [事项 3]
+- [ ] [事项 4]
+
+### 🔄 反复出现但未行动
+
+[列出反复提到但从未执行的想法，这些可能是真正重要的事]
+
+---
+
+## 📌 一句话总结
+
+> [用一句话概括这份笔记反映出的你的状态/关注点/建议]
+
+---
+
+## ⚠️ 分析说明
+
+- 分析基于 {note_count} 条笔记
+- 置信度：[高/中/低]
+- 推测部分已标注`
+    };
+    </script>
+    <script>
+    // ==================== State Management ====================
+
+    // Global state
+    const state = {
+        currentMode: null,
+        currentProvider: 'siliconflow',
+        currentModel: '',
+        currentPeriod: '周',
+        lastResult: '',
+        isLoading: false,
+        noteHistory: []
+    };
+
+    // LocalStorage keys
+    const STORAGE_KEYS = {
+        provider: 'note_digger_provider',
+        model: 'note_digger_model',
+        history: 'note_digger_history',
+        lastNotes: 'note_digger_last_notes'
+    };
+
+    // Load state from localStorage
+    function loadState() {
+        try {
+            const savedProvider = localStorage.getItem(STORAGE_KEYS.provider);
+            const savedModel = localStorage.getItem(STORAGE_KEYS.model);
+            const savedHistory = localStorage.getItem(STORAGE_KEYS.history);
+
+            if (savedProvider && AI_PROVIDERS[savedProvider]) {
+                state.currentProvider = savedProvider;
+            }
+            if (savedModel) {
+                state.currentModel = savedModel;
+            }
+            if (savedHistory) {
+                state.noteHistory = JSON.parse(savedHistory);
+            }
+        } catch (e) {
+            console.error('Failed to load state:', e);
+        }
+    }
+
+    // Save state to localStorage
+    function saveState() {
+        try {
+            localStorage.setItem(STORAGE_KEYS.provider, state.currentProvider);
+            localStorage.setItem(STORAGE_KEYS.model, state.currentModel);
+            localStorage.setItem(STORAGE_KEYS.history, JSON.stringify(state.noteHistory));
+        } catch (e) {
+            console.error('Failed to save state:', e);
+        }
+    }
+
+    // Save notes to history
+    function saveNotesToHistory(notes) {
+        if (!notes || notes.length < 50) return;
+
+        const entry = {
+            id: Date.now(),
+            preview: notes.substring(0, 50) + '...',
+            charCount: notes.length,
+            noteCount: countNotes(notes),
+            timestamp: new Date().toISOString()
+        };
+
+        // Keep only last 5 entries
+        state.noteHistory = [entry, ...state.noteHistory.slice(0, 4)];
+        saveState();
+        renderHistory();
+    }
+
+    // Count notes (rough estimate based on line breaks)
+    function countNotes(text) {
+        if (!text) return 0;
+        const lines = text.split('\n').filter(line => line.trim().length > 0);
+        return lines.length;
+    }
+
+    // Format date for display
+    function formatDate(isoString) {
+        const date = new Date(isoString);
+        const now = new Date();
+        const diffDays = Math.floor((now - date) / (1000 * 60 * 60 * 24));
+
+        if (diffDays === 0) return '今天';
+        if (diffDays === 1) return '昨天';
+        if (diffDays < 7) return `${diffDays}天前`;
+
+        return `${date.getMonth() + 1}月${date.getDate()}日`;
+    }
+
+    // Format character count
+    function formatCharCount(count) {
+        if (count >= 10000) {
+            return (count / 10000).toFixed(1) + '万';
+        }
+        if (count >= 1000) {
+            return (count / 1000).toFixed(1) + '千';
+        }
+        return count.toString();
+    }
+    </script>
+    <script>
+    // ==================== API Calling Logic ====================
+
+    // Call AI API
+    async function callAI(mode, notes, extraParams = {}) {
+        const provider = AI_PROVIDERS[state.currentProvider];
+        const apiKey = localStorage.getItem(provider.keyName) || sessionStorage.getItem(provider.keyName);
+
+        if (!apiKey && state.currentProvider !== 'custom') {
+            throw new Error(`请先配置 ${provider.name} 的 API Key`);
+        }
+
+        // Build user message
+        let userPrompt = USER_PROMPTS[mode];
+        userPrompt = userPrompt.replace('{notes}', notes);
+        userPrompt = userPrompt.replace('{note_count}', countNotes(notes));
+
+        // Handle extra parameters
+        if (extraParams.question) {
+            userPrompt = userPrompt.replace('{question}', extraParams.question);
+        }
+        if (extraParams.focus) {
+            userPrompt = userPrompt.replace('{focus_prompt}', `请特别关注与「${extraParams.focus}」相关的内容。`);
+        } else {
+            userPrompt = userPrompt.replace('{focus_prompt}', '');
+        }
+        if (extraParams.period) {
+            userPrompt = userPrompt.replace(/{period}/g, extraParams.period);
+        }
+
+        // Get endpoint and model
+        let endpoint = provider.endpoint;
+        let model = state.currentModel || provider.defaultModel;
+
+        if (state.currentProvider === 'custom') {
+            endpoint = document.getElementById('customEndpoint').value;
+            model = document.getElementById('customModelInput').value;
+        }
+
+        // Check domain
+        checkDomain(endpoint);
+
+        // Call API based on provider
+        if (state.currentProvider === 'claude') {
+            return await callAnthropicAPI(endpoint, apiKey, model, SYSTEM_PROMPT, userPrompt);
+        } else {
+            return await callOpenAICompatibleAPI(endpoint, apiKey, model, SYSTEM_PROMPT, userPrompt);
+        }
+    }
+
+    // Call OpenAI-compatible API
+    async function callOpenAICompatibleAPI(endpoint, apiKey, model, systemPrompt, userPrompt) {
+        const headers = {
+            'Content-Type': 'application/json',
+            'Authorization': `Bearer ${apiKey}`
+        };
+
+        // Add OpenRouter specific headers (ASCII only)
+        if (state.currentProvider === 'openrouter') {
+            headers['HTTP-Referer'] = 'https://ai-tool.local/note-digger';
+            headers['X-Title'] = 'Note-Digger-AI';
+        }
+
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: headers,
+            body: JSON.stringify({
+                model: model,
+                messages: [
+                    { role: 'system', content: systemPrompt },
+                    { role: 'user', content: userPrompt }
+                ],
+                max_tokens: 8000,
+                temperature: 0.7
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error?.message || `API 请求失败: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.choices[0].message.content;
+    }
+
+    // Call Anthropic API
+    async function callAnthropicAPI(endpoint, apiKey, model, systemPrompt, userPrompt) {
+        const response = await fetch(endpoint, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'x-api-key': apiKey,
+                'anthropic-version': '2023-06-01',
+                'anthropic-dangerous-direct-browser-access': 'true'
+            },
+            body: JSON.stringify({
+                model: model,
+                max_tokens: 8000,
+                system: systemPrompt,
+                messages: [{ role: 'user', content: userPrompt }]
+            })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            throw new Error(errorData.error?.message || `API 请求失败: ${response.status}`);
+        }
+
+        const data = await response.json();
+        return data.content[0].text;
+    }
+
+    // Domain check helpers
+    function getHostname(url) {
+        try {
+            return new URL(String(url || "").trim()).hostname;
+        } catch {
+            return "";
+        }
+    }
+
+    function isDomainAllowed(hostname) {
+        if (!hostname) return false;
+        return ALLOWED_DOMAINS.includes(hostname);
+    }
+
+    function checkDomain(baseUrl) {
+        const hostname = getHostname(baseUrl);
+        if (!isDomainAllowed(hostname)) {
+            const consentKey = "ai_domain_consent_v1";
+            const raw = localStorage.getItem(consentKey) || "{}";
+            let obj = {};
+            try { obj = JSON.parse(raw); } catch { obj = {}; }
+
+            if (obj[hostname] !== true) {
+                const ok = confirm(
+                    `你即将把请求（包含密钥）发送到域名：${hostname}\n\n` +
+                    `确认要允许吗？\n` +
+                    `如果这个域名不是你信任的平台，请点取消。`
+                );
+                if (!ok) throw new Error("用户取消了域名授权");
+
+                obj[hostname] = true;
+                localStorage.setItem(consentKey, JSON.stringify(obj));
+            }
+        }
+    }
+    </script>
+    <script>
+    // ==================== UI Rendering ====================
+
+    // Toggle settings panel
+    function toggleSettings() {
+        const panel = document.getElementById('settingsPanel');
+        panel.classList.toggle('open');
+    }
+
+    // Update model selector based on provider
+    function updateModelSelector() {
+        const providerSelect = document.getElementById('providerSelect');
+        const modelSelect = document.getElementById('modelSelect');
+        const customEndpointContainer = document.getElementById('customEndpointContainer');
+        const customModelInput = document.getElementById('customModelInput');
+
+        state.currentProvider = providerSelect.value;
+        const provider = AI_PROVIDERS[state.currentProvider];
+
+        // Clear and populate model select
+        modelSelect.innerHTML = '';
+
+        if (state.currentProvider === 'custom') {
+            customEndpointContainer.classList.remove('hidden');
+            customModelInput.classList.remove('hidden');
+            modelSelect.classList.add('hidden');
+        } else {
+            customEndpointContainer.classList.add('hidden');
+            modelSelect.classList.remove('hidden');
+
+            // Add preset models
+            provider.models.forEach(model => {
+                const option = document.createElement('option');
+                option.value = model;
+                option.textContent = model;
+                if (model === provider.defaultModel) {
+                    option.selected = true;
+                }
+                modelSelect.appendChild(option);
+            });
+
+            // Add custom models from key-manager overrides
+            const overrides = getProviderOverrides(state.currentProvider);
+            if (overrides && overrides.custom_models && overrides.custom_models.length > 0) {
+                const separator = document.createElement('option');
+                separator.disabled = true;
+                separator.textContent = '── 自定义模型 ──';
+                modelSelect.appendChild(separator);
+
+                overrides.custom_models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    modelSelect.appendChild(option);
+                });
+            }
+
+            // Add "Custom..." option at the end
+            const customOption = document.createElement('option');
+            customOption.value = '__custom__';
+            customOption.textContent = '自定义...';
+            modelSelect.appendChild(customOption);
+
+            // Hide custom model input by default for non-custom providers
+            customModelInput.classList.add('hidden');
+        }
+
+        state.currentModel = provider.defaultModel || '';
+        updateKeyStatus();
+        saveState();
+    }
+
+    // Handle model change
+    function handleModelChange() {
+        const modelSelect = document.getElementById('modelSelect');
+        const customModelInput = document.getElementById('customModelInput');
+        const selectedValue = modelSelect.value;
+
+        if (selectedValue === '__custom__') {
+            // Show custom model input
+            customModelInput.classList.remove('hidden');
+            customModelInput.focus();
+            // Use custom input value if available, otherwise empty
+            state.currentModel = customModelInput.value || '';
+        } else {
+            // Hide custom model input and use selected model
+            customModelInput.classList.add('hidden');
+            state.currentModel = selectedValue;
+        }
+        saveState();
+    }
+
+    // Handle custom model input change
+    function handleCustomModelInput() {
+        const customModelInput = document.getElementById('customModelInput');
+        state.currentModel = customModelInput.value;
+        saveState();
+    }
+
+    // Update key status indicator
+    function updateKeyStatus() {
+        const statusDiv = document.getElementById('keyStatus');
+        const provider = AI_PROVIDERS[state.currentProvider];
+        const keyName = provider.keyName;
+        const key = localStorage.getItem(keyName) || sessionStorage.getItem(keyName);
+
+        if (key) {
+            statusDiv.innerHTML = `<span class="text-green-600"><i class="fas fa-check-circle mr-1"></i>Key 已配置</span>`;
+        } else {
+            statusDiv.innerHTML = `<span class="text-red-600"><i class="fas fa-times-circle mr-1"></i>未配置 Key · <a href="../key-manager.html" class="underline">去配置</a></span>`;
+        }
+    }
+
+    // Update word count
+    function updateWordCount() {
+        const input = document.getElementById('notesInput');
+        const text = input.value;
+        const charCount = text.length;
+        const noteCount = countNotes(text);
+
+        document.getElementById('charCount').textContent = charCount;
+        document.getElementById('noteCount').textContent = noteCount;
+
+        // Update status
+        const wordCountDiv = document.getElementById('wordCount');
+        const statusText = document.getElementById('statusText');
+
+        wordCountDiv.classList.remove('warning', 'error', 'success');
+
+        if (charCount === 0) {
+            statusText.textContent = '等待输入...';
+        } else if (charCount < 100) {
+            wordCountDiv.classList.add('warning');
+            statusText.textContent = '内容较少，建议添加更多';
+        } else if (charCount > 50000) {
+            wordCountDiv.classList.add('error');
+            statusText.textContent = '内容过长，建议筛选';
+        } else {
+            wordCountDiv.classList.add('success');
+            statusText.textContent = '✅ 适合分析';
+        }
+    }
+
+    // Render history
+    function renderHistory() {
+        const historyArea = document.getElementById('historyArea');
+        const historyList = document.getElementById('historyList');
+
+        if (state.noteHistory.length === 0) {
+            historyArea.classList.add('hidden');
+            return;
+        }
+
+        historyArea.classList.remove('hidden');
+        historyList.innerHTML = state.noteHistory.map(entry => `
+            <button onclick="loadFromHistory(${entry.id})"
+                    class="px-2 py-1 bg-gray-100 hover:bg-gray-200 rounded text-xs text-gray-600 transition-colors">
+                ${formatDate(entry.timestamp)} (${formatCharCount(entry.charCount)}字)
+            </button>
+        `).join('');
+    }
+
+    // Load from history
+    function loadFromHistory(id) {
+        const entry = state.noteHistory.find(e => e.id === id);
+        if (entry) {
+            // We need to store full content, not just preview
+            // For now, show a message
+            alert('历史记录功能需要完整实现。当前仅保存预览。');
+        }
+    }
+
+    // Clear history
+    function clearHistory() {
+        if (confirm('确定要清除所有历史记录吗？')) {
+            state.noteHistory = [];
+            saveState();
+            renderHistory();
+        }
+    }
+
+    // Show loading state
+    function showLoading(showProgress = false) {
+        state.isLoading = true;
+        const resultSection = document.getElementById('resultSection');
+        const loadingState = document.getElementById('loadingState');
+        const resultContent = document.getElementById('resultContent');
+        const errorState = document.getElementById('errorState');
+        const continueArea = document.getElementById('continueArea');
+        const progressSteps = document.getElementById('progressSteps');
+
+        resultSection.classList.remove('hidden');
+        loadingState.classList.remove('hidden');
+        resultContent.classList.add('hidden');
+        errorState.classList.add('hidden');
+        continueArea.classList.add('hidden');
+
+        if (showProgress) {
+            progressSteps.classList.remove('hidden');
+            updateProgressStep(1, 'active');
+            updateProgressStep(2, 'pending');
+            updateProgressStep(3, 'pending');
+        } else {
+            progressSteps.classList.add('hidden');
+        }
+    }
+
+    // Update progress step
+    function updateProgressStep(step, status) {
+        const stepEl = document.getElementById(`step${step}`);
+        stepEl.classList.remove('completed', 'active', 'pending');
+        stepEl.classList.add(status);
+
+        const icon = stepEl.querySelector('i');
+        if (status === 'completed') {
+            icon.className = 'fas fa-check-circle text-xs';
+        } else if (status === 'active') {
+            icon.className = 'fas fa-spinner fa-spin text-xs';
+        } else {
+            icon.className = 'fas fa-circle text-xs';
+        }
+    }
+
+    // Show error state
+    function showError(message) {
+        state.isLoading = false;
+        const loadingState = document.getElementById('loadingState');
+        const errorState = document.getElementById('errorState');
+
+        loadingState.classList.add('hidden');
+        errorState.classList.remove('hidden');
+        document.getElementById('errorMessage').textContent = message;
+    }
+
+    // Show result
+    function showResult(result, mode) {
+        state.isLoading = false;
+        state.lastResult = result;
+
+        const loadingState = document.getElementById('loadingState');
+        const resultContent = document.getElementById('resultContent');
+        const continueArea = document.getElementById('continueArea');
+
+        loadingState.classList.add('hidden');
+        resultContent.classList.remove('hidden');
+
+        // Update title
+        const modeConfig = MODE_CONFIG[mode] || MODE_CONFIG.deep_dive;
+        document.getElementById('resultTitle').innerHTML = `<i class="fas fa-file-alt text-blue-500 mr-2"></i>${modeConfig.icon} ${modeConfig.name} 结果`;
+
+        // Render markdown
+        resultContent.innerHTML = marked.parse(result);
+
+        // Show continue area for certain modes
+        if (['cluster', 'insight', 'timeline'].includes(mode)) {
+            continueArea.classList.remove('hidden');
+        } else {
+            continueArea.classList.add('hidden');
+        }
+
+        // Scroll to result
+        document.getElementById('resultSection').scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+    </script>
+    <script>
+    // ==================== Event Handlers ====================
+
+    // Load sample data
+    function loadSampleData() {
+        document.getElementById('notesInput').value = SAMPLE_NOTES;
+        updateWordCount();
+    }
+
+    // Select mode
+    function selectMode(modeId) {
+        // Update UI
+        document.querySelectorAll('.mode-card').forEach(card => {
+            card.classList.remove('active');
+        });
+        const selectedCard = document.querySelector(`[data-mode="${modeId}"]`);
+        if (selectedCard) {
+            selectedCard.classList.add('active');
+        }
+
+        state.currentMode = modeId;
+
+        // Show/hide extra inputs
+        const extraInputArea = document.getElementById('extraInputArea');
+        const periodSelector = document.getElementById('periodSelector');
+        const executeBtnArea = document.getElementById('executeBtnArea');
+
+        extraInputArea.classList.add('hidden');
+        periodSelector.classList.add('hidden');
+
+        if (modeId === 'timeline') {
+            extraInputArea.classList.remove('hidden');
+            document.getElementById('extraInputLabel').textContent = '聚焦主题（可选）';
+            document.getElementById('extraInput').placeholder = '例如：项目 A、AI 工具...';
+        } else if (modeId === 'summary') {
+            periodSelector.classList.remove('hidden');
+        }
+
+        // Show execute button
+        executeBtnArea.classList.remove('hidden');
+        const modeConfig = MODE_CONFIG[modeId];
+        document.getElementById('executeBtnText').textContent = `执行「${modeConfig.name}」`;
+    }
+
+    // Set period for summary
+    function setPeriod(period) {
+        state.currentPeriod = period;
+        document.querySelectorAll('.period-btn').forEach(btn => {
+            btn.classList.remove('bg-blue-500', 'text-white');
+            btn.classList.add('border-gray-300');
+        });
+        const selectedBtn = document.querySelector(`[data-period="${period}"]`);
+        if (selectedBtn) {
+            selectedBtn.classList.remove('border-gray-300');
+            selectedBtn.classList.add('bg-blue-500', 'text-white');
+        }
+    }
+
+    // Execute search
+    async function executeSearch() {
+        const notes = document.getElementById('notesInput').value.trim();
+        const question = document.getElementById('searchInput').value.trim();
+
+        if (!notes) {
+            alert('请先输入笔记内容');
+            return;
+        }
+        if (!question) {
+            alert('请输入搜索问题');
+            return;
+        }
+
+        showLoading();
+        document.getElementById('resultTitle').innerHTML = `<i class="fas fa-file-alt text-blue-500 mr-2"></i>🔍 智能检索 结果`;
+
+        try {
+            const result = await callAI('search', notes, { question });
+            showResult(result, 'search');
+            saveNotesToHistory(notes);
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // Execute mode
+    async function executeMode() {
+        if (!state.currentMode) {
+            alert('请先选择一个分析模式');
+            return;
+        }
+
+        const notes = document.getElementById('notesInput').value.trim();
+        if (!notes) {
+            alert('请先输入笔记内容');
+            return;
+        }
+
+        showLoading();
+
+        try {
+            const extraParams = {};
+
+            if (state.currentMode === 'timeline') {
+                const focus = document.getElementById('extraInput').value.trim();
+                if (focus) extraParams.focus = focus;
+            } else if (state.currentMode === 'summary') {
+                extraParams.period = state.currentPeriod;
+            }
+
+            const result = await callAI(state.currentMode, notes, extraParams);
+            showResult(result, state.currentMode);
+            saveNotesToHistory(notes);
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // Execute deep dive (one-click)
+    async function executeDeepDive() {
+        const notes = document.getElementById('notesInput').value.trim();
+        if (!notes) {
+            alert('请先输入笔记内容');
+            return;
+        }
+
+        showLoading(true);
+
+        try {
+            const result = await callAI('deep_dive', notes);
+            showResult(result, 'deep_dive');
+            saveNotesToHistory(notes);
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // Continue with another mode
+    async function continueWithMode(mode) {
+        const notes = document.getElementById('notesInput').value.trim();
+        if (!notes) {
+            alert('请先输入笔记内容');
+            return;
+        }
+
+        state.currentMode = mode;
+        showLoading();
+
+        try {
+            const result = await callAI(mode, notes);
+            showResult(result, mode);
+        } catch (error) {
+            showError(error.message);
+        }
+    }
+
+    // Retry analysis
+    function retryAnalysis() {
+        if (state.currentMode) {
+            executeMode();
+        }
+    }
+
+    // Copy result
+    function copyResult() {
+        if (!state.lastResult) return;
+        navigator.clipboard.writeText(state.lastResult).then(() => {
+            alert('已复制到剪贴板');
+        }).catch(err => {
+            console.error('Copy failed:', err);
+        });
+    }
+
+    // Download result
+    function downloadResult() {
+        if (!state.lastResult) return;
+
+        const modeConfig = MODE_CONFIG[state.currentMode] || { name: '分析结果' };
+        const blob = new Blob([state.lastResult], { type: 'text/markdown' });
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${modeConfig.name}_${new Date().toISOString().slice(0, 10)}.md`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+    }
+
+    // Handle Enter key in search input
+    document.addEventListener('DOMContentLoaded', function() {
+        const searchInput = document.getElementById('searchInput');
+        if (searchInput) {
+            searchInput.addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    executeSearch();
+                }
+            });
+        }
+    });
+    </script>
+    <script>
+    // ==================== Initialization ====================
+
+    function init() {
+        // Load saved state
+        loadState();
+
+        // Set up provider selector
+        const providerSelect = document.getElementById('providerSelect');
+        if (providerSelect) {
+            providerSelect.value = state.currentProvider;
+            updateModelSelector();
+
+            // Restore saved model if available
+            if (state.currentModel) {
+                const modelSelect = document.getElementById('modelSelect');
+                const option = Array.from(modelSelect.options).find(opt => opt.value === state.currentModel);
+                if (option) {
+                    modelSelect.value = state.currentModel;
+                }
+            }
+        }
+
+        // Set up word count listener
+        const notesInput = document.getElementById('notesInput');
+        if (notesInput) {
+            notesInput.addEventListener('input', updateWordCount);
+            updateWordCount();
+        }
+
+        // Render history
+        renderHistory();
+
+        // Set default period
+        setPeriod('周');
+
+        console.log('DeepNote v3.0 初始化完成');
+    }
+
+    // Initialize on DOM ready
+    document.addEventListener('DOMContentLoaded', init);
+    </script>
+        <!-- Footer -->
+        <footer class="text-center py-6 text-gray-400 text-sm">
+            <p>Powered by AI · Built with ❤️ · 数据仅存本地</p>
+            <p class="mt-1 text-xs">
+                基于 <a href="https://karpathy.ai/blog/append-only.html" target="_blank" class="hover:text-blue-500">Karpathy</a> 和
+                <a href="#" class="hover:text-blue-500">马伯庸</a> 的 Append-and-Review 笔记法
+            </p>
+        </footer>
+    </main>
+</body>
+</html>
