@@ -1140,27 +1140,31 @@
         name: '硅基流动 (SiliconFlow)',
         baseUrl: 'https://api.siliconflow.cn/v1/chat/completions',
         models: [
-          { id: 'Qwen/Qwen2.5-72B-Instruct', name: 'Qwen2.5-72B' },
-          { id: 'deepseek-ai/DeepSeek-V3', name: 'DeepSeek-V3' },
-          { id: 'Pro/Qwen/Qwen2.5-Coder-32B-Instruct', name: 'Qwen2.5-Coder-32B' }
+          { id: 'Pro/zai-org/GLM-4.7', name: 'GLM-4.7 (默认)' },
+          { id: 'Pro/moonshotai/Kimi-K2-Thinking', name: 'Kimi K2 Thinking' },
+          { id: 'Qwen/Qwen3-VL-32B-Thinking', name: 'Qwen 3 VL 32B Thinking' },
+          { id: 'Qwen/Qwen2.5-7B-Instruct', name: 'Qwen 2.5 7B' },
+          { id: 'deepseek-ai/DeepSeek-V3', name: 'DeepSeek V3' }
         ],
-        defaultModel: 'Qwen/Qwen2.5-72B-Instruct'
+        defaultModel: 'Pro/zai-org/GLM-4.7'
       },
       openrouter: {
         name: '开放路由 (OpenRouter)',
         baseUrl: 'https://openrouter.ai/api/v1/chat/completions',
         models: [
-          { id: 'anthropic/claude-3.5-sonnet', name: 'Claude 3.5 Sonnet' },
-          { id: 'openai/gpt-4o', name: 'GPT-4o' },
-          { id: 'google/gemini-pro-1.5', name: 'Gemini Pro 1.5' }
+          { id: 'anthropic/claude-opus-4.5', name: 'Claude Opus 4.5 (默认)' },
+          { id: 'openai/gpt-5.2-pro', name: 'GPT-5.2 Pro' },
+          { id: 'google/gemini-3-pro-preview', name: 'Gemini 3 Pro Preview' },
+          { id: 'anthropic/claude-sonnet-4', name: 'Claude Sonnet 4' },
+          { id: 'deepseek/deepseek-chat', name: 'DeepSeek Chat' }
         ],
-        defaultModel: 'anthropic/claude-3.5-sonnet'
+        defaultModel: 'anthropic/claude-opus-4.5'
       },
       deepseek: {
         name: 'DeepSeek',
         baseUrl: 'https://api.deepseek.com/v1/chat/completions',
         models: [
-          { id: 'deepseek-chat', name: 'DeepSeek Chat' },
+          { id: 'deepseek-chat', name: 'DeepSeek Chat (默认)' },
           { id: 'deepseek-reasoner', name: 'DeepSeek Reasoner' }
         ],
         defaultModel: 'deepseek-chat'
@@ -1169,10 +1173,11 @@
         name: 'Claude (Anthropic)',
         baseUrl: 'https://api.anthropic.com/v1/messages',
         models: [
-          { id: 'claude-opus-4-5-20251101', name: 'Claude Opus 4.5' },
-          { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' }
+          { id: 'claude-opus-4-5-20251101-thinking', name: 'Claude Opus 4.5 Thinking (默认)' },
+          { id: 'claude-sonnet-4-20250514', name: 'Claude Sonnet 4' },
+          { id: 'claude-opus-4-20250514', name: 'Claude Opus 4' }
         ],
-        defaultModel: 'claude-sonnet-4-20250514',
+        defaultModel: 'claude-opus-4-5-20251101-thinking',
         isAnthropic: true
       }
     };
