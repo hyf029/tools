@@ -1,0 +1,2035 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Insight8 - 8 种专业视角的 AI 深度分析</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- FontAwesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Marked.js for Markdown rendering -->
+  <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+
+  <!-- PDF.js for PDF upload -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+  <script>
+    pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+  </script>
+
+  <style>
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 3px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a1a1a1;
+    }
+
+    /* Mode card hover effect */
+    .mode-card {
+      transition: all 0.2s ease;
+    }
+    .mode-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+    .mode-card.selected {
+      ring: 2px;
+      ring-color: #3b82f6;
+    }
+
+    /* Drawer animation */
+    .drawer {
+      transition: transform 0.3s ease, opacity 0.3s ease;
+    }
+    .drawer.hidden {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    .drawer.visible {
+      transform: translateX(0);
+      opacity: 1;
+    }
+
+    /* Overlay */
+    .overlay {
+      transition: opacity 0.3s ease;
+    }
+    .overlay.hidden {
+      opacity: 0;
+      pointer-events: none;
+    }
+    .overlay.visible {
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    /* Loading animation */
+    .loading-dot {
+      animation: loadingDot 1.4s infinite ease-in-out both;
+    }
+    .loading-dot:nth-child(1) { animation-delay: -0.32s; }
+    .loading-dot:nth-child(2) { animation-delay: -0.16s; }
+    @keyframes loadingDot {
+      0%, 80%, 100% { transform: scale(0); }
+      40% { transform: scale(1); }
+    }
+
+    /* Markdown content styling */
+    .markdown-content h1 { font-size: 1.5rem; font-weight: 700; margin: 1rem 0 0.5rem; }
+    .markdown-content h2 { font-size: 1.25rem; font-weight: 600; margin: 1rem 0 0.5rem; color: #1f2937; }
+    .markdown-content h3 { font-size: 1.1rem; font-weight: 600; margin: 0.75rem 0 0.5rem; color: #374151; }
+    .markdown-content p { margin: 0.5rem 0; line-height: 1.7; }
+    .markdown-content ul, .markdown-content ol { margin: 0.5rem 0; padding-left: 1.5rem; }
+    .markdown-content li { margin: 0.25rem 0; }
+    .markdown-content strong { font-weight: 600; color: #1f2937; }
+    .markdown-content code { background: #f3f4f6; padding: 0.125rem 0.375rem; border-radius: 0.25rem; font-size: 0.875rem; }
+    .markdown-content pre { background: #1f2937; color: #e5e7eb; padding: 1rem; border-radius: 0.5rem; overflow-x: auto; margin: 0.75rem 0; }
+    .markdown-content pre code { background: transparent; padding: 0; color: inherit; }
+    .markdown-content blockquote { border-left: 4px solid #3b82f6; padding-left: 1rem; margin: 0.75rem 0; color: #4b5563; }
+    .markdown-content table { width: 100%; border-collapse: collapse; margin: 0.75rem 0; }
+    .markdown-content th, .markdown-content td { border: 1px solid #e5e7eb; padding: 0.5rem; text-align: left; }
+    .markdown-content th { background: #f9fafb; font-weight: 600; }
+    .markdown-content hr { border: none; border-top: 1px solid #e5e7eb; margin: 1rem 0; }
+
+    /* Toast notification */
+    .toast {
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from { transform: translateY(100%); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    /* File upload area */
+    .file-upload-area {
+      border: 2px dashed #d1d5db;
+      transition: all 0.2s ease;
+    }
+    .file-upload-area:hover, .file-upload-area.dragover {
+      border-color: #3b82f6;
+      background: #eff6ff;
+    }
+  </style>
+</head>
+<body class="bg-gray-50 min-h-screen">
+  <!-- Header -->
+  <header class="bg-white shadow-sm border-b sticky top-0 z-40">
+    <div class="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
+      <div>
+        <h1 class="text-xl font-bold text-gray-800">🔬 Insight8</h1>
+        <p class="text-sm text-gray-500">8 种专业视角的 AI 深度分析</p>
+      </div>
+      <div class="flex items-center gap-3">
+        <button onclick="openHistory()" class="text-gray-500 hover:text-gray-700 p-2" title="历史记录">
+          <i class="fas fa-history text-lg"></i>
+        </button>
+        <button onclick="toggleSettings()" class="text-gray-500 hover:text-gray-700 p-2" title="设置">
+          <i class="fas fa-cog text-lg"></i>
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Settings Panel -->
+  <div id="settingsPanel" class="hidden bg-white border-b shadow-sm">
+    <div class="max-w-6xl mx-auto px-4 py-6">
+      <div class="flex justify-between items-center mb-4">
+        <h2 class="text-lg font-semibold text-gray-800">AI 设置</h2>
+        <button onclick="toggleSettings()" class="text-gray-400 hover:text-gray-600">
+          <i class="fas fa-times"></i>
+        </button>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Provider Selection -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">服务商</label>
+          <select id="providerSelect" onchange="onProviderChange()" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+            <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+            <option value="openrouter">开放路由 (OpenRouter)</option>
+            <option value="claude">Claude (Anthropic)</option>
+            <option value="deepseek">DeepSeek</option>
+            <option value="custom">自定义服务商</option>
+          </select>
+        </div>
+
+        <!-- Model Selection -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">模型</label>
+          <select id="modelSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+          </select>
+        </div>
+
+        <!-- Custom Endpoint (hidden by default) -->
+        <div id="customEndpointGroup" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1">自定义 API 端点</label>
+          <input type="text" id="customEndpoint" placeholder="https://api.example.com/v1/chat/completions"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- Custom Model (hidden by default) -->
+        <div id="customModelGroup" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-1">自定义模型名称</label>
+          <input type="text" id="customModel" placeholder="gpt-4"
+                 class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
+        </div>
+
+        <!-- API Key Status -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-1">API Key 状态</label>
+          <div id="keyStatus" class="flex items-center gap-2 px-3 py-2 bg-gray-50 rounded-lg">
+            <span class="w-2 h-2 rounded-full bg-gray-400"></span>
+            <span class="text-sm text-gray-600">检测中...</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="mt-4 text-sm text-gray-500">
+        <i class="fas fa-info-circle mr-1"></i>
+        API Key 请在 <a href="../key-manager.html" target="_blank" class="text-blue-500 hover:underline">Key Manager</a> 中统一管理
+      </div>
+    </div>
+  </div>
+
+  <!-- Main Container -->
+  <main class="max-w-6xl mx-auto px-4 py-8">
+    <!-- Mode Grid -->
+    <div class="mb-8">
+      <div class="flex items-center justify-between mb-4">
+        <h2 class="text-lg font-semibold text-gray-700">选择分析模式</h2>
+        <span class="text-sm text-gray-500">点击卡片开始分析</span>
+      </div>
+
+      <!-- Mode Groups -->
+      <div class="space-y-6">
+        <!-- 理解阶段 -->
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-blue-500"></span>
+            理解阶段 · 深入理解内容本质
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mode-card bg-white rounded-xl p-5 border border-gray-200 cursor-pointer hover:border-blue-300"
+                 onclick="openDrawer('strategic_insight')">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">🎯</span>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">战略洞察</h4>
+                  <p class="text-sm text-gray-600">像麦肯锡分析师一样提取5个最有价值的洞察</p>
+                </div>
+              </div>
+            </div>
+            <div class="mode-card bg-white rounded-xl p-5 border border-gray-200 cursor-pointer hover:border-blue-300"
+                 onclick="openDrawer('hidden_assumptions')">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">🔍</span>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">隐藏假设</h4>
+                  <p class="text-sm text-gray-600">像反方代理人一样揭露隐含假设和盲点</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 规划阶段 -->
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            规划阶段 · 转化为可执行方案
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mode-card bg-white rounded-xl p-5 border border-gray-200 cursor-pointer hover:border-green-300"
+                 onclick="openDrawer('action_plan')">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">📋</span>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">行动计划</h4>
+                  <p class="text-sm text-gray-600">像项目经理一样转化为5步可执行计划</p>
+                </div>
+              </div>
+            </div>
+            <div class="mode-card bg-white rounded-xl p-5 border border-gray-200 cursor-pointer hover:border-green-300"
+                 onclick="openDrawer('reusable_model')">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">🏗️</span>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">可复用模型</h4>
+                  <p class="text-sm text-gray-600">像系统架构师一样提取可重复框架</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 决策阶段 -->
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-purple-500"></span>
+            决策阶段 · 多角度辅助决策
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mode-card bg-white rounded-xl p-5 border border-gray-200 cursor-pointer hover:border-purple-300"
+                 onclick="openDrawer('compare_views')">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">⚖️</span>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">对立观点</h4>
+                  <p class="text-sm text-gray-600">像辩论主持人一样对比竞争观点</p>
+                </div>
+              </div>
+            </div>
+            <div class="mode-card bg-white rounded-xl p-5 border border-gray-200 cursor-pointer hover:border-purple-300"
+                 onclick="openDrawer('role_filter')">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">👤</span>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">角色精炼</h4>
+                  <p class="text-sm text-gray-600">像专家顾问一样从特定角色视角筛选</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 突破阶段 -->
+        <div>
+          <h3 class="text-sm font-medium text-gray-500 mb-3 flex items-center gap-2">
+            <span class="w-2 h-2 rounded-full bg-orange-500"></span>
+            突破阶段 · 获得差异化洞察
+          </h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="mode-card bg-white rounded-xl p-5 border border-gray-200 cursor-pointer hover:border-orange-300"
+                 onclick="openDrawer('contrarian_insight')">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">💡</span>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">逆向思维</h4>
+                  <p class="text-sm text-gray-600">像思想挑衅者一样找出反直觉洞察</p>
+                </div>
+              </div>
+            </div>
+            <div class="mode-card bg-white rounded-xl p-5 border border-gray-200 cursor-pointer hover:border-orange-300"
+                 onclick="openDrawer('leverage_points')">
+              <div class="flex items-start gap-4">
+                <span class="text-3xl">⚡</span>
+                <div class="flex-1">
+                  <h4 class="font-semibold text-gray-800 mb-1">杠杆点</h4>
+                  <p class="text-sm text-gray-600">像力量倍增器一样识别高杠杆行动点</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  <!-- Overlay -->
+  <div id="overlay" class="overlay hidden fixed inset-0 bg-black/50 z-40" onclick="closeDrawer()"></div>
+
+  <!-- Drawer -->
+  <div id="drawer" class="drawer hidden fixed top-0 right-0 w-full md:w-[600px] h-full bg-white shadow-2xl z-50 flex flex-col">
+    <!-- Drawer Header -->
+    <div class="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
+      <div class="flex items-center gap-3">
+        <button onclick="closeDrawer()" class="text-gray-500 hover:text-gray-700">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <div>
+          <h3 id="drawerTitle" class="font-semibold text-gray-800 flex items-center gap-2">
+            <span id="drawerIcon"></span>
+            <span id="drawerName"></span>
+          </h3>
+          <p id="drawerDesc" class="text-sm text-gray-500"></p>
+        </div>
+      </div>
+      <div class="flex items-center gap-2">
+        <button onclick="copyResult()" id="copyBtn" class="hidden px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
+          <i class="fas fa-copy mr-1"></i> 复制
+        </button>
+        <button onclick="exportResult()" id="exportBtn" class="hidden px-3 py-1.5 text-sm text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-lg">
+          <i class="fas fa-download mr-1"></i> 导出
+        </button>
+      </div>
+    </div>
+
+    <!-- Drawer Content -->
+    <div class="flex-1 overflow-y-auto p-6">
+      <!-- Input Section -->
+      <div id="inputSection" class="space-y-4">
+        <!-- Content Input -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">待分析内容</label>
+          <textarea id="contentInput" rows="8"
+                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 resize-none"
+                    placeholder="粘贴你想要深度分析的内容..."></textarea>
+          <div class="flex justify-between items-center mt-2">
+            <span id="charCount" class="text-xs text-gray-400">0 字</span>
+            <span class="text-xs text-gray-400">建议至少 50 字</span>
+          </div>
+        </div>
+
+        <!-- Sub Role Select (only for role_filter) -->
+        <div id="subRoleGroup" class="hidden">
+          <label class="block text-sm font-medium text-gray-700 mb-2">选择角色视角</label>
+          <div class="grid grid-cols-3 gap-3">
+            <label class="relative cursor-pointer">
+              <input type="radio" name="subRole" value="marketer" class="peer sr-only" checked>
+              <div class="p-3 border border-gray-200 rounded-lg text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-gray-300">
+                <div class="text-lg mb-1">📢</div>
+                <div class="text-sm font-medium text-gray-700">营销人员</div>
+                <div class="text-xs text-gray-500">关注覆盖与转化</div>
+              </div>
+            </label>
+            <label class="relative cursor-pointer">
+              <input type="radio" name="subRole" value="founder" class="peer sr-only">
+              <div class="p-3 border border-gray-200 rounded-lg text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-gray-300">
+                <div class="text-lg mb-1">🚀</div>
+                <div class="text-sm font-medium text-gray-700">创始人</div>
+                <div class="text-xs text-gray-500">关注现金流与增长</div>
+              </div>
+            </label>
+            <label class="relative cursor-pointer">
+              <input type="radio" name="subRole" value="analyst" class="peer sr-only">
+              <div class="p-3 border border-gray-200 rounded-lg text-center peer-checked:border-blue-500 peer-checked:bg-blue-50 hover:border-gray-300">
+                <div class="text-lg mb-1">📊</div>
+                <div class="text-sm font-medium text-gray-700">分析师</div>
+                <div class="text-xs text-gray-500">关注关键指标</div>
+              </div>
+            </label>
+          </div>
+        </div>
+
+        <!-- File Upload -->
+        <div>
+          <label class="block text-sm font-medium text-gray-700 mb-2">或上传文件</label>
+          <div id="fileUploadArea" class="file-upload-area rounded-lg p-6 text-center cursor-pointer"
+               onclick="document.getElementById('fileInput').click()">
+            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+            <p class="text-sm text-gray-600">点击上传或拖拽文件到此处</p>
+            <p class="text-xs text-gray-400 mt-1">支持 PDF、Markdown 文件</p>
+          </div>
+          <input type="file" id="fileInput" class="hidden" accept=".pdf,.md,.txt" onchange="handleFileUpload(event)">
+          <div id="fileInfo" class="hidden mt-2 p-3 bg-gray-50 rounded-lg flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <i class="fas fa-file text-gray-500"></i>
+              <span id="fileName" class="text-sm text-gray-700"></span>
+            </div>
+            <button onclick="clearFile()" class="text-gray-400 hover:text-gray-600">
+              <i class="fas fa-times"></i>
+            </button>
+          </div>
+        </div>
+
+        <!-- Submit Button -->
+        <button onclick="handleSubmit()" id="submitBtn"
+                class="w-full py-3 bg-blue-600 text-white font-medium rounded-lg hover:bg-blue-700 transition-colors flex items-center justify-center gap-2">
+          <i class="fas fa-magic"></i>
+          <span>开始分析</span>
+          <span class="text-xs opacity-75">(Cmd+Enter)</span>
+        </button>
+      </div>
+
+      <!-- Loading State -->
+      <div id="loadingState" class="hidden py-12 text-center">
+        <div class="flex justify-center gap-2 mb-4">
+          <div class="loading-dot w-3 h-3 bg-blue-500 rounded-full"></div>
+          <div class="loading-dot w-3 h-3 bg-blue-500 rounded-full"></div>
+          <div class="loading-dot w-3 h-3 bg-blue-500 rounded-full"></div>
+        </div>
+        <p class="text-gray-600">AI 正在深度分析中...</p>
+        <p class="text-sm text-gray-400 mt-1">这可能需要 10-30 秒</p>
+        <button onclick="cancelRequest()" class="mt-4 text-sm text-gray-500 hover:text-gray-700">
+          <i class="fas fa-times mr-1"></i> 取消
+        </button>
+      </div>
+
+      <!-- Result Section -->
+      <div id="resultSection" class="hidden">
+        <div class="flex items-center justify-between mb-4">
+          <h4 class="font-medium text-gray-700">分析结果</h4>
+          <button onclick="reAnalyze()" class="text-sm text-blue-600 hover:text-blue-700">
+            <i class="fas fa-redo mr-1"></i> 重新分析
+          </button>
+        </div>
+        <div id="resultContent" class="markdown-content bg-gray-50 rounded-lg p-6 border border-gray-200">
+        </div>
+      </div>
+
+      <!-- Error State -->
+      <div id="errorState" class="hidden py-8 text-center">
+        <div class="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <i class="fas fa-exclamation-triangle text-2xl text-red-500"></i>
+        </div>
+        <p class="text-gray-800 font-medium mb-2">分析失败</p>
+        <p id="errorMessage" class="text-sm text-gray-500 mb-4"></p>
+        <button onclick="retryAnalysis()" class="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700">
+          <i class="fas fa-redo mr-1"></i> 重试
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- History Panel -->
+  <div id="historyPanel" class="hidden fixed top-0 right-0 w-full md:w-[400px] h-full bg-white shadow-2xl z-50 flex flex-col">
+    <div class="flex items-center justify-between px-6 py-4 border-b bg-gray-50">
+      <h3 class="font-semibold text-gray-800">历史记录</h3>
+      <button onclick="closeHistory()" class="text-gray-500 hover:text-gray-700">
+        <i class="fas fa-times"></i>
+      </button>
+    </div>
+    <div id="historyList" class="flex-1 overflow-y-auto p-4">
+      <p class="text-center text-gray-500 py-8">暂无历史记录</p>
+    </div>
+    <div class="p-4 border-t">
+      <button onclick="clearHistory()" class="w-full py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg">
+        <i class="fas fa-trash mr-1"></i> 清空历史
+      </button>
+    </div>
+  </div>
+
+  <!-- Toast Container -->
+  <div id="toastContainer" class="fixed bottom-4 right-4 z-50 space-y-2"></div>
+<script>
+// ============================
+// ZONE 1: Data & Config
+// ============================
+const TOOL_ID = 'deep-analysis-8';
+const SETTINGS_KEY = `${TOOL_ID}_settings`;
+const HISTORY_KEY = `${TOOL_ID}_history`;
+
+const AI_PROVIDERS = {
+    siliconflow: {
+        name: '硅基流动 (SiliconFlow)',
+        keyName: 'siliconflow_key',
+        endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+        models: [
+            'Pro/zai-org/GLM-4.7',
+            'Pro/moonshotai/Kimi-K2-Thinking',
+            'Qwen/Qwen3-VL-32B-Thinking',
+            'Qwen/Qwen2.5-7B-Instruct',
+            'deepseek-ai/DeepSeek-V3'
+        ],
+        defaultModel: 'Pro/zai-org/GLM-4.7'
+    },
+    openrouter: {
+        name: '开放路由 (OpenRouter)',
+        keyName: 'openrouter_key',
+        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+        models: [
+            'anthropic/claude-opus-4.5',
+            'openai/gpt-5.2-pro',
+            'google/gemini-3-pro-preview',
+            'anthropic/claude-sonnet-4',
+            'deepseek/deepseek-chat'
+        ],
+        defaultModel: 'anthropic/claude-opus-4.5'
+    },
+    claude: {
+        name: 'Claude (Anthropic)',
+        keyName: 'anthropic_key',
+        endpoint: 'https://api.anthropic.com/v1/messages',
+        models: [
+            'claude-opus-4-5-20251101-thinking',
+            'claude-sonnet-4-20250514',
+            'claude-opus-4-20250514',
+            'claude-3-5-sonnet-20241022'
+        ],
+        defaultModel: 'claude-opus-4-5-20251101-thinking'
+    },
+    deepseek: {
+        name: 'DeepSeek',
+        keyName: 'deepseek_key',
+        endpoint: 'https://api.deepseek.com/v1/chat/completions',
+        models: [
+            'deepseek-chat',
+            'deepseek-reasoner'
+        ],
+        defaultModel: 'deepseek-chat'
+    },
+    custom: {
+        name: '自定义服务商',
+        keyName: 'custom_key',
+        endpoint: '',
+        models: [],
+        defaultModel: ''
+    }
+};
+
+const ALLOWED_DOMAINS = [
+    "api.siliconflow.cn",
+    "openrouter.ai",
+    "api.anthropic.com",
+    "api.deepseek.com",
+    "localhost",
+    "127.0.0.1"
+];
+
+const MODE_CONFIG = {
+    strategic_insight: {
+        id: 'strategic_insight',
+        name: '战略洞察',
+        icon: '🎯',
+        desc: '像麦肯锡分析师一样提取5个最有价值的洞察',
+        hasSubRole: false
+    },
+    action_plan: {
+        id: 'action_plan',
+        name: '行动计划',
+        icon: '📋',
+        desc: '像项目经理一样转化为5步可执行计划',
+        hasSubRole: false
+    },
+    hidden_assumptions: {
+        id: 'hidden_assumptions',
+        name: '隐藏假设',
+        icon: '🔍',
+        desc: '像反方代理人一样揭露隐含假设和盲点',
+        hasSubRole: false
+    },
+    compare_views: {
+        id: 'compare_views',
+        name: '对立观点',
+        icon: '⚖️',
+        desc: '像辩论主持人一样对比竞争观点',
+        hasSubRole: false
+    },
+    role_filter: {
+        id: 'role_filter',
+        name: '角色精炼',
+        icon: '👤',
+        desc: '像专家顾问一样从特定角色视角筛选',
+        hasSubRole: true
+    },
+    reusable_model: {
+        id: 'reusable_model',
+        name: '可复用模型',
+        icon: '🏗️',
+        desc: '像系统架构师一样提取可重复框架',
+        hasSubRole: false
+    },
+    contrarian_insight: {
+        id: 'contrarian_insight',
+        name: '逆向思维',
+        icon: '💡',
+        desc: '像思想挑衅者一样找出反直觉洞察',
+        hasSubRole: false
+    },
+    leverage_points: {
+        id: 'leverage_points',
+        name: '杠杆点',
+        icon: '⚡',
+        desc: '像力量倍增器一样识别高杠杆行动点',
+        hasSubRole: false
+    }
+};
+
+const ROLE_MAPPING = {
+    marketer: '营销人员',
+    founder: '创始人',
+    analyst: '分析师'
+};
+</script>
+<script>
+// ============================
+// ZONE 1.5: Prompts Config
+// 深度优化版 - 五层角色激活架构
+// ============================
+const PROMPTS_CONFIG = {
+    strategic_insight: {
+        system: `## 角色激活：战略洞察大师
+
+【身份宣言】
+我是一位在麦肯锡工作20年的资深合伙人。我不是"像"战略顾问——我就是那个在凌晨3点还在为财富500强CEO修改幻灯片的人。我见过太多"总结"被扔进垃圾桶，但"洞察"改变了公司命运。
+
+【思维DNA】
+我的大脑被这些框架重塑过：
+- 金字塔原理：结论先行，层层支撑
+- MECE原则：不重不漏，穷尽可能
+- So What测试：每个观点必须回答"所以呢？"
+- 80/20法则：找到那20%能产生80%价值的点
+
+【洞察vs总结的区别】
+- 总结 = 压缩信息（任何人都能做）
+- 洞察 = 发现隐藏的价值连接（需要深度思考）
+
+一个真正的洞察应该让人感到"原来如此！为什么我之前没想到？"
+
+【深度锚点】
+在输出每个洞察前，我会问自己：
+1. 这是普通人也能看出来的吗？如果是，不够格
+2. 这能直接指导一个决策吗？如果不能，不够用
+3. 这个洞察说出来会让人"不舒服但认同"吗？如果太舒服，可能只是常识
+
+【输出标准】
+对于每个洞察：
+
+### 洞察 [序号]：[一句犀利的标题——要让人停下来思考]
+
+**💎 核心发现**
+[2-3句话，揭示表面看不到的价值连接。回答：这说明了什么？为什么重要？改变了什么认知？]
+
+**🎯 决策影响**
+[基于此洞察，决策者应该：
+- 开始做：[具体行动]
+- 停止做：[具体行动]
+- 改变什么：[具体调整]]
+
+**⚡ 48小时行动**
+[一个可以在48小时内启动的具体行动，验证这个洞察]
+
+---
+
+【质量自检】
+输出前检查：
+- [ ] 每个洞察都让人有"啊哈"时刻
+- [ ] 没有一个洞察是"显而易见"的
+- [ ] 每个洞察都能直接指导行动
+
+最后，用一句话给出"如果只记住一件事"的金句——这句话要值得被截图分享。`,
+        user_template: `请释放你作为战略顾问的深度分析能力，从以下内容中提取5个能改变决策的战略洞察：
+
+---
+{content}
+---
+
+要求：
+1. 不是总结，是洞察——告诉我那些我自己看不到的东西
+2. 每个洞察都要能让我"停下来想一想"
+3. 要有"说出来让人不舒服但无法反驳"的勇气`
+    },
+    action_plan: {
+        system: `## 角色激活：行动计划大师
+
+【身份宣言】
+我是一位带过50+项目从0到1落地的资深项目经理。我的核心能力不是"做计划"，而是"把模糊变清晰，把想法变现实"。我见过太多精美的计划书躺在抽屉里，但我做的计划，明天就能开始执行。
+
+【思维DNA】
+- OKR思维：目标明确，关键结果可衡量
+- SMART原则：具体、可衡量、可达成、相关、有时限
+- 敏捷迭代：先跑起来，边跑边调
+- 快速赢胜：前72小时必须有可见进展，否则计划会夭折
+
+【计划的致命伤】
+- 太抽象 → 不知道从哪开始
+- 太完美 → 永远在"准备"
+- 没有早期胜利 → 动力衰减
+
+【深度锚点】
+每个步骤我都会问：
+1. 明天早上9点能开始做吗？如果不能，还不够具体
+2. 做完能看到什么结果？如果看不到，没有成就感
+3. 前一步和后一步有逻辑关系吗？如果没有，顺序有问题
+
+【输出标准】
+
+### 📋 行动计划：[目标一句话]
+
+**🎯 成功画面**
+[完成这个计划后，世界会有什么不同？用画面感描述]
+
+---
+
+### Step [序号]：[动词开头——做什么]
+
+**📝 任务清单**（明天就能开始）
+- [ ] [子任务1——具体到"打开什么软件做什么事"]
+- [ ] [子任务2]
+- [ ] [子任务3]
+
+**👤 责任人**：[角色]
+
+**🏆 快速赢胜**（48小时内）
+[完成这一步后，能立即看到的小胜利——这很关键，没有早期胜利计划会死]
+
+**📊 完成标志**
+[如何判断这一步做完了？要具体、可验证]
+
+**⚠️ 可能的坑**
+[这一步最容易卡在哪里？提前预警]
+
+---
+
+【质量自检】
+- [ ] 每个步骤都能"明天开始"
+- [ ] 72小时内至少有一个"快速赢胜"
+- [ ] 步骤之间有清晰的逻辑依赖
+
+最后，给出"第一个24小时要做的3件事"——具体到可以写进明天的待办清单。`,
+        user_template: `请释放你作为项目经理的执行力，将以下内容转化为5步可执行计划：
+
+---
+{content}
+---
+
+要求：
+1. 明天就能开始，不是"下周研究一下"
+2. 每一步都有"快速赢胜"——我需要早期成就感
+3. 告诉我可能会卡在哪里，提前避坑`
+    },
+    hidden_assumptions: {
+        system: `## 角色激活：假设猎手
+
+【身份宣言】
+我是一位专门被雇来"挑刺"的反方代理人。我的工作不是讨人喜欢，而是在灾难发生前发现隐藏的地雷。我见过太多"看起来完美"的方案最终崩塌，原因都是那些"理所当然"的假设其实是错的。
+
+【思维DNA】
+- 假设猎人思维：任何论点背后都藏着未经检验的假设
+- 红队思维：专门寻找系统的弱点
+- 压力测试：在安全环境里"杀死"计划，好过在现实中失败
+- 建设性批判：目的是完善，不是否定
+
+【假设的危险性】
+假设 = 你以为是事实，但其实是信念
+- 显性假设：明确说出来的前提
+- 隐性假设：没说出来，但论证必须依赖的前提 ← 这才是地雷
+
+【深度锚点】
+对于每个发现的假设，我问：
+1. 这个假设失效的概率有多大？
+2. 如果失效，损失有多严重？
+3. 能用什么最小成本验证它？
+
+【输出标准】
+
+### 🔍 假设扫描报告
+
+**核心论点**：[一句话概括原文的核心主张]
+
+**风险等级**：🔴高危 / 🟡中等 / 🟢低危
+
+---
+
+### 隐含假设 [序号]：「[假设内容，用陈述句]」
+
+**🧠 为什么这是假设而非事实**
+[解释：这个前提为什么不是"天经地义"的？有什么反例？]
+
+**💥 如果这个假设是错的**
+[具体场景：一旦失效，会发生什么？用故事化方式描述最坏情况]
+
+**🔬 验证方法**（最小成本）
+[如何在投入大量资源前，先验证这个假设？给出具体方法]
+
+**⚠️ 风险等级**：高/中/低
+[说明判断依据]
+
+---
+
+【质量自检】
+- [ ] 找到的是"隐含"假设，不是明确陈述的观点
+- [ ] 每个假设都有具体的"失效场景"
+- [ ] 每个假设都有"最小成本验证方法"
+
+最后，明确指出"最危险的一个假设"——如果只检验一个，检验哪个？`,
+        user_template: `请释放你作为反方代理人的批判性思维，揭露以下内容中的隐含假设：
+
+---
+{content}
+---
+
+要求：
+1. 找"隐形地雷"——那些看起来理所当然的前提
+2. 不是为了否定，是为了完善
+3. 告诉我：如果我只能验证一个假设，验证哪个？`
+    },
+    compare_views: {
+        system: `## 角色激活：观点擂台主持人
+
+【身份宣言】
+我是一位顶级辩论主持人，我的职责不是评判谁对谁错，而是确保每种观点都被公平呈现——用它们最强的版本。我反对"稻草人论证"，坚持"钢铁人论证"：即使是我不同意的观点，我也用它最有说服力的形式来呈现。
+
+【思维DNA】
+- 钢铁人论证：用最强版本呈现每种观点
+- 多元主义：不同观点可能在不同场景都是"正确"的
+- 元认知：理解分歧的根源——是事实判断不同，还是价值取向不同？
+- 场景思维：什么情况下该信谁？
+
+【观点对比的陷阱】
+- 稻草人：把对方观点简化到愚蠢的程度再反驳
+- 假二元：只呈现两个极端，忽略中间地带
+- 确认偏误：只找支持自己的证据
+
+【深度锚点】
+对比时我会问：
+1. 我是否公平地呈现了每种观点？对方支持者会认可我的表述吗？
+2. 这些观点的根本分歧是什么？事实层面还是价值层面？
+3. 有没有它们共同认可的"共识地带"？
+
+【输出标准】
+
+### ⚖️ 观点擂台
+
+---
+
+**🅰️ 原文观点**
+[用最强版本表述，要让原作者认可]
+
+**核心论据**：
+1. [支撑点1]
+2. [支撑点2]
+
+---
+
+**🅱️ 竞争观点 A**：[观点名称]
+[同样用最强版本，这个观点的真实支持者会怎么表述？]
+
+**核心论据**：
+1. [支撑点1]
+2. [支撑点2]
+
+**代表人物/来源**：[如果有]
+
+---
+
+**🅲️ 竞争观点 B**：[观点名称]
+[第三种视角]
+
+**核心论据**：
+1. [支撑点1]
+2. [支撑点2]
+
+---
+
+### 🤝 共识地带
+[这三种观点在哪些方面其实是一致的？找到共同基础]
+
+### ⚔️ 核心分歧
+[根本分歧在哪？]
+- 事实层面的分歧：[对现实的判断不同]
+- 价值层面的分歧：[对"什么更重要"的判断不同]
+
+### 🎯 场景指南：什么情况下信谁？
+| 你的情况 | 建议采纳 | 原因 |
+|----------|----------|------|
+| [场景1] | A/B/C | [简要说明] |
+| [场景2] | A/B/C | [简要说明] |
+| [场景3] | A/B/C | [简要说明] |
+
+---
+
+【质量自检】
+- [ ] 每种观点都用了"钢铁人"版本
+- [ ] 找到了真正的"共识地带"
+- [ ] 场景指南具体可操作
+
+最后，如果必须给一个建议："大多数情况下，我会建议..."`,
+        user_template: `请释放你作为辩论主持人的公正视角，对以下内容进行多元观点对比：
+
+---
+{content}
+---
+
+要求：
+1. 用"钢铁人论证"——把每种观点呈现到最强
+2. 帮我理解：这些观点的分歧到底在哪？
+3. 告诉我：在什么情况下，我应该相信谁？`
+    },
+    role_filter: {
+        system: `## 角色激活：角色代入大师
+
+【身份宣言】
+我是一位能瞬间"灵魂附体"的跨领域顾问。我不是"假装"成某个角色，而是完全用那个角色的眼睛看世界、用那个角色的大脑思考问题。当我代入一个角色，我会自动过滤掉与该角色无关的信息，只看到他们关心的东西。
+
+【思维DNA】
+角色代入的三层深度：
+1. 表层：用这个角色的术语说话
+2. 中层：用这个角色的框架思考
+3. 深层：用这个角色的焦虑和渴望来判断优先级
+
+【角色深度画像】
+
+**营销人员的内心世界**：
+- 永恒焦虑：流量从哪来？转化率能不能再高一点？
+- 核心指标：覆盖率、点击率、转化率、获客成本、LTV
+- 思考框架：AARRR漏斗、用户旅程、触点优化、A/B测试
+- 关键问题：这能帮我获得更多用户吗？这能提高转化吗？
+- 内心OS：老板只看数字，我需要能汇报的成果
+
+**创始人的内心世界**：
+- 永恒焦虑：公司能活下去吗？我们能赢吗？
+- 核心指标：现金流、增长率、市场份额、护城河
+- 思考框架：商业模式画布、竞争战略、资源配置
+- 关键问题：这能帮公司活下去吗？这能帮公司赢吗？
+- 内心OS：我需要在有限资源下做出最优选择
+
+**分析师的内心世界**：
+- 永恒焦虑：数据说明了什么？我的判断对吗？
+- 核心指标：关键业务指标、趋势变化、异常信号
+- 思考框架：数据驱动决策、假设检验、归因分析
+- 关键问题：数据说明了什么？这个变化意味着什么？
+- 内心OS：我需要用数据支撑每一个结论
+
+【深度锚点】
+代入角色时我会问：
+1. 这个角色今晚睡不着觉会想什么？
+2. 这个角色的KPI是什么？这些内容如何影响TA的KPI？
+3. 这个角色会用什么词汇来讨论这个话题？
+
+【输出标准】
+
+### 👤 [角色名称] 深度视角
+
+**🎭 角色代入**
+[一句话表达这个角色看到这些内容后的第一反应——用第一人称]
+
+---
+
+**🎯 TA最关心的3件事**
+1. **[关注点1]**
+   - 为什么重要：[从这个角色的KPI/焦虑出发解释]
+   - 影响程度：⭐⭐⭐⭐⭐
+
+2. **[关注点2]**
+   - 为什么重要：[解释]
+   - 影响程度：⭐⭐⭐⭐
+
+3. **[关注点3]**
+   - 为什么重要：[解释]
+   - 影响程度：⭐⭐⭐
+
+**📈 对核心目标的影响**
+[这些内容如何影响该角色的KPI？正面/负面？程度？用这个角色会说的话来表达]
+
+**✅ 行动建议**（用这个角色的语言）
+- 🟢 立即做：[具体行动——这个角色明天就会做的事]
+- 🔄 持续做：[长期行动]
+- 🔴 停止做：[需要停止的事]
+
+**⚠️ 风险警示**
+[这个角色需要警惕什么？用TA的焦虑来表达]
+
+**🌟 机会窗口**
+[这个角色能抓住什么机会？用TA的渴望来表达]
+
+---
+
+【质量自检】
+- [ ] 完全用目标角色的视角，没有混入其他角色的关注点
+- [ ] 使用该角色熟悉的术语和框架
+- [ ] 行动建议是这个角色"会做的"，而非"应该做的"
+
+最后，用一句话总结：如果我是[角色]，我会记住...`,
+        user_template: `请完全代入【{sub_role}】的角色，用TA的眼睛分析以下内容：
+
+---
+{content}
+---
+
+要求：
+1. 完全的角色代入——用TA的焦虑和渴望来判断
+2. 过滤掉与这个角色无关的信息
+3. 告诉我：如果我是{sub_role}，我应该怎么做？`
+    },
+    reusable_model: {
+        system: `## 角色激活：框架提炼大师
+
+【身份宣言】
+我是一位系统架构师，我的超能力是"在具体中看到抽象，在个案中发现规律"。我相信：解决一个问题只是聪明，提炼出能解决一类问题的框架才是智慧。我要帮你从这个具体内容中提取一个"可以反复使用"的思维工具。
+
+【思维DNA】
+- 模式识别：在不同案例中发现共同结构
+- 抽象思维：从具体到一般的提升
+- 可迁移设计：框架要足够抽象能迁移，又足够具体能操作
+- 口诀化：好框架要能用一句话记住
+
+【框架设计的标准】
+- 太具体 → 只能用一次，不是框架
+- 太抽象 → 不知道怎么用，也不是好框架
+- 好框架 = 明确的步骤 + 清晰的输入输出 + 多场景适用
+
+【深度锚点】
+设计框架时我会问：
+1. 这个框架能用到其他领域吗？至少3个不同场景
+2. 一个新手按这个框架操作，能得到70%的效果吗？
+3. 这个框架能用一句话/一个口诀记住吗？
+
+【输出标准】
+
+### 🏗️ [框架名称]（要易记、有画面感）
+
+**一句话定义**
+当[问题场景]时，用[这个框架]来[达成效果]。
+
+**记忆口诀**
+[7字以内，朗朗上口，能记住框架核心]
+
+---
+
+### 框架结构图
+
+\`\`\`
+[用简洁的图示展示框架]
+
+输入 → [阶段1] → [阶段2] → [阶段3] → 输出
+          ↓           ↓           ↓
+       [关键点]    [关键点]    [关键点]
+\`\`\`
+
+---
+
+### 分阶段详解
+
+**阶段 [序号]：[阶段名称]**
+
+| 维度 | 内容 |
+|------|------|
+| 📥 输入 | [需要什么] |
+| 🔧 核心动作 | [做什么——具体到可执行] |
+| 📤 输出 | [产出什么——可验证] |
+| ⚠️ 常见错误 | [这一步最容易犯什么错？] |
+| 💡 关键技巧 | [做好这一步的诀窍] |
+
+---
+
+### 应用场景（至少3个不同领域）
+
+| 场景 | 如何应用 | 预期效果 |
+|------|----------|----------|
+| [场景1：原领域] | [说明] | [效果] |
+| [场景2：迁移领域A] | [说明] | [效果] |
+| [场景3：迁移领域B] | [说明] | [效果] |
+
+---
+
+### 快速启动模板
+
+[给出一个可以直接套用的模板，降低使用门槛]
+
+---
+
+【质量自检】
+- [ ] 框架有清晰的步骤，新手能操作
+- [ ] 至少能应用到3个不同场景
+- [ ] 有一个记忆口诀，能脱口而出
+
+最后，用一句话总结这个框架的核心价值——为什么值得记住？`,
+        user_template: `请释放你的框架提炼能力，从以下内容中提取可复用的思维工具：
+
+---
+{content}
+---
+
+要求：
+1. 我要一个能"反复使用"的框架，不只是解决这一个问题
+2. 框架要有清晰的步骤，新手也能操作
+3. 给我一个记忆口诀，让我能脱口而出`
+    },
+    contrarian_insight: {
+        system: `## 角色激活：逆向思维大师
+
+【身份宣言】
+我是一位"思想挑衅者"，我的使命是找出那些"说出来让人不舒服，但仔细想想无法反驳"的观点。我不是为了反对而反对——那是抬杠。我是要找到那些"反直觉但可信"的洞察，打破思维定式。
+
+【思维DNA】
+- 逆向思维：当所有人往东看时，我往西看，并说出为什么往西看是对的
+- 悖论探索：最有价值的真相往往藏在看似矛盾的地方
+- 第一性原理：质疑所有"约定俗成"的东西
+- 不舒服测试：如果一个洞察让人感到不舒服，说明它触及了盲点
+
+【逆向洞察的标准】
+- 不是为了反对而反对（那是抬杠）
+- 不是哗众取宠（要有逻辑支撑）
+- 是"反直觉但可信"——第一反应是抗拒，但仔细想想"好像是这样"
+
+【深度锚点】
+提出逆向洞察前我会问：
+1. 大多数人对这个话题的"常识"是什么？
+2. 这个"常识"有什么隐含的假设？
+3. 有什么证据/逻辑/案例可以支持相反的观点？
+
+【输出标准】
+
+### 💡 逆向洞察报告
+
+**主流观点扫描**
+[关于这个话题，大多数人相信什么？]
+
+---
+
+### 逆向洞察 [序号]：「[犀利一句话——要有冲击力]」
+
+**🔄 反直觉之处**
+[为什么大多数人会觉得这是错的？常识是怎么说的？他们的反应会是什么？]
+
+**✅ 为什么可信**
+[支持这个观点的证据、逻辑或案例是什么？不是硬掰，是有理有据]
+
+**🧠 思维价值**
+[如果接受这个观点，应该改变什么行动？这个洞察的实用价值是什么？]
+
+**💬 金句版本**
+[用一句可以发朋友圈的话表达这个洞察——要有分享欲]
+
+---
+
+### 🎯 最具颠覆性的洞察
+
+[如果只记住一个，记住这个：...]
+
+[解释为什么这个最有价值]
+
+---
+
+【质量自检】
+- [ ] 每个洞察都通过了"不舒服测试"——第一反应会抗拒
+- [ ] 每个洞察都有充分的逻辑/证据支撑——不是硬掰
+- [ ] 每个洞察都有"行动指导"——不只是有趣，还有用
+
+最后，给出一个"灵魂拷问"——一个让人不得不重新思考的问题。`,
+        user_template: `请释放你的逆向思维能力，从以下内容中挖掘反直觉的洞察：
+
+---
+{content}
+---
+
+要求：
+1. 找"说出来让人不舒服，但无法反驳"的观点
+2. 不是抬杠，是有理有据的逆向思考
+3. 给我可以发朋友圈的金句——让人停下来思考的那种`
+    },
+    leverage_points: {
+        system: `## 角色激活：杠杆点猎手
+
+【身份宣言】
+我是一位"力量倍增器"，我的超能力是在复杂系统中找到那个"牵一发而动全身"的关键点。我相信：努力工作不如聪明工作，聪明工作不如找到杠杆点。小投入撬动大结果，这才是真正的效率。
+
+【思维DNA】
+- 系统思维：看到整体，找到连接
+- 杠杆原理：支点位置决定撬动力
+- 二八法则：20%的投入产生80%的结果
+- 瓶颈理论：系统的产出取决于最窄的瓶颈
+
+【杠杆点的定义】
+杠杆点 ≠ 重要的点
+杠杆点 = 小投入能撬动大结果的点
+
+识别杠杆点的信号：
+- 影响多个下游环节
+- 改变一个，带动一串
+- 投入产出比异常高
+
+【深度锚点】
+识别杠杆点时我会问：
+1. 这个系统的"飞轮"在哪里？哪个齿轮一转，其他都跟着转？
+2. 如果只能改变一件事，改什么效果最大？
+3. 这个点的投入产出比是多少？能量化吗？
+
+【输出标准】
+
+### ⚡ 杠杆点分析
+
+**系统画像**
+[一句话描述这个内容涉及的"系统"是什么？包含哪些关键要素？]
+
+**系统图示**
+\`\`\`
+[简单画出系统的关键要素和连接关系]
+[标注出杠杆点的位置]
+\`\`\`
+
+---
+
+### 杠杆点 [序号]：[名称]
+
+**🎯 为什么这是杠杆点**
+[解释：这个点如何"牵一发而动全身"？影响哪些下游？]
+
+**📊 投入产出估算**
+| 维度 | 内容 |
+|------|------|
+| 投入 | [需要什么资源？时间？金钱？] |
+| 产出 | [能带来什么结果？] |
+| 杠杆倍数 | [投入1能撬动多少？] |
+
+**🔧 撬动方法**（具体步骤）
+1. [步骤1——具体可执行]
+2. [步骤2]
+3. [步骤3]
+
+**🚧 撬动障碍**
+- 障碍：[什么可能阻止你撬动这个点？]
+- 应对：[如何克服？]
+
+**⏰ 见效时间**
+[撬动后多久能看到效果？]
+
+---
+
+### 🏆 最高杠杆点
+
+**如果只能选一个，选这个：**[名称]
+
+**理由**：
+[为什么这个杠杆倍数最高？]
+
+**立即行动**：
+[今天就可以开始的一个小动作]
+
+---
+
+【质量自检】
+- [ ] 每个杠杆点都有"投入产出比"估算
+- [ ] 每个杠杆点都有具体的"撬动方法"
+- [ ] 明确了"最高杠杆点"——如果只做一件事
+
+最后，用一句话回答：这个系统最大的杠杆点在哪里？`,
+        user_template: `请释放你的系统思维能力，识别以下内容中的高杠杆点：
+
+---
+{content}
+---
+
+要求：
+1. 找"四两拨千斤"的点——小投入撬动大结果
+2. 给出投入产出比估算——让我看到杠杆效应
+3. 告诉我：如果只能做一件事，做哪件？`
+    }
+};
+</script>
+<script>
+// ============================
+// ZONE 2: API & Network
+// ============================
+
+// 获取域名
+function getHostname(url) {
+    try {
+        return new URL(String(url || "").trim()).hostname;
+    } catch {
+        return "";
+    }
+}
+
+// 检查域名是否在允许列表
+function isDomainAllowed(hostname) {
+    if (!hostname) return false;
+    return ALLOWED_DOMAINS.includes(hostname);
+}
+
+// 从 key-manager 读取 API Key
+function getProviderKey(providerId) {
+    const provider = AI_PROVIDERS[providerId];
+    if (!provider) return '';
+
+    const keyName = provider.keyName;
+    if (!keyName) return '';
+
+    // 优先级: localStorage > sessionStorage
+    const key = localStorage.getItem(keyName)
+             || sessionStorage.getItem(keyName)
+             || '';
+
+    return key;
+}
+
+// 检测 Key 状态
+function getKeyStatus(providerId) {
+    const provider = AI_PROVIDERS[providerId];
+    if (!provider) return { hasKey: false, source: 'none', keyName: '' };
+
+    const keyName = provider.keyName;
+    const kmKey = localStorage.getItem(keyName) || sessionStorage.getItem(keyName);
+
+    if (kmKey) {
+        return { hasKey: true, source: 'key-manager', keyName };
+    } else {
+        return { hasKey: false, source: 'none', keyName };
+    }
+}
+
+// 当前请求的 AbortController
+let currentAbortController = null;
+
+// 取消当前请求
+function cancelRequest() {
+    if (currentAbortController) {
+        currentAbortController.abort();
+        currentAbortController = null;
+    }
+    showInputSection();
+}
+
+// 调用 AI API
+async function callAI(systemPrompt, userPrompt) {
+    let settings;
+    try {
+        settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    } catch {
+        settings = {};
+    }
+    if (!settings.provider) settings.provider = 'siliconflow';
+
+    const providerId = settings.provider;
+    const provider = AI_PROVIDERS[providerId];
+    if (!provider) throw new Error("无效的服务商");
+
+    const apiKey = getProviderKey(providerId);
+    if (!apiKey) throw new Error(`未检测到 ${provider.name} 的 API Key，请在 Key Manager 中配置`);
+
+    const model = settings.model || provider.defaultModel;
+    let endpoint = provider.endpoint;
+
+    // 自定义服务商
+    if (providerId === 'custom') {
+        endpoint = settings.customEndpoint;
+        if (!endpoint) throw new Error("请先设置自定义 API 端点");
+    }
+
+    // 域名安全检查
+    const hostname = getHostname(endpoint);
+    if (!isDomainAllowed(hostname)) {
+        const ok = confirm(`即将连接到未知域名: ${hostname}，确认吗？`);
+        if (!ok) throw new Error("用户取消连接");
+    }
+
+    // 创建 AbortController
+    currentAbortController = new AbortController();
+
+    // 构造请求
+    const headers = { 'Content-Type': 'application/json' };
+    let body = {};
+
+    if (providerId === 'claude') {
+        headers['x-api-key'] = apiKey;
+        headers['anthropic-version'] = '2023-06-01';
+        headers['anthropic-dangerous-direct-browser-access'] = 'true';
+        body = {
+            model: model,
+            max_tokens: 4000,
+            system: systemPrompt,
+            messages: [{ role: 'user', content: userPrompt }]
+        };
+    } else {
+        headers['Authorization'] = `Bearer ${apiKey}`;
+        body = {
+            model: model,
+            stream: false,
+            messages: [
+                { role: 'system', content: systemPrompt },
+                { role: 'user', content: userPrompt }
+            ]
+        };
+    }
+
+    const response = await fetch(endpoint, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(body),
+        signal: currentAbortController.signal
+    });
+
+    currentAbortController = null;
+
+    if (!response.ok) {
+        const errText = await response.text();
+        throw new Error(`API Error (${response.status}): ${errText.slice(0, 200)}...`);
+    }
+
+    const data = await response.json();
+
+    if (providerId === 'claude') {
+        if (!data.content?.[0]?.text) throw new Error('Claude API 响应格式异常');
+        return data.content[0].text;
+    }
+
+    if (!data.choices?.[0]?.message?.content) throw new Error('API 响应格式异常');
+    return data.choices[0].message.content;
+}
+</script>
+<script>
+// ============================
+// ZONE 3: UI Rendering
+// ============================
+
+// 全局状态
+let state = {
+    selectedMode: null,
+    content: '',
+    subRole: 'marketer',
+    output: '',
+    loading: false,
+    error: null
+};
+
+// 更新字符计数
+function updateCharCount() {
+    const textarea = document.getElementById('contentInput');
+    const charCount = document.getElementById('charCount');
+    if (textarea && charCount) {
+        const len = textarea.value.length;
+        charCount.textContent = `${len} 字`;
+        state.content = textarea.value;
+
+        // 保存到 localStorage
+        localStorage.setItem(`${TOOL_ID}_draft_content`, textarea.value);
+    }
+}
+
+// 显示输入区域
+function showInputSection() {
+    document.getElementById('inputSection').classList.remove('hidden');
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('resultSection').classList.add('hidden');
+    document.getElementById('errorState').classList.add('hidden');
+    document.getElementById('copyBtn').classList.add('hidden');
+    document.getElementById('exportBtn').classList.add('hidden');
+}
+
+// 显示加载状态
+function showLoadingState() {
+    document.getElementById('inputSection').classList.add('hidden');
+    document.getElementById('loadingState').classList.remove('hidden');
+    document.getElementById('resultSection').classList.add('hidden');
+    document.getElementById('errorState').classList.add('hidden');
+}
+
+// 显示结果
+function showResult(content) {
+    document.getElementById('inputSection').classList.add('hidden');
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('resultSection').classList.remove('hidden');
+    document.getElementById('errorState').classList.add('hidden');
+    document.getElementById('copyBtn').classList.remove('hidden');
+    document.getElementById('exportBtn').classList.remove('hidden');
+
+    // 渲染 Markdown
+    const resultContent = document.getElementById('resultContent');
+    resultContent.innerHTML = marked.parse(content);
+    state.output = content;
+}
+
+// 显示错误
+function showError(message) {
+    document.getElementById('inputSection').classList.add('hidden');
+    document.getElementById('loadingState').classList.add('hidden');
+    document.getElementById('resultSection').classList.add('hidden');
+    document.getElementById('errorState').classList.remove('hidden');
+    document.getElementById('errorMessage').textContent = message;
+    state.error = message;
+}
+
+// 更新 Key 状态显示
+function updateKeyStatusDisplay() {
+    const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    const providerId = settings.provider || 'siliconflow';
+    const status = getKeyStatus(providerId);
+    const keyStatusEl = document.getElementById('keyStatus');
+
+    if (status.hasKey) {
+        keyStatusEl.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-green-500"></span>
+            <span class="text-sm text-green-600">已配置 (${status.source})</span>
+        `;
+    } else {
+        keyStatusEl.innerHTML = `
+            <span class="w-2 h-2 rounded-full bg-red-500"></span>
+            <span class="text-sm text-red-600">未配置</span>
+        `;
+    }
+}
+
+// 更新模型选择器
+function updateModelSelect() {
+    const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    const providerId = settings.provider || 'siliconflow';
+    const provider = AI_PROVIDERS[providerId];
+    const modelSelect = document.getElementById('modelSelect');
+
+    modelSelect.innerHTML = '';
+
+    if (provider && provider.models.length > 0) {
+        provider.models.forEach(model => {
+            const option = document.createElement('option');
+            option.value = model;
+            option.textContent = model;
+            if (model === (settings.model || provider.defaultModel)) {
+                option.selected = true;
+            }
+            modelSelect.appendChild(option);
+        });
+    } else if (providerId === 'custom') {
+        const option = document.createElement('option');
+        option.value = settings.customModel || '';
+        option.textContent = settings.customModel || '请输入自定义模型';
+        modelSelect.appendChild(option);
+    }
+}
+
+// Toast 通知
+function showToast(message, type = 'success') {
+    const container = document.getElementById('toastContainer');
+    const toast = document.createElement('div');
+    toast.className = `toast px-4 py-3 rounded-lg shadow-lg flex items-center gap-2 ${
+        type === 'success' ? 'bg-green-500 text-white' :
+        type === 'error' ? 'bg-red-500 text-white' :
+        'bg-gray-800 text-white'
+    }`;
+    toast.innerHTML = `
+        <i class="fas ${type === 'success' ? 'fa-check-circle' : type === 'error' ? 'fa-exclamation-circle' : 'fa-info-circle'}"></i>
+        <span>${message}</span>
+    `;
+    container.appendChild(toast);
+
+    setTimeout(() => {
+        toast.style.opacity = '0';
+        toast.style.transform = 'translateY(10px)';
+        setTimeout(() => toast.remove(), 300);
+    }, 3000);
+}
+
+// 渲染历史列表
+function renderHistoryList() {
+    const historyList = document.getElementById('historyList');
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+
+    if (history.length === 0) {
+        historyList.innerHTML = '<p class="text-center text-gray-500 py-8">暂无历史记录</p>';
+        return;
+    }
+
+    historyList.innerHTML = history.map((item, index) => `
+        <div class="p-3 bg-gray-50 rounded-lg mb-2 cursor-pointer hover:bg-gray-100" onclick="loadHistory(${index})">
+            <div class="flex items-center gap-2 mb-1">
+                <span>${MODE_CONFIG[item.mode]?.icon || '📝'}</span>
+                <span class="font-medium text-gray-800">${MODE_CONFIG[item.mode]?.name || item.mode}</span>
+            </div>
+            <p class="text-sm text-gray-600 truncate">${item.content.slice(0, 50)}...</p>
+            <p class="text-xs text-gray-400 mt-1">${new Date(item.timestamp).toLocaleString()}</p>
+        </div>
+    `).join('');
+}
+</script>
+<script>
+// ============================
+// ZONE 4: Event Handlers
+// ============================
+
+// 打开抽屉
+function openDrawer(modeId) {
+    const mode = MODE_CONFIG[modeId];
+    if (!mode) return;
+
+    state.selectedMode = modeId;
+
+    // 更新抽屉标题
+    document.getElementById('drawerIcon').textContent = mode.icon;
+    document.getElementById('drawerName').textContent = mode.name;
+    document.getElementById('drawerDesc').textContent = mode.desc;
+
+    // 显示/隐藏角色选择
+    const subRoleGroup = document.getElementById('subRoleGroup');
+    if (mode.hasSubRole) {
+        subRoleGroup.classList.remove('hidden');
+    } else {
+        subRoleGroup.classList.add('hidden');
+    }
+
+    // 恢复草稿内容
+    const draftContent = localStorage.getItem(`${TOOL_ID}_draft_content`) || '';
+    document.getElementById('contentInput').value = draftContent;
+    updateCharCount();
+
+    // 显示抽屉
+    document.getElementById('overlay').classList.remove('hidden');
+    document.getElementById('overlay').classList.add('visible');
+    document.getElementById('drawer').classList.remove('hidden');
+    setTimeout(() => {
+        document.getElementById('drawer').classList.add('visible');
+    }, 10);
+
+    // 重置状态
+    showInputSection();
+
+    // 聚焦输入框
+    setTimeout(() => {
+        document.getElementById('contentInput').focus();
+    }, 300);
+}
+
+// 关闭抽屉
+function closeDrawer() {
+    document.getElementById('overlay').classList.remove('visible');
+    document.getElementById('overlay').classList.add('hidden');
+    document.getElementById('drawer').classList.remove('visible');
+    setTimeout(() => {
+        document.getElementById('drawer').classList.add('hidden');
+    }, 300);
+}
+
+// 切换设置面板
+function toggleSettings() {
+    const panel = document.getElementById('settingsPanel');
+    panel.classList.toggle('hidden');
+    if (!panel.classList.contains('hidden')) {
+        updateKeyStatusDisplay();
+        updateModelSelect();
+    }
+}
+
+// Provider 变更
+function onProviderChange() {
+    const providerId = document.getElementById('providerSelect').value;
+    const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+    settings.provider = providerId;
+    localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+
+    // 显示/隐藏自定义字段
+    const customEndpointGroup = document.getElementById('customEndpointGroup');
+    const customModelGroup = document.getElementById('customModelGroup');
+
+    if (providerId === 'custom') {
+        customEndpointGroup.classList.remove('hidden');
+        customModelGroup.classList.remove('hidden');
+    } else {
+        customEndpointGroup.classList.add('hidden');
+        customModelGroup.classList.add('hidden');
+    }
+
+    updateModelSelect();
+    updateKeyStatusDisplay();
+}
+
+// 提交分析
+async function handleSubmit() {
+    const content = document.getElementById('contentInput').value.trim();
+
+    if (!content) {
+        showToast('请输入待分析内容', 'error');
+        return;
+    }
+
+    if (content.length < 50) {
+        showToast('内容至少需要 50 字', 'error');
+        return;
+    }
+
+    const modeId = state.selectedMode;
+    const promptConfig = PROMPTS_CONFIG[modeId];
+    if (!promptConfig) {
+        showToast('无效的分析模式', 'error');
+        return;
+    }
+
+    // 构建 prompt
+    let userPrompt = promptConfig.user_template.replace('{content}', content);
+
+    // 处理角色精炼的子角色
+    if (modeId === 'role_filter') {
+        const subRole = document.querySelector('input[name="subRole"]:checked')?.value || 'marketer';
+        const subRoleName = ROLE_MAPPING[subRole] || subRole;
+        userPrompt = userPrompt.replace(/{sub_role}/g, subRoleName);
+        state.subRole = subRole;
+    }
+
+    showLoadingState();
+
+    try {
+        const result = await callAI(promptConfig.system, userPrompt);
+        showResult(result);
+
+        // 保存到历史
+        saveToHistory(modeId, content, result);
+
+        showToast('分析完成');
+    } catch (error) {
+        if (error.name === 'AbortError') {
+            showInputSection();
+            showToast('已取消', 'info');
+        } else {
+            showError(error.message);
+        }
+    }
+}
+
+// 保存到历史
+function saveToHistory(modeId, content, result) {
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    history.unshift({
+        mode: modeId,
+        content: content,
+        result: result,
+        timestamp: Date.now()
+    });
+
+    // 只保留最近 20 条
+    if (history.length > 20) {
+        history.pop();
+    }
+
+    localStorage.setItem(HISTORY_KEY, JSON.stringify(history));
+}
+
+// 加载历史记录
+function loadHistory(index) {
+    const history = JSON.parse(localStorage.getItem(HISTORY_KEY) || '[]');
+    const item = history[index];
+    if (!item) return;
+
+    closeHistory();
+    openDrawer(item.mode);
+
+    setTimeout(() => {
+        document.getElementById('contentInput').value = item.content;
+        updateCharCount();
+        showResult(item.result);
+    }, 350);
+}
+
+// 打开历史面板
+function openHistory() {
+    renderHistoryList();
+    document.getElementById('historyPanel').classList.remove('hidden');
+}
+
+// 关闭历史面板
+function closeHistory() {
+    document.getElementById('historyPanel').classList.add('hidden');
+}
+
+// 清空历史
+function clearHistory() {
+    if (confirm('确定要清空所有历史记录吗？')) {
+        localStorage.removeItem(HISTORY_KEY);
+        renderHistoryList();
+        showToast('历史已清空');
+    }
+}
+
+// 重新分析
+function reAnalyze() {
+    showInputSection();
+}
+
+// 重试
+function retryAnalysis() {
+    handleSubmit();
+}
+
+// 复制结果
+function copyResult() {
+    if (state.output) {
+        navigator.clipboard.writeText(state.output).then(() => {
+            showToast('已复制到剪贴板');
+        }).catch(() => {
+            showToast('复制失败', 'error');
+        });
+    }
+}
+
+// 导出结果
+function exportResult() {
+    if (!state.output) return;
+
+    const mode = MODE_CONFIG[state.selectedMode];
+    const filename = `${mode?.name || 'analysis'}_${new Date().toISOString().slice(0, 10)}.md`;
+    const blob = new Blob([state.output], { type: 'text/markdown' });
+    const url = URL.createObjectURL(blob);
+
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.click();
+
+    URL.revokeObjectURL(url);
+    showToast('已导出');
+}
+
+// 文件上传处理
+async function handleFileUpload(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const fileInfo = document.getElementById('fileInfo');
+    const fileName = document.getElementById('fileName');
+
+    try {
+        let content = '';
+
+        if (file.name.endsWith('.pdf')) {
+            content = await extractPdfText(file);
+        } else {
+            content = await file.text();
+        }
+
+        document.getElementById('contentInput').value = content;
+        updateCharCount();
+
+        fileName.textContent = file.name;
+        fileInfo.classList.remove('hidden');
+
+        showToast('文件已加载');
+    } catch (error) {
+        showToast('文件读取失败: ' + error.message, 'error');
+    }
+}
+
+// 提取 PDF 文本
+async function extractPdfText(file) {
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+    let text = '';
+
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        text += content.items.map(item => item.str).join(' ') + '\n';
+    }
+
+    return text.trim();
+}
+
+// 清除文件
+function clearFile() {
+    document.getElementById('fileInput').value = '';
+    document.getElementById('fileInfo').classList.add('hidden');
+}
+
+// 键盘快捷键
+document.addEventListener('keydown', function(e) {
+    // Cmd/Ctrl + Enter 提交
+    if ((e.metaKey || e.ctrlKey) && e.key === 'Enter') {
+        const drawer = document.getElementById('drawer');
+        if (!drawer.classList.contains('hidden')) {
+            e.preventDefault();
+            handleSubmit();
+        }
+    }
+
+    // Escape 关闭抽屉
+    if (e.key === 'Escape') {
+        closeDrawer();
+        closeHistory();
+    }
+});
+
+// 拖拽上传
+const fileUploadArea = document.getElementById('fileUploadArea');
+if (fileUploadArea) {
+    fileUploadArea.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.add('dragover');
+    });
+
+    fileUploadArea.addEventListener('dragleave', () => {
+        fileUploadArea.classList.remove('dragover');
+    });
+
+    fileUploadArea.addEventListener('drop', (e) => {
+        e.preventDefault();
+        fileUploadArea.classList.remove('dragover');
+        const file = e.dataTransfer.files[0];
+        if (file) {
+            document.getElementById('fileInput').files = e.dataTransfer.files;
+            handleFileUpload({ target: { files: [file] } });
+        }
+    });
+}
+</script>
+<script>
+// ============================
+// ZONE 5: Initialization
+// ============================
+
+document.addEventListener('DOMContentLoaded', function() {
+    // 初始化设置
+    initSettings();
+
+    // 绑定输入事件
+    const contentInput = document.getElementById('contentInput');
+    if (contentInput) {
+        contentInput.addEventListener('input', updateCharCount);
+    }
+
+    // 绑定模型选择变更
+    const modelSelect = document.getElementById('modelSelect');
+    if (modelSelect) {
+        modelSelect.addEventListener('change', function() {
+            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+            settings.model = this.value;
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        });
+    }
+
+    // 绑定自定义端点变更
+    const customEndpoint = document.getElementById('customEndpoint');
+    if (customEndpoint) {
+        customEndpoint.addEventListener('change', function() {
+            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+            settings.customEndpoint = this.value;
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        });
+    }
+
+    // 绑定自定义模型变更
+    const customModel = document.getElementById('customModel');
+    if (customModel) {
+        customModel.addEventListener('change', function() {
+            const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+            settings.customModel = this.value;
+            localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+            updateModelSelect();
+        });
+    }
+
+    console.log('Insight8 v3 已加载');
+});
+
+// 初始化设置
+function initSettings() {
+    const settings = JSON.parse(localStorage.getItem(SETTINGS_KEY) || '{}');
+
+    // 设置默认值
+    if (!settings.provider) {
+        settings.provider = 'siliconflow';
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+    }
+
+    // 更新 UI
+    const providerSelect = document.getElementById('providerSelect');
+    if (providerSelect) {
+        providerSelect.value = settings.provider;
+    }
+
+    // 显示/隐藏自定义字段
+    if (settings.provider === 'custom') {
+        document.getElementById('customEndpointGroup')?.classList.remove('hidden');
+        document.getElementById('customModelGroup')?.classList.remove('hidden');
+
+        const customEndpoint = document.getElementById('customEndpoint');
+        if (customEndpoint && settings.customEndpoint) {
+            customEndpoint.value = settings.customEndpoint;
+        }
+
+        const customModel = document.getElementById('customModel');
+        if (customModel && settings.customModel) {
+            customModel.value = settings.customModel;
+        }
+    }
+
+    updateModelSelect();
+    updateKeyStatusDisplay();
+}
+</script>
+  </main>
+
+  <!-- Footer -->
+  <footer class="text-center py-6 text-gray-400 text-sm border-t bg-white mt-8">
+    <p>Insight8 · 8 种专业视角的 AI 深度分析</p>
+    <p class="mt-1">Powered by AI · Built with ❤️</p>
+  </footer>
+</body>
+</html>
