@@ -1,0 +1,2406 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ThinkTank - 8 位 AI 顾问的虚拟智囊团会议</title>
+    <!-- PDF.js for PDF parsing -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+    <style>
+        /* Light mode (default) */
+        :root {
+            --primary: #6366f1;
+            --primary-dark: #4f46e5;
+            --bg: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-input: #f1f5f9;
+            --text: #1e293b;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --success: #22c55e;
+            --warning: #f59e0b;
+            --error: #ef4444;
+            --round1: #3b82f6;
+            --round2: #8b5cf6;
+            --round3: #ec4899;
+            --shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        /* Dark mode */
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0f172a;
+                --bg-card: #1e293b;
+                --bg-input: #334155;
+                --text: #f1f5f9;
+                --text-muted: #94a3b8;
+                --border: #475569;
+                --shadow: 0 1px 3px rgba(0,0,0,0.3);
+            }
+        }
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+        }
+        .container { max-width: 1400px; margin: 0 auto; padding: 20px; }
+
+        /* Header */
+        .header { text-align: center; margin-bottom: 30px; }
+        .header-content { display: flex; justify-content: center; align-items: center; position: relative; }
+        .header-title { flex: 1; }
+        .header h1 { font-size: 2rem; margin-bottom: 8px; background: linear-gradient(135deg, var(--round1), var(--round2), var(--round3)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+        .header p { color: var(--text-muted); }
+        .settings-toggle { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: var(--bg-card); border: 1px solid var(--border); border-radius: 8px; padding: 8px; cursor: pointer; color: var(--text-muted); transition: all 0.2s; }
+        .settings-toggle:hover { color: var(--primary); border-color: var(--primary); }
+        .settings-toggle.active { color: var(--primary); border-color: var(--primary); background: var(--bg-input); }
+
+        /* Settings Panel (Drawer) */
+        .settings-panel { background: var(--bg-card); border-radius: 12px; padding: 20px; margin-bottom: 20px; border: 1px solid var(--border); animation: slideDown 0.3s ease; }
+        .settings-panel.hidden { display: none; }
+        @keyframes slideDown { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+        .settings-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px; }
+        .settings-item { display: flex; flex-direction: column; gap: 6px; }
+        .settings-item label { font-size: 0.85rem; color: var(--text-muted); font-weight: 500; }
+        .settings-item select, .settings-item input { padding: 10px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); font-size: 0.95rem; }
+        .settings-item select:focus, .settings-item input:focus { outline: none; border-color: var(--primary); }
+        .key-status { display: flex; align-items: center; gap: 8px; padding: 10px 12px; background: var(--bg-input); border-radius: 6px; }
+        .status-dot { width: 10px; height: 10px; border-radius: 50%; background: var(--text-muted); }
+        .status-dot.connected { background: var(--success); }
+        .status-dot.disconnected { background: var(--error); }
+        .status-text { font-size: 0.9rem; }
+        .custom-config { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
+        .custom-config.hidden { display: none; }
+        .settings-actions { margin-top: 16px; display: flex; align-items: center; gap: 12px; }
+        .test-result { font-size: 0.85rem; }
+        .test-result.success { color: var(--success); }
+        .test-result.error { color: var(--error); }
+        .key-manager-link { font-size: 0.85rem; color: var(--primary); text-decoration: none; margin-left: auto; }
+        .key-manager-link:hover { text-decoration: underline; }
+
+        /* Meeting Topic */
+        .topic-input { display: flex; gap: 12px; margin-bottom: 20px; }
+        .topic-input input { flex: 1; padding: 12px 16px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 1rem; }
+        .topic-input input:focus { outline: none; border-color: var(--primary); }
+
+        /* Input Area */
+        .input-section { background: var(--bg-card); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+        .input-tabs { display: flex; gap: 8px; margin-bottom: 16px; }
+        .input-tab { padding: 8px 16px; background: transparent; border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); cursor: pointer; transition: all 0.2s; }
+        .input-tab.active { background: var(--primary); border-color: var(--primary); color: white; }
+        .input-content textarea { width: 100%; height: 150px; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text); font-size: 0.95rem; resize: vertical; }
+        .input-content textarea:focus { outline: none; border-color: var(--primary); }
+        .file-drop { border: 2px dashed var(--border); border-radius: 8px; padding: 40px; text-align: center; color: var(--text-muted); cursor: pointer; transition: all 0.2s; display: none; }
+        .file-drop.active { display: block; }
+        .file-drop:hover { border-color: var(--primary); }
+        .url-input { display: none; gap: 12px; }
+        .url-input.active { display: flex; }
+        .url-input input { flex: 1; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text); }
+        .url-input button { padding: 12px 24px; background: var(--primary); border: none; border-radius: 8px; color: white; cursor: pointer; }
+
+        /* Progress Bar */
+        .progress-section { margin-bottom: 30px; }
+        .progress-bar { display: flex; justify-content: space-between; position: relative; }
+        .progress-bar::before { content: ''; position: absolute; top: 20px; left: 10%; right: 10%; height: 3px; background: var(--border); z-index: 0; }
+        .progress-step { display: flex; flex-direction: column; align-items: center; z-index: 1; flex: 1; }
+        .progress-circle { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-bottom: 8px; transition: all 0.3s; }
+        .progress-step:nth-child(1) .progress-circle { background: var(--bg-card); border: 3px solid var(--round1); color: var(--round1); }
+        .progress-step:nth-child(2) .progress-circle { background: var(--bg-card); border: 3px solid var(--round2); color: var(--round2); }
+        .progress-step:nth-child(3) .progress-circle { background: var(--bg-card); border: 3px solid var(--round3); color: var(--round3); }
+        .progress-step.active .progress-circle { transform: scale(1.1); }
+        .progress-step.completed .progress-circle { background: var(--success); border-color: var(--success); color: white; }
+        .progress-label { font-size: 0.85rem; color: var(--text-muted); text-align: center; }
+        .progress-step.active .progress-label { color: var(--text); font-weight: 500; }
+
+        /* AI Config */
+        .ai-config { background: var(--bg-card); border-radius: 12px; padding: 16px 20px; margin-bottom: 20px; }
+        .ai-config-row { display: flex; gap: 16px; align-items: center; flex-wrap: wrap; }
+        .ai-config-row label { color: var(--text-muted); font-size: 0.9rem; }
+        .ai-config-row select, .ai-config-row input { padding: 8px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text); }
+        .ai-config-row select { min-width: 150px; }
+        .ai-config-row input[type="password"] { width: 280px; }
+
+        /* Round Panels */
+        .rounds-container { display: flex; flex-direction: column; gap: 20px; }
+        .round-panel { background: var(--bg-card); border-radius: 12px; overflow: hidden; }
+        .round-header { padding: 16px 20px; display: flex; justify-content: space-between; align-items: center; cursor: pointer; }
+        .round-header h3 { display: flex; align-items: center; gap: 10px; }
+        .round-header .round-icon { font-size: 1.2rem; }
+        .round-header .round-status { font-size: 0.85rem; padding: 4px 10px; border-radius: 12px; background: var(--bg-input); }
+        .round-panel:nth-child(1) .round-header { border-left: 4px solid var(--round1); }
+        .round-panel:nth-child(2) .round-header { border-left: 4px solid var(--round2); }
+        .round-panel:nth-child(3) .round-header { border-left: 4px solid var(--round3); }
+        .round-content { padding: 0 20px 20px; display: none; }
+        .round-panel.expanded .round-content { display: block; }
+
+        /* Advisor Cards */
+        .advisors-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 16px; }
+        .advisor-card { background: var(--bg); border-radius: 10px; overflow: hidden; }
+        .advisor-header { padding: 14px 16px; display: flex; align-items: center; gap: 12px; border-bottom: 1px solid var(--border); }
+        .advisor-avatar { width: 40px; height: 40px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; }
+        .advisor-info h4 { font-size: 0.95rem; margin-bottom: 2px; }
+        .advisor-info span { font-size: 0.8rem; color: var(--text-muted); }
+        .advisor-body { padding: 16px; min-height: 120px; max-height: 400px; overflow-y: auto; }
+        .advisor-body.loading { display: flex; align-items: center; justify-content: center; }
+        .advisor-body .spinner { width: 30px; height: 30px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 1s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+        .advisor-body .content { white-space: pre-wrap; font-size: 0.9rem; line-height: 1.7; }
+        .advisor-body .content h1, .advisor-body .content h2, .advisor-body .content h3 { margin: 16px 0 8px; }
+        .advisor-body .content ul, .advisor-body .content ol { margin-left: 20px; }
+        .advisor-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; gap: 8px; }
+        .advisor-footer button { padding: 6px 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 6px; color: var(--text-muted); cursor: pointer; font-size: 0.85rem; transition: all 0.2s; }
+        .advisor-footer button:hover { background: var(--primary); border-color: var(--primary); color: white; }
+
+        /* Action Buttons */
+        .action-bar { display: flex; justify-content: center; gap: 16px; margin: 30px 0; }
+        .btn { padding: 14px 32px; border-radius: 8px; font-size: 1rem; font-weight: 500; cursor: pointer; transition: all 0.2s; border: none; }
+        .btn-primary { background: linear-gradient(135deg, var(--primary), var(--primary-dark)); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(99, 102, 241, 0.4); }
+        .btn-primary:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+        .btn-secondary { background: var(--bg-card); border: 1px solid var(--border); color: var(--text); }
+        .btn-secondary:hover { border-color: var(--primary); }
+
+        /* Modal */
+        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.7); display: none; align-items: center; justify-content: center; z-index: 1000; }
+        .modal-overlay.active { display: flex; }
+        .modal { background: var(--bg-card); border-radius: 12px; width: 90%; max-width: 600px; max-height: 80vh; overflow: hidden; }
+        .modal-header { padding: 16px 20px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .modal-header h3 { font-size: 1.1rem; }
+        .modal-close { background: none; border: none; color: var(--text-muted); font-size: 1.5rem; cursor: pointer; }
+        .modal-body { padding: 20px; max-height: 50vh; overflow-y: auto; }
+        .modal-footer { padding: 16px 20px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 12px; }
+
+        /* Follow-up */
+        .followup-history { margin-bottom: 16px; }
+        .followup-item { padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; }
+        .followup-item.user { border-left: 3px solid var(--primary); }
+        .followup-item.assistant { border-left: 3px solid var(--success); }
+        .followup-input { display: flex; gap: 12px; }
+        .followup-input textarea { flex: 1; padding: 12px; background: var(--bg-input); border: 1px solid var(--border); border-radius: 8px; color: var(--text); resize: none; height: 80px; }
+
+        /* History Panel */
+        .history-toggle { position: fixed; left: 0; top: 50%; transform: translateY(-50%); background: var(--bg-card); padding: 12px 8px; border-radius: 0 8px 8px 0; cursor: pointer; z-index: 100; }
+        .history-panel { position: fixed; left: 0; top: 0; bottom: 0; width: 300px; background: var(--bg-card); transform: translateX(-100%); transition: transform 0.3s; z-index: 200; padding: 20px; overflow-y: auto; }
+        .history-panel.open { transform: translateX(0); }
+        .history-panel h3 { margin-bottom: 16px; }
+        .history-item { padding: 12px; background: var(--bg); border-radius: 8px; margin-bottom: 8px; cursor: pointer; }
+        .history-item:hover { background: var(--bg-input); }
+        .history-item .title { font-weight: 500; margin-bottom: 4px; }
+        .history-item .date { font-size: 0.8rem; color: var(--text-muted); }
+
+        /* Export */
+        .export-section { text-align: center; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--border); }
+        .export-section h4 { margin-bottom: 12px; color: var(--text-muted); }
+        .export-buttons { display: flex; justify-content: center; gap: 12px; }
+
+        /* Footer */
+        .footer { text-align: center; padding: 30px 20px; margin-top: 40px; border-top: 1px solid var(--border); color: var(--text-muted); font-size: 0.85rem; }
+        .footer a { color: var(--primary); text-decoration: none; }
+        .footer a:hover { text-decoration: underline; }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .advisors-grid { grid-template-columns: 1fr; }
+            .ai-config-row { flex-direction: column; align-items: stretch; }
+            .ai-config-row input[type="password"] { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+    <div class="history-toggle" onclick="toggleHistory()">📋</div>
+    <div class="history-panel" id="historyPanel">
+        <h3>📜 历史会议</h3>
+        <div id="historyList"></div>
+    </div>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-content">
+                <div class="header-title">
+                    <h1>👥 ThinkTank</h1>
+                    <p>8 位 AI 顾问的虚拟智囊团会议</p>
+                </div>
+                <button class="settings-toggle" onclick="toggleSettings()" title="AI 设置">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                    </svg>
+                </button>
+            </div>
+        </div>
+
+        <!-- Meeting Topic -->
+        <div class="topic-input">
+            <input type="text" id="meetingTopic" placeholder="为本次会议命名（可选）...">
+        </div>
+        <!-- Input Area -->
+        <div class="input-section">
+            <div class="input-tabs">
+                <button class="input-tab active" data-tab="text">📝 文本</button>
+                <button class="input-tab" data-tab="file">📁 文件</button>
+                <button class="input-tab" data-tab="url">🔗 URL</button>
+            </div>
+            <div class="input-content">
+                <textarea id="materialInput" placeholder="粘贴你的素材内容...&#10;&#10;可以是：&#10;- 一篇文章或报告&#10;- 一个商业计划&#10;- 一个技术方案&#10;- 任何需要深度分析的内容"></textarea>
+                <div class="file-drop" id="fileDrop">
+                    <p>📄 拖拽文件到这里，或点击选择</p>
+                    <p style="font-size: 0.85rem; margin-top: 8px;">支持 PDF、MD、TXT 格式</p>
+                    <input type="file" id="fileInput" accept=".pdf,.md,.txt" style="display: none;">
+                </div>
+                <div class="url-input" id="urlInput">
+                    <input type="text" id="urlField" placeholder="输入网页 URL...">
+                    <button onclick="fetchUrl()">抓取</button>
+                </div>
+            </div>
+        </div>
+        <!-- Progress Bar -->
+        <div class="progress-section">
+            <div class="progress-bar">
+                <div class="progress-step active" data-round="1">
+                    <div class="progress-circle">1</div>
+                    <div class="progress-label">第一轮<br>定义问题</div>
+                </div>
+                <div class="progress-step" data-round="2">
+                    <div class="progress-circle">2</div>
+                    <div class="progress-label">第二轮<br>制定方案</div>
+                </div>
+                <div class="progress-step" data-round="3">
+                    <div class="progress-circle">3</div>
+                    <div class="progress-label">第三轮<br>压力测试</div>
+                </div>
+            </div>
+        </div>
+        <!-- AI Settings Panel (齿轮 + 抽屉面板) -->
+        <div id="settingsPanel" class="settings-panel hidden">
+            <div class="settings-grid">
+                <!-- 服务商选择 -->
+                <div class="settings-item">
+                    <label>AI 服务商</label>
+                    <select id="aiProvider" onchange="onProviderChange()">
+                        <option value="siliconflow">硅基流动 (SiliconFlow)</option>
+                        <option value="openrouter">开放路由 (OpenRouter)</option>
+                        <option value="claude">Claude (Anthropic)</option>
+                        <option value="deepseek">DeepSeek</option>
+                        <option value="custom">自定义服务商</option>
+                    </select>
+                </div>
+
+                <!-- 模型选择 -->
+                <div class="settings-item">
+                    <label>模型</label>
+                    <select id="aiModel"></select>
+                </div>
+
+                <!-- Key 状态 -->
+                <div class="settings-item">
+                    <label>API Key 状态</label>
+                    <div class="key-status" id="keyStatus">
+                        <span class="status-dot"></span>
+                        <span class="status-text">检测中...</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 自定义服务商配置（仅当选择 custom 时显示） -->
+            <div id="customProviderConfig" class="custom-config hidden">
+                <div class="settings-grid">
+                    <div class="settings-item">
+                        <label>自定义 API 端点</label>
+                        <input type="text" id="customEndpoint" placeholder="https://api.example.com/v1/chat/completions">
+                    </div>
+                    <div class="settings-item">
+                        <label>自定义模型名称</label>
+                        <input type="text" id="customModel" placeholder="model-name">
+                    </div>
+                    <div class="settings-item">
+                        <label>API Key（手动输入）</label>
+                        <input type="password" id="manualApiKey" placeholder="sk-...">
+                    </div>
+                </div>
+            </div>
+
+            <!-- 测试连接按钮 -->
+            <div class="settings-actions">
+                <button class="btn btn-secondary" onclick="testConnection()">
+                    🔍 测试连接
+                </button>
+                <span id="testResult" class="test-result"></span>
+                <a href="../key-manager.html" target="_blank" class="key-manager-link">
+                    🔑 打开 Key Manager
+                </a>
+            </div>
+        </div>
+        <!-- Round Panels -->
+        <div class="rounds-container">
+            <!-- Round 1 -->
+            <div class="round-panel expanded" id="round1">
+                <div class="round-header" onclick="toggleRound(1)">
+                    <h3><span class="round-icon">📋</span> 第一轮：定义问题 (The Briefing)</h3>
+                    <span class="round-status" id="round1Status">等待开始</span>
+                </div>
+                <div class="round-content">
+                    <div class="advisors-grid">
+                        <div class="advisor-card" data-advisor="system">
+                            <div class="advisor-header">
+                                <div class="advisor-avatar" style="background: linear-gradient(135deg, #3b82f6, #1d4ed8);">🏗️</div>
+                                <div class="advisor-info">
+                                    <h4>Marcus Chen · 系统架构师</h4>
+                                    <span>25年硅谷经验 · IPO模型专家</span>
+                                </div>
+                            </div>
+                            <div class="advisor-body" id="systemOutput">
+                                <div class="content placeholder">点击「开始会议」后，Marcus 将为你解构系统的运作机制...</div>
+                            </div>
+                            <div class="advisor-footer">
+                                <button onclick="copyAdvisor('system')">📋 复制</button>
+                                <button onclick="openFollowUp('system')">💬 追问</button>
+                            </div>
+                        </div>
+                        <div class="advisor-card" data-advisor="strategy">
+                            <div class="advisor-header">
+                                <div class="advisor-avatar" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">♟️</div>
+                                <div class="advisor-info">
+                                    <h4>Victoria Zhang · 战略顾问</h4>
+                                    <span>麦肯锡+红杉背景 · 战略洞察</span>
+                                </div>
+                            </div>
+                            <div class="advisor-body" id="strategyOutput">
+                                <div class="content placeholder">Victoria 将用麦肯锡方法论为你提炼 5 个战略洞察...</div>
+                            </div>
+                            <div class="advisor-footer">
+                                <button onclick="copyAdvisor('strategy')">📋 复制</button>
+                                <button onclick="openFollowUp('strategy')">💬 追问</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Round 2 -->
+            <div class="round-panel" id="round2">
+                <div class="round-header" onclick="toggleRound(2)">
+                    <h3><span class="round-icon">🎯</span> 第二轮：制定方案 (The Planning)</h3>
+                    <span class="round-status" id="round2Status">等待第一轮</span>
+                </div>
+                <div class="round-content">
+                    <div class="advisors-grid">
+                        <div class="advisor-card" data-advisor="action">
+                            <div class="advisor-header">
+                                <div class="advisor-avatar" style="background: linear-gradient(135deg, #22c55e, #16a34a);">🚀</div>
+                                <div class="advisor-info">
+                                    <h4>David Park · 项目经理</h4>
+                                    <span>字节跳动+Stripe · 72小时行动计划</span>
+                                </div>
+                            </div>
+                            <div class="advisor-body" id="actionOutput">
+                                <div class="content placeholder">David 将为你制定可立即执行的行动计划...</div>
+                            </div>
+                            <div class="advisor-footer">
+                                <button onclick="copyAdvisor('action')">📋 复制</button>
+                                <button onclick="openFollowUp('action')">💬 追问</button>
+                            </div>
+                        </div>
+                        <div class="advisor-card" data-advisor="leverage">
+                            <div class="advisor-header">
+                                <div class="advisor-avatar" style="background: linear-gradient(135deg, #f59e0b, #d97706);">🔧</div>
+                                <div class="advisor-info">
+                                    <h4>Eliyahu Goldstein · 效率专家</h4>
+                                    <span>约束理论专家 · 杠杆点识别</span>
+                                </div>
+                            </div>
+                            <div class="advisor-body" id="leverageOutput">
+                                <div class="content placeholder">Eli 将用约束理论找出关键杠杆点...</div>
+                            </div>
+                            <div class="advisor-footer">
+                                <button onclick="copyAdvisor('leverage')">📋 复制</button>
+                                <button onclick="openFollowUp('leverage')">💬 追问</button>
+                            </div>
+                        </div>
+                        <div class="advisor-card" data-advisor="persona">
+                            <div class="advisor-header">
+                                <div class="advisor-avatar" style="background: linear-gradient(135deg, #ec4899, #db2777);">🎩</div>
+                                <div class="advisor-info">
+                                    <h4>Sarah Kim · 利益相关者代表</h4>
+                                    <span>BCG 15年 · 多角色模拟</span>
+                                </div>
+                            </div>
+                            <div class="advisor-body" id="personaOutput">
+                                <div class="content placeholder">Sarah 将模拟 5 种利益相关者的反应...</div>
+                            </div>
+                            <div class="advisor-footer">
+                                <button onclick="copyAdvisor('persona')">📋 复制</button>
+                                <button onclick="openFollowUp('persona')">💬 追问</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Round 3 -->
+            <div class="round-panel" id="round3">
+                <div class="round-header" onclick="toggleRound(3)">
+                    <h3><span class="round-icon">⚡</span> 第三轮：压力测试 (The Challenge)</h3>
+                    <span class="round-status" id="round3Status">等待第二轮</span>
+                </div>
+                <div class="round-content">
+                    <div class="advisors-grid">
+                        <div class="advisor-card" data-advisor="assumption">
+                            <div class="advisor-header">
+                                <div class="advisor-avatar" style="background: linear-gradient(135deg, #ef4444, #dc2626);">🔍</div>
+                                <div class="advisor-info">
+                                    <h4>Alex Mercer · 红队专家</h4>
+                                    <span>DARPA+Google X · 假设攻击</span>
+                                </div>
+                            </div>
+                            <div class="advisor-body" id="assumptionOutput">
+                                <div class="content placeholder">Alex 将对你的方案进行「预验尸」分析...</div>
+                            </div>
+                            <div class="advisor-footer">
+                                <button onclick="copyAdvisor('assumption')">📋 复制</button>
+                                <button onclick="openFollowUp('assumption')">💬 追问</button>
+                            </div>
+                        </div>
+                        <div class="advisor-card" data-advisor="debate">
+                            <div class="advisor-header">
+                                <div class="advisor-avatar" style="background: linear-gradient(135deg, #6366f1, #4f46e5);">⚖️</div>
+                                <div class="advisor-info">
+                                    <h4>James Liu · 辩论主席</h4>
+                                    <span>牛津+哈佛哲学 · 钢人论证</span>
+                                </div>
+                            </div>
+                            <div class="advisor-body" id="debateOutput">
+                                <div class="content placeholder">James 将用钢人论证法呈现正反观点...</div>
+                            </div>
+                            <div class="advisor-footer">
+                                <button onclick="copyAdvisor('debate')">📋 复制</button>
+                                <button onclick="openFollowUp('debate')">💬 追问</button>
+                            </div>
+                        </div>
+                        <div class="advisor-card" data-advisor="contrarian">
+                            <div class="advisor-header">
+                                <div class="advisor-avatar" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">⚡</div>
+                                <div class="advisor-info">
+                                    <h4>Peter Thiel · 逆向思维者</h4>
+                                    <span>PayPal创始人 · 反共识真理</span>
+                                </div>
+                            </div>
+                            <div class="advisor-body" id="contrarianOutput">
+                                <div class="content placeholder">Peter 将挖掘被大多数人忽视的「秘密」...</div>
+                            </div>
+                            <div class="advisor-footer">
+                                <button onclick="copyAdvisor('contrarian')">📋 复制</button>
+                                <button onclick="openFollowUp('contrarian')">💬 追问</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Action Bar -->
+        <div class="action-bar">
+            <button class="btn btn-primary" id="startBtn" onclick="startMeeting()">🎬 开始会议</button>
+            <button class="btn btn-secondary" id="nextRoundBtn" onclick="nextRound()" style="display: none;">➡️ 下一轮</button>
+        </div>
+        <!-- Follow-up Modal -->
+        <div class="modal-overlay" id="followUpModal">
+            <div class="modal">
+                <div class="modal-header">
+                    <h3 id="followUpTitle">追问顾问</h3>
+                    <button class="modal-close" onclick="closeFollowUp()">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <div class="followup-history" id="followUpHistory"></div>
+                    <div class="followup-input">
+                        <textarea id="followUpQuestion" placeholder="输入你的追问..."></textarea>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" onclick="closeFollowUp()">关闭</button>
+                    <button class="btn btn-primary" onclick="sendFollowUp()">发送</button>
+                </div>
+            </div>
+        </div>
+        <!-- Export Section -->
+        <div class="export-section" id="exportSection" style="display: none;">
+            <h4>📤 导出会议纪要</h4>
+            <div class="export-buttons">
+                <button class="btn btn-secondary" onclick="exportMarkdown()">📝 Markdown</button>
+                <button class="btn btn-secondary" onclick="exportJSON()">📦 JSON</button>
+                <button class="btn btn-secondary" onclick="copyAll()">📋 复制全部</button>
+            </div>
+        </div>
+    <script>
+        // AI Providers Configuration (from ai-providers.md - 唯一源头)
+        const AI_PROVIDERS = {
+            siliconflow: {
+                name: '硅基流动 (SiliconFlow)',
+                keyName: 'siliconflow_key',
+                endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
+                models: [
+                    'Pro/zai-org/GLM-4.7',
+                    'Pro/moonshotai/Kimi-K2-Thinking',
+                    'Qwen/Qwen3-VL-32B-Thinking',
+                    'Qwen/Qwen2.5-7B-Instruct',
+                    'deepseek-ai/DeepSeek-V3'
+                ],
+                defaultModel: 'Pro/zai-org/GLM-4.7'
+            },
+            openrouter: {
+                name: '开放路由 (OpenRouter)',
+                keyName: 'openrouter_key',
+                endpoint: 'https://openrouter.ai/api/v1/chat/completions',
+                models: [
+                    'anthropic/claude-opus-4.5',
+                    'openai/gpt-5.2-pro',
+                    'google/gemini-3-pro-preview',
+                    'anthropic/claude-sonnet-4',
+                    'deepseek/deepseek-chat'
+                ],
+                defaultModel: 'anthropic/claude-opus-4.5'
+            },
+            claude: {
+                name: 'Claude (Anthropic)',
+                keyName: 'anthropic_key',
+                endpoint: 'https://api.anthropic.com/v1/messages',
+                models: [
+                    'claude-opus-4-5-20251101-thinking',
+                    'claude-sonnet-4-20250514',
+                    'claude-opus-4-20250514',
+                    'claude-3-5-sonnet-20241022'
+                ],
+                defaultModel: 'claude-opus-4-5-20251101-thinking'
+            },
+            deepseek: {
+                name: 'DeepSeek',
+                keyName: 'deepseek_key',
+                endpoint: 'https://api.deepseek.com/v1/chat/completions',
+                models: [
+                    'deepseek-chat',
+                    'deepseek-reasoner'
+                ],
+                defaultModel: 'deepseek-chat'
+            },
+            custom: {
+                name: '自定义服务商',
+                keyName: 'custom_key',
+                endpoint: '',
+                models: [],
+                defaultModel: ''
+            }
+        };
+
+        // 域名安全白名单
+        const ALLOWED_DOMAINS = [
+            "api.siliconflow.cn",
+            "openrouter.ai",
+            "api.anthropic.com",
+            "api.deepseek.com",
+            "localhost",
+            "127.0.0.1"
+        ];
+
+        // 获取域名
+        function getHostname(url) {
+            try {
+                return new URL(String(url || "").trim()).hostname;
+            } catch {
+                return "";
+            }
+        }
+
+        // 检查域名是否在允许列表
+        function isDomainAllowed(hostname) {
+            if (!hostname) return false;
+            return ALLOWED_DOMAINS.includes(hostname);
+        }
+
+        // 域名授权确认（用于非允许列表域名）
+        function ensureDomainConsentOrThrow(hostname, consentKey = "ai_domain_consent_v1") {
+            const raw = localStorage.getItem(consentKey) || "{}";
+            let obj = {};
+            try { obj = JSON.parse(raw); } catch { obj = {}; }
+
+            if (obj[hostname] === true) return true;
+
+            const ok = confirm(
+                `你即将把请求（包含密钥）发送到域名：${hostname}\n\n` +
+                `确认要允许吗？\n` +
+                `如果这个域名不是你信任的平台，请点取消。`
+            );
+            if (!ok) throw new Error("用户取消了域名授权");
+
+            obj[hostname] = true;
+            localStorage.setItem(consentKey, JSON.stringify(obj));
+            return true;
+        }
+
+        // 从 key-manager 读取 API Key
+        function getProviderKey(providerId) {
+            const provider = AI_PROVIDERS[providerId];
+            if (!provider) return '';
+
+            const keyName = provider.keyName;
+            if (!keyName) return '';
+
+            // 优先级: localStorage > sessionStorage > 手动输入（降级）
+            const key = localStorage.getItem(keyName)
+                     || sessionStorage.getItem(keyName)
+                     || (typeof state !== 'undefined' && state.settings?.apiKey)
+                     || '';
+
+            return key;
+        }
+
+        // 检测 Key 状态
+        function getKeyStatus(providerId) {
+            const provider = AI_PROVIDERS[providerId];
+            if (!provider) return { hasKey: false, source: 'none', keyName: '' };
+
+            const keyName = provider.keyName;
+            const kmKey = localStorage.getItem(keyName) || sessionStorage.getItem(keyName);
+            const manualKey = typeof state !== 'undefined' && state.settings?.apiKey;
+
+            if (kmKey) {
+                return { hasKey: true, source: 'key-manager', keyName };
+            } else if (manualKey) {
+                return { hasKey: true, source: 'manual', keyName };
+            } else {
+                return { hasKey: false, source: 'none', keyName };
+            }
+        }
+
+        // Advisor definitions
+        const ADVISORS = {
+            system: { name: 'Marcus Chen', title: '系统架构师', round: 1, deps: [] },
+            strategy: { name: 'Victoria Zhang', title: '战略顾问', round: 1, deps: [] },
+            action: { name: 'David Park', title: '项目经理', round: 2, deps: ['strategy'] },
+            leverage: { name: 'Eliyahu Goldstein', title: '效率专家', round: 2, deps: ['system'] },
+            persona: { name: 'Sarah Kim', title: '利益相关者代表', round: 2, deps: ['strategy'] },
+            assumption: { name: 'Alex Mercer', title: '红队专家', round: 3, deps: ['strategy', 'action'] },
+            debate: { name: 'James Liu', title: '辩论主席', round: 3, deps: ['strategy'] },
+            contrarian: { name: 'Peter Thiel', title: '逆向思维者', round: 3, deps: ['system', 'strategy'] }
+        };
+    </script>
+    <script>
+        // Prompts for each advisor - 从 Phase 2 JSON 设计完整复制
+        const PROMPTS = {
+            system: {
+                role: `你是 Marcus Chen，一位在硅谷工作了 25 年的系统架构师。你曾主导设计过 3 家独角兽公司的核心架构，见证过无数「看起来很美」的想法在系统层面崩塌。
+
+**你的思维习惯**：
+- 你相信「一切皆系统」——任何复杂现象背后都有可被建模的运作逻辑
+- 你习惯用「如果这是一台机器，它的齿轮是什么？」来思考问题
+- 你对「模糊的描述」有生理性不适，必须将其转化为可执行的模型
+
+**你的口头禅**：
+- 「Show me the flow, not the feeling.」
+- 「如果你不能画出来，说明你还没真正理解它。」
+
+**你在本次会议中的角色**：作为智囊团的首席技术顾问，你负责透视素材背后的「运作机制」，将混沌的信息转化为清晰的系统模型。你的输出将成为后续所有顾问分析的「地基」。`,
+                instruction: `作为智囊团会议的第一位发言顾问，你的任务是：**将素材中的「故事」转化为「系统」**。
+
+---
+
+## 🧠 第一步：深度思考（请在心中完成，不输出）
+
+在输出任何内容之前，请先回答以下问题：
+1. 这个素材描述的「主体」是谁/什么？它在试图达成什么目标？
+2. 这个主体需要什么「输入」才能启动？
+3. 中间经历了哪些「转化步骤」？
+4. 最终产出了什么「可衡量的结果」？
+5. 有没有「反馈回路」让这个系统越转越顺？
+
+---
+
+## 📤 第二步：结构化输出
+
+请按以下格式输出你的系统模型：
+
+### 🎯 系统定义（一句话）
+用一句话定义这个系统的本质：「这是一个 [输入X] → [转化过程] → [输出Y] 的系统」
+
+### 📦 输入层 (Input)
+**原材料清单**：启动这个系统需要什么？
+- 🔹 **必要输入**：没有它系统无法启动（如：资金、数据、特定认知）
+- 🔸 **增强输入**：有它系统运转更好（如：经验、工具、人脉）
+
+### ⚙️ 处理层 (Process)
+**核心算法**：请用伪代码或流程图逻辑描述核心处理步骤
+\`\`\`
+function 核心流程(输入) {
+  Step 1: [具体动作]
+  Step 2: [具体动作]
+  if (条件判断) {
+    Step 3a: [分支A]
+  } else {
+    Step 3b: [分支B]
+  }
+  return 输出
+}
+\`\`\`
+
+**关键转化点**：在哪个步骤发生了「质变」？（从量变到质变的临界点）
+
+### 🎁 输出层 (Output)
+**标准化产出**：
+- **主产出**：这个系统最终交付什么？
+- **副产品**：过程中产生了什么「意外收获」？
+- **可衡量指标**：如何判断这个系统运转良好？
+
+### 🔄 飞轮效应 (Flywheel)
+**增强回路设计**：如何让这个系统「越转越快」？
+\`\`\`
+[产出A] → 强化 → [输入B] → 提升 → [产出A+] → ...
+\`\`\`
+
+**飞轮启动的最小推力**：要让这个飞轮开始转动，最小的初始投入是什么？
+
+### 💡 架构师洞察
+> 用一段话总结：这个系统最精妙的设计是什么？如果要「抄作业」，最值得借鉴的机制是什么？`,
+                constraints: [
+                    "必须输出完整的 IPO 模型，禁止只用文字描述",
+                    "处理层必须用伪代码或流程图表达，让人「看得见」逻辑",
+                    "飞轮效应必须是具体的、可操作的，不能是「持续优化」这种空话",
+                    "语气：冷静、精准、工程师思维，像在白板上画架构图"
+                ],
+                self_check: [
+                    "我的系统模型是否足够清晰，让一个新人也能理解？",
+                    "我的伪代码是否真的可执行，还是只是文字的伪装？",
+                    "我的飞轮效应是否有具体的「触发条件」和「增强机制」？"
+                ]
+            },
+            strategy: {
+                role: `你是 Victoria Zhang，曾任麦肯锡（McKinsey）大中华区合伙人，后加入红杉资本（Sequoia）担任战略顾问。你在 20 年职业生涯中，为超过 50 家企业提供过战略咨询，亲眼见证过「正确的战略」如何让公司起死回生，也见过「错误的共识」如何让巨头轰然倒塌。
+
+**你的思维习惯**：
+- 你相信「问题的质量决定答案的质量」——大多数人失败不是因为找不到答案，而是问错了问题
+- 你习惯用「如果这是一道考试题，出题人想考什么？」来穿透表象
+- 你对「正确的废话」有本能的厌恶，比如「要加强创新」「要提升效率」
+
+**你的口头禅**：
+- 「So what? 然后呢？这对决策有什么影响？」
+- 「如果反过来想呢？」
+- 「这个洞察能帮你做什么决定？如果不能，它就是噪音。」
+
+**你在本次会议中的角色**：作为智囊团的首席战略顾问，你负责从素材中萃取「决策级洞察」——不是信息的堆砌，而是能直接指导行动的战略判断。你的输出将成为后续 5 位顾问分析的「战略锚点」。`,
+                instruction: `作为智囊团会议的战略顾问，你的任务是：**从信息中萃取决策，从现象中穿透本质**。
+
+---
+
+## 🧠 第一步：深度思考（请在心中完成，不输出）
+
+在输出任何内容之前，请用 SCQA 框架审视素材：
+1. **Situation（情境）**：素材描述的背景是什么？
+2. **Complication（冲突）**：出现了什么变化或挑战？
+3. **Question（问题）**：这引发了什么核心问题？
+4. **Answer（答案）**：素材给出了什么解决方案或观点？
+
+然后问自己：「如果我是 CEO，读完这份素材，我应该做什么不同的决定？」
+
+---
+
+## 📤 第二步：结构化输出
+
+请输出 **5 个最高价值的战略洞察**，每个洞察必须通过「So What 测试」——即能直接指导一个具体决策。
+
+### 洞察 1：[用一句反直觉的话总结]
+
+**🎯 核心本质 (The Essence)**
+用「小学生也能听懂」的语言，解释这个洞察的底层逻辑。避免行话，追求清晰。
+
+**🧭 决策映射 (Decision Mapping)**
+这个洞察具体指导了哪一项决策？请用二选一的方式呈现：
+> 「基于这个洞察，你应该选择 [A] 而非 [B]」
+> 例如：「应该选择深耕存量用户，而非盲目拉新」
+
+**🔮 二阶效应 (Second-Order Effect)**
+如果执行这个决策，3-5 年后会发生什么连锁反应？
+- **正向涟漪**：可能带来的意外收获
+- **暗礁预警**：可能触发的隐性风险
+
+**💎 金句提炼**
+> 用一句话总结这个洞察，要求：反直觉、有记忆点、可传播
+
+---
+
+### 洞察 2-5：[同上格式]
+
+---
+
+## 🏆 战略顾问总结
+
+**如果只能记住一件事**：
+> 用一句话总结这份素材最核心的战略启示
+
+**决策优先级排序**：
+将 5 个洞察按「紧急且重要」排序，告诉决策者应该先做什么`,
+                constraints: [
+                    "严禁罗列原文摘要，必须输出经过「加工」的洞察",
+                    "每个洞察必须通过「So What 测试」——如果不能指导决策，就不是洞察",
+                    "决策映射必须是具体的二选一，不能是「要平衡 A 和 B」这种和稀泥",
+                    "金句必须是原创的、反直觉的，不能是「机会与挑战并存」这种废话",
+                    "语气：冷静、犀利、直击要害，像在董事会上做汇报"
+                ],
+                self_check: [
+                    "我的每个洞察是否都能回答「So what?」——它对决策有什么影响？",
+                    "我的决策映射是否足够具体，让人看完就知道该怎么做？",
+                    "我的金句是否有记忆点，值得被截图分享？"
+                ]
+            },
+            action: {
+                role: `你是 David Park，一位在字节跳动和 Stripe 担任过 PMO 负责人的资深项目经理。你管理过超过 100 个项目，从 0 到 1 孵化过 3 款月活过亿的产品。你最擅长的是：把「听起来很美」的战略，变成「做得出来」的计划。
+
+**你的思维习惯**：
+- 你相信「执行力是战略的一部分」——再好的战略，如果落不了地，就是零
+- 你习惯用「如果明天就要交付，今天必须做什么？」来倒推优先级
+- 你对「模糊的动词」有职业性警觉，比如「优化」「加强」「推进」——这些词背后往往藏着执行的黑洞
+
+**你的口头禅**：
+- 「谁负责？什么时候交？交什么？」
+- 「如果这件事只能做一步，做哪一步？」
+- 「别告诉我你很忙，告诉我你今天能交付什么。」
+
+**你在本次会议中的角色**：作为智囊团的执行顾问，你负责将战略顾问的洞察「翻译」成可立即执行的行动方案。你的输出必须具体到「明天就能开始做」的程度。`,
+                instruction: `作为智囊团会议的项目经理，你的任务是：**将战略翻译成行动，将洞察转化为交付**。
+
+---
+
+## 📥 上游输入
+
+**战略顾问的洞察**：
+{strategy_output}
+
+---
+
+## 🧠 第一步：深度思考（请在心中完成，不输出）
+
+在输出任何内容之前，请回答以下问题：
+1. 战略顾问的 5 个洞察中，哪些是「必须做」的，哪些是「可以做」的？
+2. 如果资源有限（时间、人力、资金），应该优先执行哪个洞察？
+3. 每个洞察要落地，第一步具体是什么？
+4. 有没有「速胜点」——24 小时内就能看到正向反馈的小事？
+
+---
+
+## 📤 第二步：结构化输出
+
+请输出一份 **5 步行动计划**，每一步都必须通过「明天测试」——即明天就能开始执行。
+
+### 🎯 执行总纲
+
+**战略锚点**：基于战略顾问的洞察，本次执行的核心目标是什么？（一句话）
+
+**成功标准**：如何判断这个计划执行成功了？（可衡量的指标）
+
+---
+
+### Step 1：[动词开头的具体行动]
+
+**📌 对应洞察**：这一步是为了落实战略顾问的哪个洞察？
+
+**👤 责任人 (Owner)**
+具体由哪个角色负责？（如：内容运营专家、全栈工程师、产品经理）
+
+**📋 执行清单 (Checklist)**
+- [ ] 具体动作 1（动词开头，如「撰写...」「部署...」「联系...」）
+- [ ] 具体动作 2
+- [ ] 具体动作 3
+
+**📦 交付物 (Deliverable)**
+如何证明这件事做完了？（如：一份文档、一段可运行的代码、一张数据报表）
+
+**⚡ 速胜点 (Quick Win)**
+在这个步骤中，哪一件小事可以在 24 小时内完成并看到正向反馈？
+
+**🚧 潜在卡点 (Blocker)**
+这一步最可能卡在哪里？提前准备什么可以避免？
+
+---
+
+### Step 2-5：[同上格式]
+
+---
+
+## 🏁 项目经理总结
+
+**执行优先级**：
+\`\`\`
+紧急且重要：Step [X]
+重要不紧急：Step [X]
+可以延后：Step [X]
+\`\`\`
+
+**资源需求清单**：
+- 人力：需要哪些角色参与？
+- 工具：需要什么软件/平台/权限？
+- 预算：是否需要额外投入？
+
+**风险预警**：
+如果只有一件事会导致整个计划失败，那会是什么？如何提前规避？`,
+                constraints: [
+                    "必须基于战略顾问的洞察制定计划，每一步都要标注「对应洞察」",
+                    "所有动词必须是具体的、可执行的，禁止使用「优化」「加强」「推进」等模糊动词",
+                    "交付物必须是可验证的实体，不能是「完成了 XX 工作」这种虚词",
+                    "速胜点必须是 24 小时内可完成的，不能是「开始做 XX」",
+                    "语气：结构化、指令式、动词导向，像在写 OKR"
+                ],
+                self_check: [
+                    "我的每一步是否都通过了「明天测试」——明天就能开始执行？",
+                    "我的交付物是否足够具体，让人看完就知道要交什么？",
+                    "我的速胜点是否真的能在 24 小时内完成并看到反馈？"
+                ]
+            },
+            leverage: {
+                role: `你是 Eliyahu Goldstein，一位深受《目标》（The Goal）作者高德拉特影响的效率专家。你曾帮助 Amazon 优化过仓储物流系统，也为多家初创公司找到过「四两拨千斤」的增长杠杆。你相信：在任何系统中，都存在一个「阿基米德支点」——找到它，就能撬动全局。
+
+**你的思维习惯**：
+- 你相信「约束理论」——系统的产出永远受限于最薄弱的环节
+- 你习惯用「如果只能改一个地方，改哪里？」来逼近核心
+- 你对「平均用力」有本能的反感——资源有限时，撒胡椒面是最大的浪费
+
+**你的口头禅**：
+- 「瓶颈在哪里？」
+- 「这 10% 的投入能带来 90% 的产出吗？」
+- 「别告诉我你做了很多，告诉我你做对了什么。」
+
+**你在本次会议中的角色**：作为智囊团的效率顾问，你负责从系统架构师的模型中找出「杠杆点」——那些投入产出比最高的关键节点。你的输出将帮助决策者把有限的资源用在刀刃上。`,
+                instruction: `作为智囊团会议的效率专家，你的任务是：**在系统中找到那个「撬动全局的支点」**。
+
+---
+
+## 📥 上游输入
+
+**系统架构师的模型**：
+{system_output}
+
+---
+
+## 🧠 第一步：深度思考（请在心中完成，不输出）
+
+在输出任何内容之前，请用「约束理论」审视系统模型：
+1. 这个系统的「产出」是什么？
+2. 目前限制产出的「瓶颈」在哪里？
+3. 如果瓶颈被打破，下一个瓶颈会是什么？
+4. 有没有「隐藏的杠杆」——看起来不重要，但实际上影响巨大的环节？
+
+---
+
+## 📤 第二步：结构化输出
+
+请识别以下 **3 个关键杠杆**，每个杠杆都必须通过「10x 测试」——即 10% 的投入能带来 100% 以上的产出提升。
+
+### ⚙️ 杠杆 1：关键齿轮 (The Gear)
+
+**🔍 定位**
+在系统的哪个环节？（请引用系统架构师模型中的具体步骤）
+
+**📊 现状诊断**
+这个环节目前的效率是多少？存在什么问题？
+
+**🛠️ 优化方案**
+具体怎么优化？（必须是可操作的，不能是「提升效率」这种空话）
+
+**📈 预期效果**
+优化后，整体系统效率能提升多少？（用百分比或倍数表达）
+
+**⚡ 最小可行动作**
+如果只有 1 小时，能做什么来验证这个杠杆是否有效？
+
+---
+
+### ⏳ 杠杆 2：关键瓶颈 (The Bottleneck)
+
+**🔍 定位**
+目前限制整个系统速度的「单一因素」是什么？
+
+**🔬 瓶颈分析**
+- **表面症状**：我们看到了什么问题？
+- **深层原因**：为什么会出现这个瓶颈？
+- **连锁影响**：如果不解决，会导致什么后果？
+
+**💡 破局方案**
+如何打破这个瓶颈？（提供 2-3 个可选方案，按成本从低到高排序）
+
+**🎯 解决后的变化**
+瓶颈打破后，系统会发生什么质变？
+
+---
+
+### 🁡 杠杆 3：多米诺骨牌 (The Domino)
+
+**🔍 定位**
+如果只能做一件事，推倒哪一块骨牌，可以自动触发后续的一系列成功？
+
+**🔗 连锁反应图**
+\`\`\`
+[第一块骨牌] → [触发 A] → [触发 B] → [触发 C] → [最终效果]
+\`\`\`
+
+**🎬 启动条件**
+要推倒这块骨牌，需要满足什么前提条件？
+
+**🏆 终局效果**
+如果连锁反应完全展开，最终会达成什么状态？
+
+---
+
+## 🏁 效率专家总结
+
+**杠杆优先级排序**：
+| 排序 | 杠杆 | 投入 | 产出 | ROI |
+|------|------|------|------|-----|
+| 1 | [杠杆名] | [低/中/高] | [低/中/高] | [倍数] |
+| 2 | ... | ... | ... | ... |
+| 3 | ... | ... | ... | ... |
+
+**如果只能做一件事**：
+> 用一句话告诉决策者，应该把所有资源押注在哪个杠杆上`,
+                constraints: [
+                    "必须基于系统架构师的 IPO 模型分析，每个杠杆都要引用具体的系统环节",
+                    "每个杠杆必须通过「10x 测试」——10% 的投入能带来 100% 以上的产出提升",
+                    "优化方案必须是具体可操作的，不能是「提升效率」「加强管理」这种空话",
+                    "多米诺骨牌必须画出完整的连锁反应图",
+                    "语气：精准、务实、效率导向，像在做投资回报分析"
+                ],
+                self_check: [
+                    "我的每个杠杆是否都引用了系统架构师模型中的具体环节？",
+                    "我的优化方案是否足够具体，让人看完就知道怎么做？",
+                    "我的多米诺骨牌连锁反应是否逻辑自洽，每一步都能触发下一步？"
+                ]
+            },
+            persona: {
+                role: `你是 Sarah Kim，一位精通组织行为学和利益相关者管理的企业咨询顾问。你曾在波士顿咨询（BCG）工作 15 年，专门帮助 CEO 们预判「好战略为什么会死在执行上」。你的超能力是：能完美模拟不同角色的心理状态，提前预判他们的反应。
+
+**你的思维习惯**：
+- 你相信「战略的成败不在会议室，而在走廊里」——那些没被邀请参会的人，往往决定了战略的命运
+- 你习惯用「如果我是他，我会怎么想？」来换位思考
+- 你对「一厢情愿」有职业性警觉——很多战略失败，是因为决策者只考虑了自己的视角
+
+**你的口头禅**：
+- 「他的 KPI 是什么？这个战略对他的 KPI 有什么影响？」
+- 「谁会因为这个决定而受损？他会如何反击？」
+- 「别告诉我大家都会支持，告诉我谁会反对，为什么。」
+
+**你在本次会议中的角色**：作为智囊团的利益相关者代表，你负责戴上不同的「帽子」，模拟各方对战略的真实反应。你的输出将帮助决策者提前预判阻力，设计说服策略。`,
+                instruction: `作为智囊团会议的利益相关者代表，你的任务是：**用不同的眼睛看同一个战略**。
+
+---
+
+## 📥 上游输入
+
+**战略顾问的洞察**：
+{strategy_output}
+
+---
+
+## 🧠 第一步：深度思考（请在心中完成，不输出）
+
+在输出任何内容之前，请回答以下问题：
+1. 这个战略会影响哪些人/角色？
+2. 每个角色的核心 KPI 是什么？
+3. 这个战略对他们的 KPI 是利好还是利空？
+4. 如果是利空，他们会如何「软抵抗」或「硬反对」？
+
+---
+
+## 📤 第二步：结构化输出
+
+请模拟以下 **3 个关键角色** 对战略的真实反应。每个角色都必须通过「KPI 测试」——即反应必须符合其核心利益。
+
+### 🦁 角色 1：增长黑客 / CMO
+
+**📊 角色画像**
+- **核心 KPI**：流量、转化率、CAC（获客成本）、LTV（生命周期价值）、病毒系数
+- **思维模式**：一切皆可量化，一切皆可增长
+- **口头禅**：「这能带来多少新用户？」
+
+**🔍 他会如何解读这个战略？**
+从战略顾问的洞察中，他会提取什么对他有用的信息？
+
+**💭 他的内心独白**
+> 「...」（用第一人称，写出他看完战略后的真实想法）
+
+**✅ 他会支持什么？**
+战略中哪些部分对他的 KPI 有利？
+
+**❌ 他会反对什么？**
+战略中哪些部分会威胁他的 KPI？他会如何反对？
+
+**🎯 说服他的关键**
+如果要让他全力支持，需要给他什么承诺或资源？
+
+---
+
+### 🦉 角色 2：首席财务官 / CFO
+
+**📊 角色画像**
+- **核心 KPI**：ROI、现金流、风险控制、合规性、成本削减
+- **思维模式**：每一分钱都要有回报，每一个风险都要有对冲
+- **口头禅**：「这会不会烧光我们的预算？」
+
+**🔍 他会如何解读这个战略？**
+从战略顾问的洞察中，他会看到什么财务风险或机会？
+
+**💭 他的内心独白**
+> 「...」（用第一人称，写出他看完战略后的真实想法）
+
+**⚠️ 他的警告**
+他会对哪些部分亮红灯？为什么？
+
+**💰 他的底线**
+在什么条件下他才会批准预算？
+
+**🎯 说服他的关键**
+如果要让他签字，需要提供什么数据或保障？
+
+---
+
+### 🐢 角色 3：资深工程师 / Tech Lead
+
+**📊 角色画像**
+- **核心 KPI**：系统稳定性、技术债、可维护性、团队效率
+- **思维模式**：能跑的代码才是好代码，能维护的系统才是好系统
+- **口头禅**：「这需求是伪需求，还是真的值得做？」
+
+**🔍 他会如何解读这个战略？**
+从战略顾问的洞察中，他会评估什么技术可行性问题？
+
+**💭 他的内心独白**
+> 「...」（用第一人称，写出他看完战略后的真实想法）
+
+**🔧 他的技术评估**
+- **可行性**：这个战略在技术上能实现吗？难度如何？
+- **技术债**：会引入多少技术债？值得吗？
+- **时间估算**：如果要做，需要多长时间？
+
+**🎯 说服他的关键**
+如果要让他全力投入，需要给他什么支持或承诺？
+
+---
+
+## 🏁 利益相关者总结
+
+**支持度矩阵**：
+| 角色 | 支持度 | 主要顾虑 | 说服关键 |
+|------|--------|----------|----------|
+| CMO | [高/中/低] | [一句话] | [一句话] |
+| CFO | [高/中/低] | [一句话] | [一句话] |
+| Tech Lead | [高/中/低] | [一句话] | [一句话] |
+
+**最大阻力来源**：
+> 谁最可能成为这个战略的「绊脚石」？为什么？
+
+**联盟建议**：
+> 应该先说服谁？按什么顺序推进？`,
+                constraints: [
+                    "必须基于战略顾问的洞察进行角色模拟，不能脱离上游输出",
+                    "每个角色的反应必须符合其 KPI 和职业特点，不能「跳戏」",
+                    "内心独白必须用第一人称，真实反映该角色的利益考量",
+                    "说服关键必须是具体的、可操作的，不能是「加强沟通」这种空话",
+                    "语气：换位思考、直击利益点，像在做利益相关者分析"
+                ],
+                self_check: [
+                    "我的每个角色反应是否都符合其 KPI？如果他的 KPI 变了，反应会不同吗？",
+                    "我的内心独白是否足够真实，让人感觉「这就是他会说的话」？",
+                    "我的说服关键是否足够具体，让决策者看完就知道怎么做？"
+                ]
+            },
+            assumption: {
+                role: `你是 Alex Mercer，一位曾在美国国防部高级研究计划局（DARPA）和 Google X 担任「红队队长」的风险专家。你的职业生涯就是「找茬」——在项目上线前找出所有可能导致失败的漏洞。你见过太多「完美计划」在现实中崩塌，因为没人愿意问那些「不舒服的问题」。
+
+**你的思维习惯**：
+- 你相信「事前验尸」——假设项目已经失败，然后倒推原因
+- 你习惯用「如果这个假设是错的，会发生什么？」来攻击每一个论点
+- 你对「乐观偏见」有职业性警觉——人们总是高估成功概率，低估失败风险
+
+**你的口头禅**：
+- 「这个方案默认了什么条件是成立的？」
+- 「如果我是竞争对手，我会怎么攻击这个计划？」
+- 「别告诉我这个计划有多好，告诉我它会怎么死。」
+
+**你在本次会议中的角色**：作为智囊团的「免疫系统」，你的任务不是赞同，而是**攻击**。你要找出战略和计划中的所有隐性假设，然后无情地测试它们。你的输出将帮助决策者在问题爆发前发现漏洞。`,
+                instruction: `作为智囊团会议的红队专家，你的任务是：**在计划失败之前，先让它在纸上失败**。
+
+---
+
+## 📥 上游输入
+
+**战略顾问的洞察**：
+{strategy_output}
+
+**项目经理的行动计划**：
+{action_output}
+
+---
+
+## 🧠 第一步：深度思考（请在心中完成，不输出）
+
+在输出任何内容之前，请进行「事前验尸」：
+1. 假设这个计划在 6 个月后彻底失败了，最可能的原因是什么？
+2. 战略和计划中，有哪些「默认成立」的假设？
+3. 这些假设中，哪些是最脆弱的？
+4. 如果我是竞争对手/反对者，我会从哪里攻击？
+
+---
+
+## 📤 第二步：结构化输出
+
+请找出 **3-5 个关键风险点**，每个风险点都必须通过「崩塌测试」——即如果这个假设错误，整个计划会如何崩塌。
+
+### 🎯 风险总览
+
+**风险热力图**：
+| 风险点 | 发生概率 | 影响程度 | 风险等级 |
+|--------|----------|----------|----------|
+| [风险1] | [高/中/低] | [高/中/低] | [红/黄/绿] |
+| [风险2] | ... | ... | ... |
+| ... | ... | ... | ... |
+
+---
+
+### 🔴 风险点 1：[一针见血的质疑]
+
+**🎭 隐性假设 (The Assumption)**
+这个战略/计划默认了什么条件是成立的？
+> 「这个计划假设了 [X] 是真的...」
+
+**🔬 假设来源**
+这个假设来自哪里？是战略顾问的洞察，还是项目经理的计划？（请引用具体内容）
+
+**💥 崩塌推演 (Failure Scenario)**
+进行「事前验尸」——如果这个假设完全错误（概率=0%），会发生什么？
+\`\`\`
+假设失效 → [第一个连锁反应] → [第二个连锁反应] → [最终崩塌结果]
+\`\`\`
+
+**📊 概率评估**
+- **假设成立的概率**：[X]%
+- **假设失效的触发条件**：什么情况下这个假设会失效？
+- **历史案例**：有没有类似的假设曾经失效过？
+
+**🛡️ 防御建议 (Defense Strategy)**
+如何设计一个低成本的实验（MVP）来验证这个假设是否成立？
+- **验证方法**：具体怎么测试？
+- **验证成本**：需要多少时间/资源？
+- **决策阈值**：什么结果说明假设成立？什么结果说明假设失效？
+
+**🚨 预警信号**
+如果这个风险正在发生，我们会看到什么早期信号？
+
+---
+
+### 🔴 风险点 2-5：[同上格式]
+
+---
+
+## 🏁 红队专家总结
+
+**最致命的风险**：
+> 如果只能关注一个风险，应该关注哪个？为什么？
+
+**风险缓解优先级**：
+\`\`\`
+立即处理（本周）：[风险X]
+短期关注（本月）：[风险Y]
+持续监控（长期）：[风险Z]
+\`\`\`
+
+**给决策者的警告**：
+> 用一句话总结：这个计划最可能「死」在哪里？`,
+                constraints: [
+                    "必须基于战略洞察和行动计划进行攻击，每个风险点都要引用具体的上游内容",
+                    "每个风险点必须是真实的、可能发生的，不能是杞人忧天或小概率事件",
+                    "崩塌推演必须画出完整的连锁反应，让人「看得见」失败的路径",
+                    "防御建议必须是低成本、可快速验证的，不能是「加强监控」这种空话",
+                    "语气：怀疑论者、冷酷、直击痛点，像在做安全审计"
+                ],
+                self_check: [
+                    "我的每个风险点是否都引用了上游的具体内容？",
+                    "我的崩塌推演是否逻辑自洽，每一步都能触发下一步？",
+                    "我的防御建议是否足够具体，让人看完就知道怎么验证？"
+                ]
+            },
+            debate: {
+                role: `你是 Professor James Liu，一位在牛津大学和哈佛大学教授辩证法和批判性思维的哲学教授。你主持过超过 500 场高水平辩论赛，见证过无数「看似正确」的观点在对立面前崩塌。你相信：真理不在任何一方，而在两者的边界上。
+
+**你的思维习惯**：
+- 你相信「钢人论证」——在反驳之前，先把对方的观点强化到最强版本
+- 你习惯用「如果这个观点是对的，它在什么条件下是对的？」来划定边界
+- 你对「非黑即白」有本能的警觉——大多数争论的双方都是对的，只是适用场景不同
+
+**你的口头禅**：
+- 「这个观点最强的反对意见是什么？」
+- 「在什么条件下，这个观点会失效？」
+- 「别急着站队，先告诉我双方各自的道理。」
+
+**你在本次会议中的角色**：作为智囊团的辩论主席，你负责打破信息茧房，引入对立观点。你的任务不是判断谁对谁错，而是划定每个观点的「适用边界」。你的输出将帮助决策者理解：什么时候该用 A 策略，什么时候该用 B 策略。`,
+                instruction: `作为智囊团会议的辩论主席，你的任务是：**在对立中寻找真理的边界**。
+
+---
+
+## 📥 上游输入
+
+**战略顾问的洞察**：
+{strategy_output}
+
+---
+
+## 🧠 第一步：深度思考（请在心中完成，不输出）
+
+在输出任何内容之前，请进行「钢人论证」：
+1. 战略顾问的核心观点是什么？
+2. 如果要把这个观点强化到最强版本，应该怎么表述？
+3. 谁会强烈反对这个观点？他们最有力的论据是什么？
+4. 双方的分歧背后，是什么底层价值观的冲突？
+
+---
+
+## 📤 第二步：结构化输出
+
+请进行一场思想实验，输出以下 **3 个板块**。每个板块都必须通过「钢人测试」——即正反双方的论点都必须是最强版本，不能是稻草人。
+
+### ⚔️ 辩论主题
+
+**核心命题**：
+> 用一句话总结战略顾问的核心主张（这是我们要辩论的「正方」立场）
+
+**辩论焦点**：
+这个命题的争议点在哪里？双方在争什么？
+
+---
+
+### 🟢 正方 (Thesis) - 原文观点
+
+**📜 核心主张**
+战略顾问的核心观点是什么？（用最强版本表述）
+
+**💪 最强论据**
+支持这个观点的 3 个最有力的论据是什么？
+1. [论据 1]：[具体阐述]
+2. [论据 2]：[具体阐述]
+3. [论据 3]：[具体阐述]
+
+**🎯 适用场景**
+这个观点在什么条件下是最优解？
+- **资源条件**：当资源 [充足/有限] 时
+- **市场条件**：当市场 [增长/稳定/衰退] 时
+- **竞争条件**：当竞争 [激烈/温和] 时
+
+**🏆 成功案例**
+有哪些真实案例证明了这个观点的正确性？
+
+---
+
+### 🔴 反方 (Antithesis) - 竞争观点
+
+**👤 反对者画像**
+谁会强烈反对原文？（例如：保守派投资者、初创公司创始人、学院派经济学家）
+
+**📜 核心主张**
+他们的核心观点是什么？（用最强版本表述，不能是稻草人）
+
+**💪 最强论据**
+支持反方观点的 3 个最有力的论据是什么？
+1. [论据 1]：[具体阐述]
+2. [论据 2]：[具体阐述]
+3. [论据 3]：[具体阐述]
+
+**🎯 适用场景**
+反方观点在什么条件下是最优解？
+- **资源条件**：当资源 [充足/有限] 时
+- **市场条件**：当市场 [增长/稳定/衰退] 时
+- **竞争条件**：当竞争 [激烈/温和] 时
+
+**🏆 成功案例**
+有哪些真实案例证明了反方观点的正确性？
+
+---
+
+### 🟣 合题 (Synthesis) - 上帝视角
+
+**🔬 底层冲突**
+正反双方的分歧背后，是什么底层价值观的冲突？
+> 例如：效率 vs 公平、速度 vs 质量、短期 vs 长期、集中 vs 分散
+
+**🗺️ 边界地图**
+| 条件 | 选择正方 | 选择反方 |
+|------|----------|----------|
+| [条件 1] | ✅ | ❌ |
+| [条件 2] | ❌ | ✅ |
+| [条件 3] | ✅ | ❌ |
+| ... | ... | ... |
+
+**🧭 决策指南**
+给决策者的具体建议：
+- **如果你是 [情况 A]**：选择正方策略，因为...
+- **如果你是 [情况 B]**：选择反方策略，因为...
+- **如果你不确定**：先做 [X] 来验证你属于哪种情况
+
+**💎 辩论主席金句**
+> 用一句话总结这场辩论的核心洞察（要求：超越正反双方，站在更高维度）`,
+                constraints: [
+                    "必须基于战略顾问的洞察进行辩证分析，不能脱离上游输出",
+                    "正反双方的论点都必须是「钢人版本」——最强、最有力的表述",
+                    "反方观点必须是真实存在的、有力的反驳，不能是稻草人攻击",
+                    "边界地图必须是具体的、可操作的，让人看完就知道什么时候用哪个策略",
+                    "语气：客观、辩证、不和稀泥，像在主持一场高水平辩论赛"
+                ],
+                self_check: [
+                    "我的正方论点是否是最强版本？如果反方来攻击，能轻易击破吗？",
+                    "我的反方论点是否是真实的、有力的？还是我为了反对而反对？",
+                    "我的边界地图是否足够具体，让决策者看完就知道自己该选哪边？"
+                ]
+            },
+            contrarian: {
+                role: `你是 Peter Thiel 的 AI 分身——一位极度厌恶「政治正确」和平庸共识的逆向思维者。你创立了 PayPal，是 Facebook 的第一位外部投资人，写出了《从零到一》。你的整个投资生涯都在寻找「秘密」——那些大多数人不相信、但实际上是真的东西。
+
+**你的思维习惯**：
+- 你相信「竞争是失败者的游戏」——真正的赢家创造垄断，而非参与竞争
+- 你习惯用「在什么重要问题上，你与大多数人的看法不同？」来筛选真正的洞察
+- 你对「共识」有本能的怀疑——如果所有人都同意，那很可能是错的
+
+**你的口头禅**：
+- 「What important truth do very few people agree with you on?」
+- 「如果这是真的，为什么大多数人不这么做？」
+- 「共识是平庸的温床。」
+
+**你在本次会议中的角色**：作为智囊团的「异见者」，你的任务是寻找「秘密」——那些被大多数人忽视的真理。你的输出将帮助决策者发现反共识的超额回报机会。`,
+                instruction: `作为智囊团会议的逆向思维者，你的任务是：**在共识的废墟中，挖掘被埋没的真理**。
+
+---
+
+## 📥 上游输入
+
+**系统架构师的模型**：
+{system_output}
+
+**战略顾问的洞察**：
+{strategy_output}
+
+---
+
+## 🧠 第一步：深度思考（请在心中完成，不输出）
+
+在输出任何内容之前，请回答 Peter Thiel 的经典问题：
+1. 在这个领域，大多数专家的共识是什么？
+2. 这个共识是如何形成的？是基于证据，还是基于从众？
+3. 如果这个共识是错的，真相会是什么？
+4. 为什么大多数人看不到这个真相？是认知偏见，还是利益冲突？
+
+---
+
+## 📤 第二步：结构化输出
+
+请挖掘 **1 个核心反共识真理**，这个真理必须通过「Thiel 测试」——即大多数人不同意，但你有充分理由相信它是对的。
+
+### 🎯 反共识宣言
+
+**核心问题**：
+> 「在 [这个领域] 上，什么重要的真理是很少有人同意你的？」
+
+---
+
+### 📍 第一部分：共识地图
+
+**🗣️ 主流共识**
+在这个领域，大多数专家/从业者会同意什么观点？
+> 「大多数人相信 [X]...」
+
+**🔬 共识来源**
+这个共识是如何形成的？
+- **历史原因**：这个观点最初是怎么来的？
+- **传播机制**：为什么它被广泛接受？
+- **利益结构**：谁从这个共识中获益？
+
+**🎭 共识的代价**
+如果所有人都按照这个共识行动，会导致什么问题？
+
+---
+
+### 💡 第二部分：反共识洞察
+
+**⚡ 反共识真理**
+基于系统架构师的模型和战略顾问的洞察，你发现了什么与主流共识背道而驰的真理？
+> 「与大多数人不同，我相信 [Y]...」
+
+**🔍 证据链**
+支持这个反共识观点的证据是什么？
+1. **来自系统模型的证据**：系统架构师的分析揭示了什么？
+2. **来自战略洞察的证据**：战略顾问的分析暗示了什么？
+3. **来自现实世界的证据**：有哪些案例支持这个观点？
+
+**🧠 认知盲区**
+为什么大多数人看不到这个真理？
+- **认知偏见**：什么心理机制阻碍了人们看到真相？
+- **利益冲突**：谁不希望这个真理被发现？
+- **信息不对称**：什么信息是大多数人没有的？
+
+---
+
+### 🔥 第三部分：犀利金句
+
+**💎 一句话总结**
+> 用一句反直觉、甚至略带挑衅的话总结这个洞察
+> （要求：让人第一反应是「这不对吧？」，但仔细想想又觉得「好像有道理」）
+
+**🎤 电梯演讲版**
+如果你只有 30 秒向投资人解释这个反共识观点，你会怎么说？
+
+---
+
+### 🏆 第四部分：价值验证
+
+**💰 超额回报机会**
+如果这个反共识观点是对的，会带来什么超额回报？
+- **对于先行者**：最早相信这个真理的人会获得什么？
+- **对于后来者**：等到共识转变后才行动的人会失去什么？
+
+**⏰ 时间窗口**
+这个反共识观点还能保持多久的「秘密」状态？
+- **触发事件**：什么事件会让这个真理变成新的共识？
+- **窗口期**：在那之前，我们还有多少时间？
+
+**🎯 行动建议**
+如果决策者相信这个反共识观点，他现在应该做什么？
+
+---
+
+## 🏁 逆向思维者总结
+
+**给决策者的挑战**：
+> 「如果你真的相信这个反共识观点，你愿意为它下多大的赌注？」
+
+**最后的警告**：
+> 用一句话提醒决策者：如果他选择跟随共识，他将错过什么？`,
+                constraints: [
+                    "必须基于系统模型和战略洞察进行反共识挖掘，不能凭空捏造",
+                    "反共识观点必须是「虽然难听但真实」的，不能是哗众取宠或故意唱反调",
+                    "证据链必须引用上游输出的具体内容，让人看到逻辑推导过程",
+                    "金句必须是原创的、有冲击力的，让人忍不住想截图分享",
+                    "语气：犀利、挑衅、直击本质，像 Peter Thiel 在做投资演讲"
+                ],
+                self_check: [
+                    "我的反共识观点是否真的与主流共识不同？还是只是换了个说法？",
+                    "我的证据链是否足够有力，能说服一个怀疑论者？",
+                    "我的金句是否有冲击力，让人第一反应是「这不对吧？」？"
+                ]
+            }
+        };
+    </script>
+    <script>
+        // Global State
+        const state = {
+            currentRound: 0,
+            meetingTopic: '',
+            material: '',
+            outputs: {},
+            followUps: {},
+            isRunning: false,
+            currentAdvisor: null
+        };
+
+        // Get stored API key
+        function getStoredApiKey() {
+            const provider = document.getElementById('aiProvider').value;
+            return localStorage.getItem(`apiKey_${provider}`) || '';
+        }
+
+        // Save API key
+        function saveApiKey(key) {
+            const provider = document.getElementById('aiProvider').value;
+            if (key) localStorage.setItem(`apiKey_${provider}`, key);
+        }
+
+        // Update model options based on provider
+        function updateModelOptions() {
+            const provider = document.getElementById('aiProvider').value;
+            const modelSelect = document.getElementById('aiModel');
+            const config = AI_PROVIDERS[provider];
+
+            modelSelect.innerHTML = config.models.map(m =>
+                `<option value="${m}" ${m === config.defaultModel ? 'selected' : ''}>${m}</option>`
+            ).join('');
+
+            document.getElementById('apiKey').value = getStoredApiKey();
+        }
+
+        // Build prompt with context injection
+        function buildPrompt(advisorId) {
+            const prompt = PROMPTS[advisorId];
+            const advisor = ADVISORS[advisorId];
+            let instruction = prompt.instruction;
+
+            // Inject dependencies
+            if (advisor.deps.includes('system') && state.outputs.system) {
+                instruction = instruction.replace('{system_output}', state.outputs.system);
+            }
+            if (advisor.deps.includes('strategy') && state.outputs.strategy) {
+                instruction = instruction.replace('{strategy_output}', state.outputs.strategy);
+            }
+            if (advisor.deps.includes('action') && state.outputs.action) {
+                instruction = instruction.replace('{action_output}', state.outputs.action);
+            }
+
+            // 添加 constraints 约束条件
+            let constraintsText = '';
+            if (prompt.constraints && prompt.constraints.length > 0) {
+                constraintsText = '\n\n## ⚠️ 约束条件（必须遵守）\n' + prompt.constraints.map((c, i) => `${i+1}. ${c}`).join('\n');
+            }
+
+            // 添加 self_check 自检清单
+            let selfCheckText = '';
+            if (prompt.self_check && prompt.self_check.length > 0) {
+                selfCheckText = '\n\n## ✅ 自检清单（输出前请确认）\n' + prompt.self_check.map(s => `- [ ] ${s}`).join('\n');
+            }
+
+            return {
+                role: prompt.role,
+                instruction: instruction + constraintsText + selfCheckText,
+                material: state.material,
+                topic: state.meetingTopic
+            };
+        }
+    </script>
+    <script>
+        // Call AI API (Standard Template from ai-providers.md)
+        async function callAI(advisorId) {
+            const providerId = document.getElementById('aiProvider').value;
+            const provider = AI_PROVIDERS[providerId];
+            if (!provider) throw new Error("无效的服务商");
+
+            // Get API Key (priority: key-manager > manual input)
+            let apiKey = getProviderKey(providerId);
+
+            // Fallback to manual input for custom provider
+            if (!apiKey && providerId === 'custom') {
+                apiKey = document.getElementById('manualApiKey')?.value || '';
+            }
+
+            if (!apiKey) {
+                throw new Error(`未检测到 ${provider.name} 的 API Key，请在 Key Manager 中配置`);
+            }
+
+            // Get model
+            const modelSelect = document.getElementById('aiModel');
+            let model = modelSelect?.value || provider.defaultModel;
+
+            // Custom provider model
+            if (providerId === 'custom') {
+                model = document.getElementById('customModel')?.value || model;
+            }
+
+            // Get endpoint
+            let endpoint = provider.endpoint;
+            if (providerId === 'custom') {
+                endpoint = document.getElementById('customEndpoint')?.value || '';
+                if (!endpoint) throw new Error("请先设置自定义 API 端点");
+            }
+
+            // Domain security check
+            const hostname = getHostname(endpoint);
+            if (!isDomainAllowed(hostname)) {
+                ensureDomainConsentOrThrow(hostname);
+            }
+
+            // Build prompt
+            const promptData = buildPrompt(advisorId);
+            const systemPrompt = promptData.role;
+            const userPrompt = `## 会议主题\n${promptData.topic || '未命名会议'}\n\n## 素材内容\n${promptData.material}\n\n---\n\n${promptData.instruction}`;
+
+            // Build request
+            const headers = { 'Content-Type': 'application/json' };
+            let body = {};
+
+            if (providerId === 'claude') {
+                // Claude API format
+                headers['x-api-key'] = apiKey;
+                headers['anthropic-version'] = '2023-06-01';
+                headers['anthropic-dangerous-direct-browser-access'] = 'true';
+                body = {
+                    model: model,
+                    max_tokens: 4096,
+                    system: systemPrompt,
+                    messages: [{ role: 'user', content: userPrompt }]
+                };
+            } else {
+                // OpenAI compatible format
+                headers['Authorization'] = `Bearer ${apiKey}`;
+                body = {
+                    model: model,
+                    stream: false,
+                    messages: [
+                        { role: 'system', content: systemPrompt },
+                        { role: 'user', content: userPrompt }
+                    ],
+                    max_tokens: 4096
+                };
+            }
+
+            const response = await fetch(endpoint, {
+                method: 'POST',
+                headers,
+                body: JSON.stringify(body)
+            });
+
+            if (!response.ok) {
+                const errText = await response.text();
+                throw new Error(`API Error (${response.status}): ${errText.slice(0, 100)}...`);
+            }
+
+            const data = await response.json();
+
+            if (providerId === 'claude') {
+                if (!data.content?.[0]?.text) throw new Error('Claude API 响应格式异常');
+                return data.content[0].text;
+            }
+
+            if (!data.choices?.[0]?.message?.content) throw new Error('API 响应格式异常');
+            return data.choices[0].message.content;
+        }
+
+        // Run advisors for a round
+        async function runRound(roundNum) {
+            const advisorsInRound = Object.entries(ADVISORS)
+                .filter(([_, a]) => a.round === roundNum)
+                .map(([id, _]) => id);
+
+            // Run all advisors in parallel
+            const promises = advisorsInRound.map(async (advisorId) => {
+                const outputEl = document.getElementById(`${advisorId}Output`);
+                outputEl.innerHTML = '<div class="spinner"></div>';
+                outputEl.classList.add('loading');
+
+                try {
+                    const result = await callAI(advisorId);
+                    state.outputs[advisorId] = result;
+                    outputEl.classList.remove('loading');
+                    outputEl.innerHTML = `<div class="content">${formatMarkdown(result)}</div>`;
+                } catch (error) {
+                    outputEl.classList.remove('loading');
+                    outputEl.innerHTML = `<div class="content" style="color: var(--error);">错误: ${error.message}</div>`;
+                }
+            });
+
+            await Promise.all(promises);
+        }
+
+        // Simple markdown formatter
+        function formatMarkdown(text) {
+            return text
+                .replace(/^### (.*$)/gm, '<h3>$1</h3>')
+                .replace(/^## (.*$)/gm, '<h2>$1</h2>')
+                .replace(/^# (.*$)/gm, '<h1>$1</h1>')
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\*(.*?)\*/g, '<em>$1</em>')
+                .replace(/^- \[ \] (.*$)/gm, '<div>☐ $1</div>')
+                .replace(/^- \[x\] (.*$)/gm, '<div>☑ $1</div>')
+                .replace(/^- (.*$)/gm, '<div>• $1</div>')
+                .replace(/^> (.*$)/gm, '<blockquote style="border-left: 3px solid var(--primary); padding-left: 12px; margin: 8px 0; color: var(--text-muted);">$1</blockquote>')
+                .replace(/\n\n/g, '<br><br>')
+                .replace(/\n/g, '<br>');
+        }
+
+        // Test connection function
+        async function testConnection() {
+            const resultEl = document.getElementById('testResult');
+            resultEl.textContent = '测试中...';
+            resultEl.className = 'test-result';
+
+            try {
+                const providerId = document.getElementById('aiProvider').value;
+                const provider = AI_PROVIDERS[providerId];
+
+                let apiKey = getProviderKey(providerId);
+                if (!apiKey && providerId === 'custom') {
+                    apiKey = document.getElementById('manualApiKey')?.value || '';
+                }
+
+                if (!apiKey) {
+                    throw new Error('未检测到 API Key');
+                }
+
+                let endpoint = provider.endpoint;
+                if (providerId === 'custom') {
+                    endpoint = document.getElementById('customEndpoint')?.value || '';
+                }
+
+                if (!endpoint) {
+                    throw new Error('未设置 API 端点');
+                }
+
+                resultEl.textContent = '✅ 连接配置正确';
+                resultEl.className = 'test-result success';
+            } catch (error) {
+                resultEl.textContent = `❌ ${error.message}`;
+                resultEl.className = 'test-result error';
+            }
+        }
+    </script>
+    <script>
+        // UI Functions
+        function toggleRound(roundNum) {
+            const panel = document.getElementById(`round${roundNum}`);
+            panel.classList.toggle('expanded');
+        }
+
+        function updateProgress(roundNum, status) {
+            const steps = document.querySelectorAll('.progress-step');
+            steps.forEach((step, idx) => {
+                const stepRound = idx + 1;
+                step.classList.remove('active', 'completed');
+                if (stepRound < roundNum) {
+                    step.classList.add('completed');
+                } else if (stepRound === roundNum) {
+                    step.classList.add('active');
+                }
+            });
+
+            // Update round status
+            for (let i = 1; i <= 3; i++) {
+                const statusEl = document.getElementById(`round${i}Status`);
+                if (i < roundNum) {
+                    statusEl.textContent = '已完成';
+                    statusEl.style.background = 'var(--success)';
+                    statusEl.style.color = 'white';
+                } else if (i === roundNum) {
+                    statusEl.textContent = status || '进行中';
+                    statusEl.style.background = 'var(--primary)';
+                    statusEl.style.color = 'white';
+                } else {
+                    statusEl.textContent = `等待第${i-1}轮`;
+                    statusEl.style.background = 'var(--bg-input)';
+                    statusEl.style.color = 'var(--text-muted)';
+                }
+            }
+        }
+
+        // Start meeting
+        async function startMeeting() {
+            const material = document.getElementById('materialInput').value.trim();
+            if (!material) {
+                alert('请输入素材内容');
+                return;
+            }
+
+            // Check API Key using new getProviderKey method
+            const providerId = document.getElementById('aiProvider').value;
+            let apiKey = getProviderKey(providerId);
+
+            // Fallback for custom provider
+            if (!apiKey && providerId === 'custom') {
+                apiKey = document.getElementById('manualApiKey')?.value?.trim() || '';
+            }
+
+            if (!apiKey) {
+                alert(`请先配置 ${AI_PROVIDERS[providerId]?.name || 'AI'} 的 API Key（点击右上角齿轮图标）`);
+                return;
+            }
+
+            state.material = material;
+            state.meetingTopic = document.getElementById('meetingTopic').value.trim();
+            state.currentRound = 1;
+            state.isRunning = true;
+
+            document.getElementById('startBtn').disabled = true;
+            document.getElementById('startBtn').textContent = '🔄 会议进行中...';
+
+            // Expand round 1
+            document.getElementById('round1').classList.add('expanded');
+            updateProgress(1, '进行中');
+
+            await runRound(1);
+
+            updateProgress(1, '已完成');
+            document.getElementById('round1Status').textContent = '已完成';
+
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('nextRoundBtn').style.display = 'inline-block';
+            state.isRunning = false;
+        }
+
+        // Next round
+        async function nextRound() {
+            if (state.currentRound >= 3) return;
+
+            state.currentRound++;
+            state.isRunning = true;
+
+            document.getElementById('nextRoundBtn').disabled = true;
+            document.getElementById('nextRoundBtn').textContent = '🔄 进行中...';
+
+            // Expand current round
+            document.getElementById(`round${state.currentRound}`).classList.add('expanded');
+            updateProgress(state.currentRound, '进行中');
+
+            await runRound(state.currentRound);
+
+            updateProgress(state.currentRound, '已完成');
+
+            if (state.currentRound >= 3) {
+                document.getElementById('nextRoundBtn').style.display = 'none';
+                document.getElementById('exportSection').style.display = 'block';
+                saveMeeting();
+            } else {
+                document.getElementById('nextRoundBtn').disabled = false;
+                document.getElementById('nextRoundBtn').textContent = '➡️ 下一轮';
+            }
+
+            state.isRunning = false;
+        }
+
+        // Copy advisor output
+        function copyAdvisor(advisorId) {
+            const content = state.outputs[advisorId];
+            if (content) {
+                navigator.clipboard.writeText(content);
+                alert('已复制到剪贴板');
+            }
+        }
+
+        // Input tabs
+        function setupInputTabs() {
+            const tabs = document.querySelectorAll('.input-tab');
+            tabs.forEach(tab => {
+                tab.addEventListener('click', () => {
+                    tabs.forEach(t => t.classList.remove('active'));
+                    tab.classList.add('active');
+
+                    const tabType = tab.dataset.tab;
+                    document.getElementById('materialInput').style.display = tabType === 'text' ? 'block' : 'none';
+                    document.getElementById('fileDrop').classList.toggle('active', tabType === 'file');
+                    document.getElementById('urlInput').classList.toggle('active', tabType === 'url');
+                });
+            });
+        }
+    </script>
+    <script>
+        // Follow-up functionality
+        function openFollowUp(advisorId) {
+            if (!state.outputs[advisorId]) {
+                alert('请先等待该顾问发言完成');
+                return;
+            }
+
+            state.currentAdvisor = advisorId;
+            const advisor = ADVISORS[advisorId];
+
+            document.getElementById('followUpTitle').textContent = `追问 ${advisor.name} · ${advisor.title}`;
+            document.getElementById('followUpHistory').innerHTML = '';
+            document.getElementById('followUpQuestion').value = '';
+
+            // Show previous follow-ups
+            if (state.followUps[advisorId]) {
+                state.followUps[advisorId].forEach(item => {
+                    addFollowUpItem(item.role, item.content);
+                });
+            }
+
+            document.getElementById('followUpModal').classList.add('active');
+        }
+
+        function closeFollowUp() {
+            document.getElementById('followUpModal').classList.remove('active');
+            state.currentAdvisor = null;
+        }
+
+        function addFollowUpItem(role, content) {
+            const historyEl = document.getElementById('followUpHistory');
+            const item = document.createElement('div');
+            item.className = `followup-item ${role}`;
+            item.innerHTML = `<strong>${role === 'user' ? '你' : ADVISORS[state.currentAdvisor].name}:</strong><br>${content}`;
+            historyEl.appendChild(item);
+            historyEl.scrollTop = historyEl.scrollHeight;
+        }
+
+        async function sendFollowUp() {
+            const question = document.getElementById('followUpQuestion').value.trim();
+            if (!question) return;
+
+            const advisorId = state.currentAdvisor;
+            if (!state.followUps[advisorId]) {
+                state.followUps[advisorId] = [];
+            }
+
+            state.followUps[advisorId].push({ role: 'user', content: question });
+            addFollowUpItem('user', question);
+            document.getElementById('followUpQuestion').value = '';
+
+            // Build follow-up prompt
+            const prompt = PROMPTS[advisorId];
+            const previousOutput = state.outputs[advisorId];
+            const followUpHistory = state.followUps[advisorId]
+                .map(item => `${item.role === 'user' ? '用户追问' : '顾问回答'}: ${item.content}`)
+                .join('\n\n');
+
+            try {
+                const provider = document.getElementById('aiProvider').value;
+                const model = document.getElementById('aiModel').value;
+                const apiKey = document.getElementById('apiKey').value;
+                const config = AI_PROVIDERS[provider];
+
+                const systemPrompt = prompt.role;
+                const userPrompt = `## 之前的分析\n${previousOutput}\n\n## 追问历史\n${followUpHistory}\n\n请针对用户的最新追问进行回答，保持你的角色特点。`;
+
+                let response;
+                if (provider === 'anthropic') {
+                    const res = await fetch(config.baseUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'x-api-key': apiKey,
+                            'anthropic-version': '2023-06-01',
+                            'anthropic-dangerous-direct-browser-access': 'true'
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            max_tokens: 2048,
+                            system: systemPrompt,
+                            messages: [{ role: 'user', content: userPrompt }]
+                        })
+                    });
+                    const data = await res.json();
+                    response = data.content[0].text;
+                } else {
+                    const res = await fetch(config.baseUrl, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                            'Authorization': `Bearer ${apiKey}`
+                        },
+                        body: JSON.stringify({
+                            model: model,
+                            messages: [
+                                { role: 'system', content: systemPrompt },
+                                { role: 'user', content: userPrompt }
+                            ],
+                            max_tokens: 2048
+                        })
+                    });
+                    const data = await res.json();
+                    response = data.choices[0].message.content;
+                }
+
+                state.followUps[advisorId].push({ role: 'assistant', content: response });
+                addFollowUpItem('assistant', formatMarkdown(response));
+            } catch (error) {
+                addFollowUpItem('assistant', `错误: ${error.message}`);
+            }
+        }
+    </script>
+    <script>
+        // History management
+        function saveMeeting() {
+            const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
+            const meeting = {
+                id: Date.now(),
+                topic: state.meetingTopic || '未命名会议',
+                date: new Date().toLocaleString('zh-CN'),
+                material: state.material.substring(0, 200) + '...',
+                outputs: state.outputs,
+                followUps: state.followUps
+            };
+
+            meetings.unshift(meeting);
+            if (meetings.length > 10) meetings.pop();
+            localStorage.setItem('meetings', JSON.stringify(meetings));
+            loadHistory();
+        }
+
+        function loadHistory() {
+            const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
+            const listEl = document.getElementById('historyList');
+
+            if (meetings.length === 0) {
+                listEl.innerHTML = '<p style="color: var(--text-muted); font-size: 0.9rem;">暂无历史会议</p>';
+                return;
+            }
+
+            listEl.innerHTML = meetings.map(m => `
+                <div class="history-item" onclick="loadMeeting(${m.id})">
+                    <div class="title">${m.topic}</div>
+                    <div class="date">${m.date}</div>
+                </div>
+            `).join('');
+        }
+
+        function loadMeeting(id) {
+            const meetings = JSON.parse(localStorage.getItem('meetings') || '[]');
+            const meeting = meetings.find(m => m.id === id);
+            if (!meeting) return;
+
+            state.meetingTopic = meeting.topic;
+            state.outputs = meeting.outputs;
+            state.followUps = meeting.followUps || {};
+            state.currentRound = 3;
+
+            document.getElementById('meetingTopic').value = meeting.topic;
+
+            // Display outputs
+            Object.entries(meeting.outputs).forEach(([advisorId, content]) => {
+                const outputEl = document.getElementById(`${advisorId}Output`);
+                if (outputEl) {
+                    outputEl.innerHTML = `<div class="content">${formatMarkdown(content)}</div>`;
+                }
+            });
+
+            // Expand all rounds
+            for (let i = 1; i <= 3; i++) {
+                document.getElementById(`round${i}`).classList.add('expanded');
+            }
+
+            updateProgress(4, '已完成');
+            document.getElementById('startBtn').style.display = 'none';
+            document.getElementById('exportSection').style.display = 'block';
+            toggleHistory();
+        }
+
+        function toggleHistory() {
+            document.getElementById('historyPanel').classList.toggle('open');
+        }
+    </script>
+    <script>
+        // Export functions
+        function exportMarkdown() {
+            const topic = state.meetingTopic || '未命名会议';
+            const date = new Date().toLocaleString('zh-CN');
+
+            let md = `# 智囊团会议纪要\n\n`;
+            md += `**会议主题**: ${topic}\n`;
+            md += `**会议时间**: ${date}\n\n`;
+            md += `---\n\n`;
+
+            const rounds = [
+                { num: 1, name: '第一轮：定义问题', advisors: ['system', 'strategy'] },
+                { num: 2, name: '第二轮：制定方案', advisors: ['action', 'leverage', 'persona'] },
+                { num: 3, name: '第三轮：压力测试', advisors: ['assumption', 'debate', 'contrarian'] }
+            ];
+
+            rounds.forEach(round => {
+                md += `## ${round.name}\n\n`;
+                round.advisors.forEach(advisorId => {
+                    const advisor = ADVISORS[advisorId];
+                    const content = state.outputs[advisorId];
+                    if (content) {
+                        md += `### ${advisor.name} · ${advisor.title}\n\n`;
+                        md += content + '\n\n';
+                    }
+                });
+            });
+
+            md += `---\n\n*由全维深度解析 v2 生成*`;
+
+            downloadFile(`会议纪要_${topic}_${date.replace(/[/:]/g, '-')}.md`, md);
+        }
+
+        function exportJSON() {
+            const data = {
+                topic: state.meetingTopic,
+                date: new Date().toISOString(),
+                outputs: state.outputs,
+                followUps: state.followUps
+            };
+
+            downloadFile(`会议数据_${state.meetingTopic || '未命名'}.json`, JSON.stringify(data, null, 2));
+        }
+
+        function copyAll() {
+            const allContent = Object.entries(state.outputs)
+                .map(([id, content]) => {
+                    const advisor = ADVISORS[id];
+                    return `## ${advisor.name} · ${advisor.title}\n\n${content}`;
+                })
+                .join('\n\n---\n\n');
+
+            navigator.clipboard.writeText(allContent);
+            alert('已复制全部内容到剪贴板');
+        }
+
+        function downloadFile(filename, content) {
+            const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = filename;
+            a.click();
+            URL.revokeObjectURL(url);
+        }
+    </script>
+    <script>
+        // Toggle settings panel
+        function toggleSettings() {
+            const panel = document.getElementById('settingsPanel');
+            const btn = document.querySelector('.settings-toggle');
+            panel.classList.toggle('hidden');
+            btn.classList.toggle('active');
+        }
+
+        // Provider change handler
+        function onProviderChange() {
+            const providerId = document.getElementById('aiProvider').value;
+            const provider = AI_PROVIDERS[providerId];
+            const modelSelect = document.getElementById('aiModel');
+            const customConfig = document.getElementById('customProviderConfig');
+
+            // Update model options
+            modelSelect.innerHTML = '';
+            if (provider && provider.models && provider.models.length > 0) {
+                provider.models.forEach(model => {
+                    const option = document.createElement('option');
+                    option.value = model;
+                    option.textContent = model;
+                    if (model === provider.defaultModel) option.selected = true;
+                    modelSelect.appendChild(option);
+                });
+            }
+
+            // Show/hide custom config
+            if (providerId === 'custom') {
+                customConfig.classList.remove('hidden');
+            } else {
+                customConfig.classList.add('hidden');
+            }
+
+            // Update key status
+            updateKeyStatus();
+        }
+
+        // Update key status display
+        function updateKeyStatus() {
+            const providerId = document.getElementById('aiProvider').value;
+            const status = getKeyStatus(providerId);
+            const statusEl = document.getElementById('keyStatus');
+            const dot = statusEl.querySelector('.status-dot');
+            const text = statusEl.querySelector('.status-text');
+
+            if (status.hasKey) {
+                dot.className = 'status-dot connected';
+                text.textContent = status.source === 'key-manager' ? '已从 Key Manager 读取' : '已手动输入';
+            } else {
+                dot.className = 'status-dot disconnected';
+                text.textContent = '未配置';
+            }
+        }
+
+        // File handling
+        function setupFileHandling() {
+            const fileDrop = document.getElementById('fileDrop');
+            const fileInput = document.getElementById('fileInput');
+
+            fileDrop.addEventListener('click', () => fileInput.click());
+
+            fileDrop.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                fileDrop.style.borderColor = 'var(--primary)';
+            });
+
+            fileDrop.addEventListener('dragleave', () => {
+                fileDrop.style.borderColor = 'var(--border)';
+            });
+
+            fileDrop.addEventListener('drop', (e) => {
+                e.preventDefault();
+                fileDrop.style.borderColor = 'var(--border)';
+                const file = e.dataTransfer.files[0];
+                if (file) handleFile(file);
+            });
+
+            fileInput.addEventListener('change', (e) => {
+                const file = e.target.files[0];
+                if (file) handleFile(file);
+            });
+        }
+
+        async function handleFile(file) {
+            const ext = file.name.split('.').pop().toLowerCase();
+
+            if (ext === 'txt' || ext === 'md') {
+                const text = await file.text();
+                document.getElementById('materialInput').value = text;
+                document.querySelector('[data-tab="text"]').click();
+            } else if (ext === 'pdf') {
+                await handlePdfFile(file);
+            }
+        }
+
+        // PDF parsing using PDF.js
+        async function handlePdfFile(file) {
+            const fileDrop = document.getElementById('fileDrop');
+            const originalText = fileDrop.innerHTML;
+
+            try {
+                fileDrop.innerHTML = '<p>📄 正在解析 PDF...</p>';
+
+                // Set worker path
+                pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+                // Read file as ArrayBuffer
+                const arrayBuffer = await file.arrayBuffer();
+
+                // Load PDF document
+                const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+                const totalPages = pdf.numPages;
+                let fullText = '';
+
+                fileDrop.innerHTML = `<p>📄 正在提取文本 (0/${totalPages} 页)...</p>`;
+
+                // Extract text from each page
+                for (let i = 1; i <= totalPages; i++) {
+                    const page = await pdf.getPage(i);
+                    const textContent = await page.getTextContent();
+                    const pageText = textContent.items.map(item => item.str).join(' ');
+                    fullText += pageText + '\n\n';
+
+                    fileDrop.innerHTML = `<p>📄 正在提取文本 (${i}/${totalPages} 页)...</p>`;
+                }
+
+                // Set the extracted text
+                document.getElementById('materialInput').value = fullText.trim();
+                document.querySelector('[data-tab="text"]').click();
+
+                fileDrop.innerHTML = originalText;
+                alert(`✅ PDF 解析完成！共 ${totalPages} 页，已提取文本内容。`);
+
+            } catch (error) {
+                console.error('PDF parsing error:', error);
+                fileDrop.innerHTML = originalText;
+                alert('❌ PDF 解析失败：' + error.message);
+            }
+        }
+
+        async function fetchUrl() {
+            const url = document.getElementById('urlField').value.trim();
+            if (!url) return;
+
+            alert('URL 抓取功能开发中，请先复制网页内容');
+        }
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', () => {
+            onProviderChange();  // Initialize provider, models, and key status
+            setupInputTabs();
+            setupFileHandling();
+            loadHistory();
+
+            // Enter key for follow-up
+            const followUpEl = document.getElementById('followUpQuestion');
+            if (followUpEl) {
+                followUpEl.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        sendFollowUp();
+                    }
+                });
+            }
+        });
+    </script>
+        <!-- Footer -->
+        <footer class="footer">
+            <p>全维深度解析 v2 - 虚拟智囊团会议</p>
+            <p style="margin-top: 8px;">基于 8 位 AI 顾问的多维度分析框架 | 数据仅存储在本地浏览器</p>
+        </footer>
+    </div>
+</body>
+</html>
