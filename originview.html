@@ -2766,10 +2766,13 @@
 
       if (modelSelect && settings.provider) {
         const provider = AI_PROVIDERS[settings.provider];
-        if (provider) {
-          modelSelect.innerHTML = provider.models.map(m =>
-            `<option value="${m}" ${settings.model === m ? 'selected' : ''}>${m}</option>`
-          ).join('');
+        if (provider && provider.models) {
+          modelSelect.innerHTML = provider.models.map(m => {
+            // 兼容两种格式：对象 {id, name} 或字符串
+            const modelId = typeof m === 'object' ? m.id : m;
+            const modelName = typeof m === 'object' ? m.name : m;
+            return `<option value="${modelId}" ${settings.model === modelId ? 'selected' : ''}>${modelName}</option>`;
+          }).join('');
         }
       }
 
@@ -4616,9 +4619,12 @@
       const modelSelect = document.getElementById('ai-model');
       if (provider && modelSelect && AI_PROVIDERS[provider]) {
         const p = AI_PROVIDERS[provider];
-        modelSelect.innerHTML = p.models.map(m =>
-          `<option value="${m}">${m}</option>`
-        ).join('');
+        modelSelect.innerHTML = p.models.map(m => {
+          // 兼容两种格式：对象 {id, name} 或字符串
+          const modelId = typeof m === 'object' ? m.id : m;
+          const modelName = typeof m === 'object' ? m.name : m;
+          return `<option value="${modelId}">${modelName}</option>`;
+        }).join('');
       }
       // 更新 Key 状态显示
       updateKeyStatusDisplay();
