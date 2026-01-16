@@ -1014,8 +1014,22 @@
       </div>
 
       <div class="modal-body space-y-4">
+        <!-- AI_PROVIDERS 未配置提示 -->
+        <div id="ai-config-warning" class="hidden p-4 rounded-lg bg-warning/10 border border-warning/30">
+          <div class="flex items-start gap-3">
+            <span class="text-2xl">⚠️</span>
+            <div>
+              <p class="font-medium text-warning">AI 配置未初始化</p>
+              <p class="text-sm text-muted mt-1">请先访问 Key Manager 完成初始化配置</p>
+              <a href="../key-manager.html" target="_blank" class="inline-block mt-2 text-sm text-accent hover:underline">
+                打开 Key Manager →
+              </a>
+            </div>
+          </div>
+        </div>
+
         <!-- AI 服务商选择 -->
-        <div>
+        <div id="ai-provider-section">
           <label class="block text-sm font-medium text-secondary mb-2">AI 服务商</label>
           <select id="ai-provider" onchange="onProviderChange()" class="input">
             <!-- 由 JS 动态渲染 -->
@@ -1097,65 +1111,25 @@
     // 配置数据
     // ========================================
 
-    // AI 服务商配置（从 ai-providers.md 复制）
-    const AI_PROVIDERS = {
-      siliconflow: {
-        name: '硅基流动 (SiliconFlow)',
-        keyName: 'siliconflow_key',
-        endpoint: 'https://api.siliconflow.cn/v1/chat/completions',
-        models: [
-          'Pro/zai-org/GLM-4.7',
-          'Pro/moonshotai/Kimi-K2-Thinking',
-          'Qwen/Qwen3-VL-32B-Thinking',
-          'Qwen/Qwen2.5-7B-Instruct',
-          'deepseek-ai/DeepSeek-V3'
-        ],
-        defaultModel: 'Pro/zai-org/GLM-4.7'
-      },
-      openrouter: {
-        name: '开放路由 (OpenRouter)',
-        keyName: 'openrouter_key',
-        endpoint: 'https://openrouter.ai/api/v1/chat/completions',
-        models: [
-          'anthropic/claude-opus-4.5',
-          'openai/gpt-5.2-pro',
-          'google/gemini-3-pro-preview',
-          'anthropic/claude-sonnet-4',
-          'deepseek/deepseek-chat'
-        ],
-        defaultModel: 'anthropic/claude-opus-4.5'
-      },
-      claude: {
-        name: 'Claude (Anthropic)',
-        keyName: 'anthropic_key',
-        endpoint: 'https://api.anthropic.com/v1/messages',
-        models: [
-          'claude-opus-4-5-20251101-thinking',
-          'claude-sonnet-4-20250514',
-          'claude-opus-4-20250514',
-          'claude-3-5-sonnet-20241022'
-        ],
-        defaultModel: 'claude-opus-4-5-20251101-thinking',
-        isAnthropic: true
-      },
-      deepseek: {
-        name: 'DeepSeek',
-        keyName: 'deepseek_key',
-        endpoint: 'https://api.deepseek.com/v1/chat/completions',
-        models: [
-          'deepseek-chat',
-          'deepseek-reasoner'
-        ],
-        defaultModel: 'deepseek-chat'
-      },
-      custom: {
-        name: '自定义服务商',
-        keyName: 'custom_key',
-        endpoint: '',
-        models: [],
-        defaultModel: ''
+    // AI 服务商配置（从 Key Manager 运行时同步）
+    const AI_PROVIDERS = (function() {
+      const saved = localStorage.getItem('ai_providers_config');
+      if (saved) {
+        try {
+          return JSON.parse(saved);
+        } catch {}
       }
-    };
+      return null; // 返回 null 表示未配置，需要先访问 Key Manager
+    })();
+
+    // 检查 AI_PROVIDERS 是否已配置
+    function checkAIProvidersConfig() {
+      if (!AI_PROVIDERS) {
+        showToast('请先访问 Key Manager 完成配置', 'warning');
+        return false;
+      }
+      return true;
+    }
 
     const ALLOWED_DOMAINS = [
       "api.siliconflow.cn",
@@ -1438,10 +1412,12 @@
         const data = localStorage.getItem(STORAGE_KEYS.SETTINGS);
         if (data) {
           const settings = JSON.parse(data);
-          // 优先从 Key Manager 读取 API Key
-          const keyFromManager = KEY_MANAGER.getApiKey(settings.provider);
-          if (keyFromManager) {
-            settings.apiKey = keyFromManager;
+          // 优先从 Key Manager 读取 API Key（需要 AI_PROVIDERS 已配置）
+          if (AI_PROVIDERS) {
+            const keyFromManager = KEY_MANAGER.getApiKey(settings.provider);
+            if (keyFromManager) {
+              settings.apiKey = keyFromManager;
+            }
           }
           return settings;
         }
@@ -1452,8 +1428,8 @@
       const defaultProvider = 'siliconflow';
       return {
         provider: defaultProvider,
-        apiKey: KEY_MANAGER.getApiKey(defaultProvider),
-        model: AI_PROVIDERS.siliconflow.defaultModel,
+        apiKey: AI_PROVIDERS ? KEY_MANAGER.getApiKey(defaultProvider) : '',
+        model: AI_PROVIDERS?.siliconflow?.defaultModel || '',
         theme: 'dark'
       };
     }
@@ -2192,6 +2168,12 @@
     async function submitToAI() {
       if (STATE.isLoading) return;
 
+      // 检查 AI_PROVIDERS 是否已配置
+      if (!checkAIProvidersConfig()) {
+        showSettingsModal();
+        return;
+      }
+
       const mode = MODES[STATE.currentMode];
       if (!mode) {
         showToast('请先选择一个场景', 'warning');
@@ -2760,6 +2742,21 @@
       const providerSelect = document.getElementById('ai-provider');
       const modelSelect = document.getElementById('ai-model');
       const apiKeyInput = document.getElementById('api-key');
+      const configWarning = document.getElementById('ai-config-warning');
+      const providerSection = document.getElementById('ai-provider-section');
+
+      // 检查 AI_PROVIDERS 是否已配置
+      if (!AI_PROVIDERS) {
+        if (configWarning) configWarning.classList.remove('hidden');
+        if (providerSection) providerSection.classList.add('hidden');
+        if (providerSelect) providerSelect.innerHTML = '';
+        if (modelSelect) modelSelect.innerHTML = '';
+        return;
+      }
+
+      // AI_PROVIDERS 已配置，隐藏警告
+      if (configWarning) configWarning.classList.add('hidden');
+      if (providerSection) providerSection.classList.remove('hidden');
 
       if (providerSelect) {
         providerSelect.innerHTML = Object.entries(AI_PROVIDERS).map(([id, p]) =>
@@ -2769,9 +2766,11 @@
 
       if (modelSelect && settings.provider) {
         const provider = AI_PROVIDERS[settings.provider];
-        modelSelect.innerHTML = provider.models.map(m =>
-          `<option value="${m.id}" ${settings.model === m.id ? 'selected' : ''}>${m.name}</option>`
-        ).join('');
+        if (provider) {
+          modelSelect.innerHTML = provider.models.map(m =>
+            `<option value="${m}" ${settings.model === m ? 'selected' : ''}>${m}</option>`
+          ).join('');
+        }
       }
 
       if (apiKeyInput) {
@@ -4594,16 +4593,25 @@
 
     // 更新 Key 状态显示
     function updateKeyStatusDisplay() {
+      const statusEl = document.getElementById('key-status-text');
+      if (!statusEl) return;
+
+      // 检查 AI_PROVIDERS 是否已配置
+      if (!AI_PROVIDERS) {
+        statusEl.textContent = '⚠️ 请先访问 Key Manager 初始化配置';
+        return;
+      }
+
       const provider = document.getElementById('ai-provider')?.value || 'siliconflow';
       const status = KEY_MANAGER.getKeyStatus(provider);
-      const statusEl = document.getElementById('key-status-text');
-      if (statusEl) {
-        statusEl.textContent = status.text + (status.hint ? ` (${status.hint})` : '');
-      }
+      statusEl.textContent = status.text + (status.hint ? ` (${status.hint})` : '');
     }
 
     // 服务商变更
     function onProviderChange() {
+      // 检查 AI_PROVIDERS 是否已配置
+      if (!AI_PROVIDERS) return;
+
       const provider = document.getElementById('ai-provider')?.value;
       const modelSelect = document.getElementById('ai-model');
       if (provider && modelSelect && AI_PROVIDERS[provider]) {
