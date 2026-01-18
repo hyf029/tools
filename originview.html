@@ -1429,7 +1429,7 @@
       return {
         provider: defaultProvider,
         apiKey: AI_PROVIDERS ? KEY_MANAGER.getApiKey(defaultProvider) : '',
-        model: AI_PROVIDERS?.siliconflow?.defaultModel || '',
+        model: AI_PROVIDERS?.siliconflow?.models?.[0]?.id || '',
         theme: 'dark'
       };
     }
@@ -2207,7 +2207,7 @@
 
         // 调用 AI
         const provider = AI_PROVIDERS[settings.provider];
-        if (provider.isAnthropic) {
+        if (settings.provider === 'claude') {
           await callAnthropicAPI(provider, settings, systemPrompt, userPrompt);
         } else {
           await callOpenAICompatibleAPI(provider, settings, systemPrompt, userPrompt);
@@ -2264,7 +2264,8 @@
 
     // 调用 OpenAI 兼容 API
     async function callOpenAICompatibleAPI(provider, settings, systemPrompt, userPrompt) {
-      const response = await fetch(provider.endpoint, {
+      const endpoint = provider.baseUrl + '/chat/completions';
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -2290,7 +2291,8 @@
 
     // 调用 Anthropic API
     async function callAnthropicAPI(provider, settings, systemPrompt, userPrompt) {
-      const response = await fetch(provider.endpoint, {
+      const endpoint = provider.baseUrl + '/messages';
+      const response = await fetch(endpoint, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
